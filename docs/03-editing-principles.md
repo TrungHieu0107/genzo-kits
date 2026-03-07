@@ -1,0 +1,13 @@
+# Editing Principles
+
+- **Documentation**: Every time there is a request to change code in Genzo-Kit, ALL 8 files in \`docs/\` MUST be completely updated.
+- **Workflow Policies**:
+  - New features must follow \`05-workflow-new-feature.md\`.
+  - Bug fixes must follow \`06-workflow-fix-bug.md\`.
+  - Global rules are enforced by \`07-core-development-rules.md\`.
+  - Testing is required by \`08-workflow-test-application.md\`.
+- **Modularity**: Never break existing tools when adding a new one. All tools must reside in \`src/tools/\`. Each tool is strictly isolated and only registered inside \`src/tools/index.ts\`.
+- **UI Constraints**: Always rely on TailwindCSS for styling and ensure dark mode adherence. 
+- **Executable**: Final build target is ALWAYS \`genzo-kit.exe\`.
+
+**Test Status**: Full feature test passed on March 07, 2026 (including Note Editor).

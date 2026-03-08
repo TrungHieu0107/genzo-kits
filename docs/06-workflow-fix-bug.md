@@ -26,5 +26,5 @@
 
 When the user asks to "fix a bug", automatically apply this workflow and reply: "Done using Workflow 06".
 
-**Test Status**: Full feature- **Status**: Tested on March 08, 2026
- (including Text Comparator Highlight Refinements).
+**Test Status**: Full feature- **Status**: Tested on March 08, 2026 (including SQL Filtering System & BUG-8)
+ (including SQL Dialect, Parameters, Identity & Formatting fixes).

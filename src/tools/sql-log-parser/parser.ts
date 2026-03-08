@@ -5,6 +5,8 @@ export interface LogEntry {
   sql?: string;
   paramsString?: string;
   reconstructedSql?: string;
+  timestamp?: string;
+  logIndex: number; // Global index for stable sorting
 }
 
 export interface DaoSession {
@@ -15,110 +17,149 @@ export interface DaoSession {
 
 export function parseSqlLogs(logContent: string): DaoSession[] {
   const sessions: DaoSession[] = [];
-  let currentSessions: Record<string, DaoSession> = {}; // threadName -> DaoSession
+  const threadStacks: Record<string, DaoSession[]> = {}; // threadName -> array of DaoSession (stack)
 
   // Split log by standard log timestamp to get full multiline entries
-  // e.g. "2026/01/29 19:16:13,INFO,..."
   const entryRegex = /(^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2},.*?)(?=^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2},|\z)/gms;
   
   let match;
+  let logIndexCount = 0;
   while ((match = entryRegex.exec(logContent)) !== null) {
     const rawEntry = match[1].trim();
     if (!rawEntry) continue;
 
+    const currentLogIndex = logIndexCount++;
+    // Extract Timestamp
+    const timeMatch = rawEntry.match(/^(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2})/);
+    const timestamp = timeMatch ? timeMatch[1] : '';
+
     // 1. Check for DAO Start
-    // Example: InvokeDao ,Daoの開始jp.co.vinculumjapan.swc.commons.resorces.SystemNamePropertyDao threadName=main
-    const startDaoMatch = rawEntry.match(/InvokeDao.*?([\w.]+Dao)\s+threadName=([\w-]+)/i) || 
-                          rawEntry.match(/Daoの開始.*?([\w.]+Dao)\s+threadName=([\w-]+)/i);
+    // Use \w. and support various prefix styles (with or without spaces/commas)
+    const startDaoMatch = rawEntry.match(/(?:InvokeDao)?.*?,?Daoの開始\s*([\w.]+)/i);
     if (startDaoMatch) {
       const fullDaoName = startDaoMatch[1];
       const daoName = fullDaoName.split('.').pop() || fullDaoName;
-      const threadName = startDaoMatch[2];
-      currentSessions[threadName] = { daoName, threadName, logs: [] };
-      currentSessions[threadName].logs.push({ rawLog: rawEntry, type: 'info' });
+      const threadMatch = rawEntry.match(/threadName=([\w-]+)/);
+      const threadName = threadMatch ? threadMatch[1] : 'main';
+      
+      if (!threadStacks[threadName]) threadStacks[threadName] = [];
+      const newSession: DaoSession = { daoName, threadName, logs: [] };
+      newSession.logs.push({ rawLog: rawEntry, type: 'info', timestamp, logIndex: currentLogIndex });
+      threadStacks[threadName].push(newSession); // Push new session to stack
       continue;
     }
 
-    // Identify thread string from the log to group it (often we don't have it on every line, but let's assume single thread or we just append to the most recently active session if threadName isn't clear)
-    // If there is no thread mapping, we just put it in a "Global" session if we wanted, but the prompt says: "All logs... between InvokeDao and endSession for the same thread"
-    // For simplicity, if we find a threadName=... we use it. If not, we append to the first open session (or last active).
-    let targetThread = Object.keys(currentSessions)[0];
+    // Determine target thread
+    let targetThread: string | null = null;
     const threadNameMatch = rawEntry.match(/threadName=([\w-]+)/);
-    if (threadNameMatch && currentSessions[threadNameMatch[1]]) {
+    
+    // Prefer explicitly named thread if it has an active session
+    if (threadNameMatch && threadStacks[threadNameMatch[1]] && threadStacks[threadNameMatch[1]].length > 0) {
       targetThread = threadNameMatch[1];
+    } else {
+      // Fallback: pick the first thread that has an active session (exclude unknown if possible)
+      const activeThreads = Object.keys(threadStacks).filter(k => threadStacks[k].length > 0 && k !== 'unknown');
+      if (activeThreads.length > 0) {
+        targetThread = activeThreads[0];
+      } else if (threadStacks['unknown'] && threadStacks['unknown'].length > 0) {
+        targetThread = 'unknown';
+      }
     }
 
     // 2. Check for DAO End
-    const endDaoMatch = rawEntry.match(/endSession.*threadName=([\w-]+)/i) || 
-                        rawEntry.match(/Daoのセッションを終了します.*threadName=([\w-]+)/i);
-    if (endDaoMatch) {
-      const threadName = endDaoMatch[1];
-      if (currentSessions[threadName]) {
-        currentSessions[threadName].logs.push({ rawLog: rawEntry, type: 'info' });
-        sessions.push(currentSessions[threadName]);
-        delete currentSessions[threadName];
+    const isDaoEnd = rawEntry.match(/Daoの終了\s*([\w.]+)/i);
+    const isSessionEnd = /(?:endSession|Daoのセッションを終了します)/i.test(rawEntry);
+    
+    if (isDaoEnd || isSessionEnd) {
+      let threadToPop = targetThread;
+      if (threadNameMatch && threadStacks[threadNameMatch[1]] && threadStacks[threadNameMatch[1]].length > 0) {
+        threadToPop = threadNameMatch[1];
+      }
+      
+      if (threadToPop && threadStacks[threadToPop] && threadStacks[threadToPop].length > 0) {
+        const finishedSession = threadStacks[threadToPop].pop()!;
+        finishedSession.logs.push({ rawLog: rawEntry, type: 'info', timestamp, logIndex: currentLogIndex });
+        sessions.push(finishedSession);
       }
       continue;
     }
 
     // 3. Process SQL and Params
-    let logEntry: LogEntry = { rawLog: rawEntry, type: 'other' };
+    let logEntry: LogEntry = { rawLog: rawEntry, type: 'other', timestamp, logIndex: currentLogIndex };
 
-    // Find sql=...
-    const sqlMatch = rawEntry.match(/id=([a-zA-Z0-9_-]+)\s+sql=([\s\S]*)/i);
-    if (sqlMatch) {
-      logEntry.type = 'sql';
-      logEntry.id = sqlMatch[1];
-      logEntry.sql = sqlMatch[2].trim();
-    } else {
-      // Find params=...
-      const paramsMatch = rawEntry.match(/id=([a-zA-Z0-9_-]+)\s+.*?params=\[(.*)\]/i);
+    // Regex improvement: search for ID, SQL, and Params independently to handle mixed lines
+    const idMatch = rawEntry.match(/id=([a-zA-Z0-9_-]+)/i);
+    const sqlMatch = rawEntry.match(/sql=([\s\S]*)/i);
+    const paramsMatch = rawEntry.match(/params=\s*(\[[\s\S]*\]|.*)/is);
+
+    if (idMatch) {
+      logEntry.id = idMatch[1].trim().toLowerCase();
+      
+      if (sqlMatch) {
+        logEntry.type = 'sql';
+        logEntry.sql = sqlMatch[1].trim();
+      }
+      
       if (paramsMatch) {
         logEntry.type = 'sql';
-        logEntry.id = paramsMatch[1];
-        logEntry.paramsString = paramsMatch[2];
+        // If we already have sql, this log holds both. If not, it's just params.
+        logEntry.paramsString = paramsMatch[1].trim();
       }
     }
 
-    // Push to appropriate session
-    if (targetThread && currentSessions[targetThread]) {
-       currentSessions[targetThread].logs.push(logEntry);
+    // Push to appropriate session stack
+    if (targetThread && threadStacks[targetThread] && threadStacks[targetThread].length > 0) {
+       const currentSession = threadStacks[targetThread][threadStacks[targetThread].length - 1];
+       currentSession.logs.push(logEntry);
     } else {
-       // If no active DAO session, we could create an "Unknown DAO" session or ignore.
-       // Let's create an 'Unknown' to not lose data.
-       if (!currentSessions['unknown']) {
-         currentSessions['unknown'] = { daoName: 'Unknown/Global', threadName: 'unknown', logs: [] };
+       if (!threadStacks['unknown']) threadStacks['unknown'] = [];
+       if (threadStacks['unknown'].length === 0) {
+         threadStacks['unknown'].push({ daoName: 'Unknown/Global', threadName: 'unknown', logs: [] });
        }
-       currentSessions['unknown'].logs.push(logEntry);
+       threadStacks['unknown'][threadStacks['unknown'].length - 1].logs.push(logEntry);
     }
   }
 
   // Push remaining un-closed sessions
-  for (const key in currentSessions) {
-    sessions.push(currentSessions[key]);
+  for (const threadName in threadStacks) {
+    while (threadStacks[threadName].length > 0) {
+      sessions.push(threadStacks[threadName].pop()!);
+    }
   }
 
-  // SECOND PASS: Reconstruct SQL queries within each session by matching IDs
+  // SECOND PASS: Reconstruct SQL queries globally
+  const globalSqlMap = new Map<string, string>(); // id -> sql
+  const executedIds = new Set<string>(); // IDs that have at least one paramsString
+
+  // Collect mappings
   for (const session of sessions) {
-    const sqlMap = new Map<string, string>(); // id -> sql
-    const paramMap = new Map<string, string>(); // id -> paramsString
-
-    // Extract all SQLs and Params
     for (const log of session.logs) {
-      if (log.id && log.sql) sqlMap.set(log.id, log.sql);
-      if (log.id && log.paramsString) paramMap.set(log.id, log.paramsString);
+      if (log.id && log.type === 'sql') {
+         // Normalized ID normalization (redundant but safe)
+         const normId = log.id.trim().toLowerCase();
+         if (log.sql) globalSqlMap.set(normId, log.sql);
+         if (log.paramsString !== undefined) executedIds.add(normId);
+      }
     }
+  }
 
-    // Reconstruct
+  // Reconstruct correctly mapping every execute parameters log to the base sql statement
+  for (const session of sessions) {
     for (const log of session.logs) {
-      if (log.type === 'sql' && log.id && sqlMap.has(log.id)) {
-        let rawSql = sqlMap.get(log.id)!;
-        const paramStr = paramMap.get(log.id);
-
-        if (paramStr && rawSql.includes('?')) {
-          log.reconstructedSql = reconstructSql(rawSql, paramStr);
-        } else {
-          log.reconstructedSql = rawSql; // Just the raw SQL if no params
+      if (log.type === 'sql' && log.id) {
+        const normId = log.id.trim().toLowerCase();
+        const rawSql = globalSqlMap.get(normId);
+        
+        if (rawSql) {
+          if (log.paramsString !== undefined) {
+             // This is an execution log with parameters -> yield formatted full SQL
+             log.reconstructedSql = reconstructSql(rawSql, log.paramsString);
+          } else if (log.sql) {
+             // This is a prepare statement log. ALWAYS hide it from the SQL list.
+             // We ONLY want to show statements when they are executed (`params=` is present).
+             log.type = 'info'; 
+             log.reconstructedSql = undefined;
+          }
         }
       }
     }
@@ -128,22 +169,22 @@ export function parseSqlLogs(logContent: string): DaoSession[] {
 }
 
 function reconstructSql(sql: string, paramsString: string): string {
-  // Parse params string e.g. [STRING:1:VALUE1][NUMBER:2:100][NULL:3:null]
-  // The string is essentially "STRING:1:VALUE1][NUMBER:2:100" if we strip outer brackets
-  const paramItems = paramsString.split('][');
-  
+  if (!paramsString) return sql;
+
+  // Robustly parse params: split by '][' but handle potential surrounding brackets
+  const paramItems = paramsString.split(/\]\s*\[/);
   const paramDict: Record<number, string> = {};
 
   paramItems.forEach(item => {
     // Clean up potential leftover brackets
-    item = item.replace(/^\[|\]$/g, '');
+    item = item.trim().replace(/^\[|\]$/g, '');
     
-    // Split by first two colons: TYPE:INDEX:VALUE
+    // Split by colons: TYPE:INDEX:VALUE
     const parts = item.split(':');
     if (parts.length >= 3) {
-      const type = parts[0];
+      const type = parts[0].trim();
       const index = parseInt(parts[1], 10);
-      const value = parts.slice(2).join(':'); // Rejoin in case value contains colon
+      const value = parts.slice(2).join(':').trim(); // Rejoin value parts
 
       let formattedValue = value;
       if (type === 'STRING' || type === 'DATE' || type === 'TIMESTAMP') {
@@ -151,22 +192,23 @@ function reconstructSql(sql: string, paramsString: string): string {
       } else if (type === 'NULL' || value.toUpperCase() === 'NULL') {
         formattedValue = 'NULL';
       }
-      // For NUMBER, leave as is
 
-      paramDict[index] = formattedValue;
+      if (!isNaN(index)) {
+        paramDict[index] = formattedValue;
+      }
     }
   });
 
-  // Replace '?' iteratively
+  // Replace '?' iteratively using a safe non-backtracking replace
   let questionMarkCount = 0;
   let finalSql = sql.replace(/\?/g, () => {
     questionMarkCount++;
     if (paramDict[questionMarkCount] !== undefined) {
       return paramDict[questionMarkCount];
     }
-    return '?'; // fallback if not found
+    return '?';
   });
 
-  // Format SQL lightly (just replace some multiple spaces to keep it clean)
-  return finalSql.replace(/\s+/g, ' ').trim();
+  // DO NOT compress all spaces here, keep formatting but trim exterior
+  return finalSql.trim();
 }

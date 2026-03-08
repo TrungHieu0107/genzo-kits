@@ -1,7 +1,8 @@
 import { TextComparator } from "./text-comparator/TextComparator";
 import { NoteEditor } from "./note-editor/NoteEditor";
 import { Settings } from "./settings/Settings";
-import { ArrowRightLeft, FileEdit, Settings as SettingsIcon } from "lucide-react";
+import { SqlLogParser } from "./sql-log-parser";
+import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database } from "lucide-react";
 
 export interface ToolDefinition {
   id: string;
@@ -25,6 +26,13 @@ export const tools: ToolDefinition[] = [
     description: "VS Code style editor for .md and .txt files with quick local saving.",
     icon: FileEdit,
     component: NoteEditor
+  },
+  {
+    id: "sql-log-parser",
+    name: "Log SQL Extractor",
+    description: "Parse log files to find DAO sessions, reconstruct SQL queries with parameters.",
+    icon: Database,
+    component: SqlLogParser
   },
   {
     id: "settings",

@@ -41,3 +41,17 @@
 6. **Dynamic Encodings**: Bottom status bar encoding dropdown to quickly toggle and reload files in `UTF-8`, `Shift_JIS`, `Windows-1252`, and `UTF-16LE` using `encoding_rs`.
 7. **Native Context Diffing**: Integrated Context Menu actions inside the Editor ("Set as First to Compare" and "Set as Second to Compare") that pipe string data securely and cross-navigate values instantly into the Text Comparator tool.
 8. **Modern Keybindings**: `Ctrl+S` (Save), `Ctrl+W` (Close Tab), `Ctrl+N` (New Untitled File), and `Ctrl+O` (Open System Match).
+9. **Tabs Context Menu**: Right-click tabs to Pin/Unpin, Close All, or Close Others.
+
+**Log SQL Extractor** (`src/tools/sql-log-parser`):
+1. **Multi-File Library**: The left sidebar acts as a library of opened log files. Users can open multiple files and switch between them instantly.
+2. **DAO Tree Navigation**: Each log file in the sidebar expands to show its detected DAO sessions (Thread & DAO Name).
+3. **Focused SQL View**: Clean 4-column data table showing **Time**, **DAO Name**, **Reconstructed SQL Query**, and a **Copy Action**.
+4. **Encoding Selector**: Dedicated toolbar dropdown to select log encoding (Shift_JIS, UTF-8, etc.) with automatic file reload.
+5. **Session Persistence**: Automatically saves and restores all opened log files and their encodings when the application is restarted.
+6. **SQL Formatter Modal**: Clicking any query cell opens a VSCode-style modal with a full Monaco Editor (read-only, syntax-highlighted, with minimap, line numbers, and code folding). Includes a **Dialect Selector** to switch between PostgreSQL, MySQL, T-SQL, PL/SQL, etc.
+7. **Reload Feature**: Dedicated button to refresh the active log file from disk, allowing for real-time analysis as log files grow.
+8. **Robust Parsing**: Advanced regex detection for DAO sessions that handles mixed Japanese characters and complex log formats.
+9. **Multi-Condition Filtering**: Tag-based filtering system allowing users to combine (AND logic) conditions by Query Content, DAO Name, or Timestamp via a dedicated modal UI.
+
+*Tested and verified on 2026-03-08 (Added: Filtering System. Fixed: UI Pollution & ID Normalization BUG-7/8).*

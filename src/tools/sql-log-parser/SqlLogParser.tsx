@@ -1,0 +1,329 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
+import { useState, useEffect } from 'react';
+import { 
+  Database, Trash2, FolderOpen, FileText, X, Clock, Copy, Check, RefreshCw, Filter, Search as SearchIcon 
+} from 'lucide-react';
+import { useSqlLogStore } from './store';
+import { useConfigStore } from '../../components/configStore';
+import { StatusBar } from '../../components/StatusBar';
+import { SqlFormatterModal } from './SqlFormatterModal';
+import { FilterModal } from './FilterModal';
+
+export default function SqlLogParser() {
+   const { encoding, updateConfig } = useConfigStore();
+   const [copiedId, setCopiedId] = useState<string | null>(null);
+   const [selectedSql, setSelectedSql] = useState<string | null>(null);
+   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+ 
+   const { 
+     files, activeFileIndex,
+     addFile, removeFile, selectFile, updateFileContent, loadFiles, clear,
+     filters, removeFilter, clearFilters
+   } = useSqlLogStore();
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const activeFile = activeFileIndex !== null ? files[activeFileIndex] : null;
+
+  const sqlLogs = activeFile ? activeFile.sessions.flatMap(
+    sess => sess.logs.filter(l => l.type === 'sql' && l.reconstructedSql).map(l => ({ ...l, daoName: sess.daoName }))
+  ).sort((a, b) => a.logIndex - b.logIndex)
+   .filter(log => {
+      if (filters.length === 0) return true;
+      return filters.every(f => {
+        if (f.type === 'query') return log.reconstructedSql?.toLowerCase().includes(f.value.toLowerCase());
+        if (f.type === 'dao') return log.daoName.toLowerCase().includes(f.value.toLowerCase());
+        if (f.type === 'time') return log.timestamp?.includes(f.value);
+        return true;
+      });
+   })
+   : [];
+
+  useEffect(() => {
+    if (copiedId) {
+      const timer = setTimeout(() => setCopiedId(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copiedId]);
+
+  const handleCopy = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleSqlClick = (sql: string) => {
+    setSelectedSql(sql);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenFile = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: 'Log Files', extensions: ['log', 'txt'] }]
+      });
+      if (typeof selected === 'string') {
+        const response: { content: string | null; is_binary: boolean; error: string | null } = 
+          await invoke('read_file_encoded', { path: selected, encoding: encoding });
+        
+        if (response.error) {
+          console.error("Error reading log file:", response.error);
+          return;
+        }
+        
+        if (response.content) {
+          const name = selected.split(/[/\\]/).pop() || selected;
+          addFile(selected, name, response.content, encoding);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to open log file:", err);
+    }
+  };
+
+  const handleEncodingChange = async (newEncoding: string) => {
+    updateConfig({ encoding: newEncoding });
+    if (activeFile && activeFileIndex !== null) {
+      try {
+        const response: { content: string | null; is_binary: boolean; error: string | null } = 
+          await invoke('read_file_encoded', { path: activeFile.path, encoding: newEncoding });
+        
+        if (response.error) {
+          console.error("Error reloading log file:", response.error);
+          return;
+        }
+        
+        if (response.content) {
+          updateFileContent(activeFileIndex, response.content, newEncoding);
+        }
+      } catch (err) {
+        console.error("Failed to reload log file:", err);
+      }
+    }
+  };
+
+  const handleReload = async () => {
+    if (!activeFile || activeFileIndex === null) return;
+    
+    try {
+      const response: { content: string | null; is_binary: boolean; error: string | null } = 
+        await invoke('read_file_encoded', { path: activeFile.path, encoding: activeFile.encoding });
+      
+      if (response.error) {
+        console.error("Error reloading log file:", response.error);
+        return;
+      }
+      
+      if (response.content) {
+        updateFileContent(activeFileIndex, response.content, activeFile.encoding);
+      }
+    } catch (err) {
+      console.error("Failed to reload log file:", err);
+    }
+  };
+
+  return (
+    <div className="flex w-full h-full bg-[#1E1E1E] text-[#CCCCCC] font-sans overflow-hidden flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar: Log Files & DAO Sessions */}
+        <div className="w-[300px] flex-shrink-0 bg-[#252526] border-r border-[#1E1E1E] flex flex-col">
+          <div className="h-[35px] flex items-center px-4 font-bold text-xs uppercase text-gray-400 tracking-wider border-b border-[#3C3C3D] justify-between">
+            <span>Library</span>
+            <button onClick={clear} title="Clear Library" className="hover:text-red-400 transition-colors">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto hide-scrollbar p-1">
+            {files.map((file, fIdx) => (
+              <div key={fIdx} className="mb-1">
+                <div 
+                  onClick={() => selectFile(fIdx)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer group transition-colors ${activeFileIndex === fIdx ? 'bg-[#37373D] text-white shadow-sm' : 'text-gray-400 hover:bg-[#2A2D2E]'}`}
+                >
+                  <FileText className={`w-4 h-4 flex-shrink-0 ${activeFileIndex === fIdx ? 'text-blue-400' : 'text-gray-500'}`} />
+                  <span className="text-[13px] font-medium truncate flex-1">{file.name}</span>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); removeFile(fIdx); }}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {files.length === 0 && (
+              <div className="p-8 flex flex-col items-center justify-center text-center opacity-30 h-full">
+                <FolderOpen className="w-12 h-12 mb-4" />
+                <p className="text-sm font-medium">Empty Library</p>
+                <p className="text-xs mt-2 italic px-4">Open a .log file using the toolbar to analyze its DAO sessions.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Area: SQL View */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Toolbar */}
+          <div className="h-[35px] bg-[#333333] flex items-center justify-between px-4 gap-2 border-b border-[#1E1E1E]">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleOpenFile}
+                className="flex items-center gap-1.5 bg-[#444] hover:bg-[#555] text-gray-200 px-3 py-1 rounded text-xs transition-colors shadow-sm"
+              >
+                <FolderOpen className="w-3.5 h-3.5 text-blue-400" /> Open Log File
+              </button>
+
+              <button 
+                onClick={handleReload}
+                disabled={!activeFile}
+                title="Reload current log file from disk"
+                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${activeFile ? 'text-green-400' : 'text-gray-600'}`} /> Reload Results
+              </button>
+
+              <div className="flex items-center gap-2 border-l border-[#444] pl-3 ml-1">
+                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-tight">Encoding:</span>
+                <select 
+                  value={encoding}
+                  onChange={(e) => handleEncodingChange(e.target.value)}
+                  className="bg-[#252526] border border-[#3C3C3D] text-[11px] text-gray-300 px-2 py-0.5 rounded outline-none hover:border-blue-500/50 transition-colors cursor-pointer"
+                >
+                  <option value="UTF-8">UTF-8</option>
+                  <option value="Shift_JIS">Shift_JIS</option>
+                  <option value="EUC-JP">EUC-JP</option>
+                  <option value="UTF-16LE">UTF-16LE</option>
+                  <option value="Windows-1252">Windows-1252</option>
+                </select>
+              </div>
+
+              <button 
+                onClick={() => setIsFilterModalOpen(true)}
+                disabled={!activeFile}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ml-2 ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200 border border-blue-500/30' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
+              >
+                <Filter className={`w-3.5 h-3.5 ${activeFile ? 'text-blue-400' : 'text-gray-600'}`} /> Filter
+              </button>
+            </div>
+            
+            {activeFile && (
+              <div className="flex items-center gap-3">
+                <div className="text-[11px] text-gray-400 bg-[#252526] px-2 py-1 rounded border border-[#3C3C3D] shadow-sm flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span className="text-gray-300 font-bold tracking-tight">{sqlLogs.length} SQL Queries</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Filter Tags Bar */}
+          {filters.length > 0 && activeFile && (
+            <div className="px-4 py-2 bg-[#1e1e1e] border-b border-[#333] flex flex-wrap gap-2 items-center min-h-[40px]">
+              <span className="text-[10px] uppercase font-bold text-gray-500 mr-2 flex items-center gap-1">
+                <SearchIcon className="w-3 h-3" /> Filters:
+              </span>
+              {filters.map((f) => (
+                <div key={f.id} className="flex items-center gap-1.5 bg-blue-600/10 border border-blue-500/30 text-blue-400 px-2.5 py-1 rounded-full text-[11px] font-medium animate-in fade-in zoom-in-95 duration-200">
+                  <span className="opacity-60 text-[9px] uppercase font-bold">{f.type}:</span>
+                  <span className="max-w-[150px] truncate">{f.value}</span>
+                  <button 
+                    onClick={() => removeFilter(f.id)}
+                    className="ml-0.5 hover:text-white transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <button 
+                onClick={clearFilters}
+                className="text-[10px] text-gray-500 hover:text-red-400 font-bold uppercase tracking-wider ml-auto hover:underline"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 flex flex-col relative w-full h-full min-h-0 bg-[#1E1E1E] overflow-hidden">
+            {activeFile ? (
+              <div className="h-full flex flex-col">
+                <div className="flex-shrink-0 bg-[#252526] border-b border-[#3C3C3D] flex text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  <div className="w-[160px] px-4 py-2 border-r border-[#3C3C3D] flex items-center gap-1.5"><Clock className="w-3 h-3"/> Time</div>
+                  <div className="w-[200px] px-4 py-2 border-r border-[#3C3C3D] flex items-center gap-1.5"><FileText className="w-3 h-3"/> DAO</div>
+                  <div className="flex-1 px-4 py-2 flex items-center gap-1.5"><Database className="w-3 h-3"/> Reconstructed SQL Query</div>
+                  <div className="w-[60px] px-4 py-2 text-center select-none">Action</div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto hide-scrollbar bg-[#1a1a1a]">
+                  {sqlLogs.length > 0 ? (
+                    sqlLogs.map((log, idx) => (
+                      <div key={idx} className="flex border-b border-[#2d2d2d] hover:bg-[#252526] transition-colors group group-last:border-none items-stretch">
+                        <div className="w-[160px] flex-shrink-0 px-4 py-3 text-[12px] text-gray-400 font-mono border-r border-[#2d2d2d] flex items-center">
+                          {log.timestamp || '--/--/-- --:--:--'}
+                        </div>
+                        <div className="w-[200px] flex-shrink-0 px-4 py-3 text-[12px] text-blue-400/80 font-semibold border-r border-[#2d2d2d] flex items-center truncate" title={log.daoName}>
+                          {log.daoName}
+                        </div>
+                        <div 
+                          className="flex-1 px-4 py-3 text-[13px] text-gray-300 font-mono whitespace-pre-wrap break-all leading-relaxed lining-nums border-r border-[#2d2d2d] cursor-pointer hover:bg-[#2a2a2e] transition-colors"
+                          onClick={() => handleSqlClick(log.reconstructedSql || '')}
+                          title="Click to view formatted SQL"
+                        >
+                           <span className="text-blue-300">{log.reconstructedSql}</span>
+                        </div>
+                        <div className="w-[60px] flex-shrink-0 flex items-center justify-center bg-[#1e1e1e] group-hover:bg-[#2a2a2e] transition-colors">
+                           <button 
+                             onClick={() => handleCopy(`${idx}`, log.reconstructedSql || '')}
+                             className={`p-2 rounded-md transition-all ${copiedId === `${idx}` ? 'text-green-500 bg-green-500/10' : 'text-gray-500 hover:text-white hover:bg-[#3d3d3d]'}`}
+                             title="Copy SQL to Clipboard"
+                           >
+                             {copiedId === `${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                           </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-20 text-center opacity-20 italic text-sm">No queries detected in this session.</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-10 opacity-30 select-none">
+                <Database className="w-20 h-20 mb-6 text-gray-400" />
+                <div className="h-px w-24 bg-gray-500 mb-6"></div>
+                <p className="text-lg font-light tracking-tight italic">Select a log file from the library to view reconstructed SQL</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <StatusBar 
+        activeFileName={activeFile ? activeFile.name : "No File"}
+        activeLanguage="sql"
+        activeEncoding={activeFile ? activeFile.encoding : encoding}
+        isCompareMode={false}
+        onLanguageChange={() => {}}
+        onEncodingChange={handleEncodingChange}
+      />
+
+      <SqlFormatterModal 
+        isOpen={isModalOpen}
+        sql={selectedSql || ''}
+        onClose={() => setIsModalOpen(false)}
+      />
+
+      <FilterModal 
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+      />
+    </div>
+  );
+}

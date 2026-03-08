@@ -15,6 +15,7 @@
   - `tools/`: The core application's distinct features are constructed as individual tools.
     - **Text Comparator**: Advanced diffing with Monaco.
     - **Note Editor**: Universal note-taking with session persistence.
+    - **Log SQL Extractor**: Specialized parsing for executing SQL queries from thread logs.
     - **Settings**: Centralized preference management with hierarchical overrides.
     - **State Management**: Zustand stores dedicated per tool.
     - `tool-manager/`: The main UI Sidebar infrastructure tracking `index.ts`.
@@ -28,3 +29,4 @@ As detailed in `07-core-development-rules.md`, Genzo-Kit implements a strict fea
 - Note: The Monaco Comparator has been further refined to support full user interactivity (editing) on both panels.
 - Note: Fixed build error by switching from `cargo tauri` to `npm run tauri` and ensuring `tauri-cli` cargo subcommand is installed (March 08, 2026).
 - Note: Enhanced Note Editor with dedicated "Open File" button and fixed stale closures. Fixed Text Comparator character reversal, focus loss, and refined highlighting with dimmer row backgrounds and a toggle (March 08, 2026).
+- Note: Enhanced Log SQL Extractor with flattened Library view, Monaco SQL Modal, a Dialect Selector, and a Multi-Condition Tag-based Filtering System (March 08, 2026). Fixed: Nested DAO extraction, SQL parameter binding, execution identity, formatting, ID normalization, and parameterless query UI pollution (BUG-4/5/6/7/8).

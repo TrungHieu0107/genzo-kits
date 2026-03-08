@@ -176,3 +176,107 @@ Standard exclusions for node_modules, Tauri target directories, and OS files.
 - **Added**: Custom right-click Context Menu on the Explorer File List in Note Editor.
 - **Capabilities**: Features `Pin Tab` (keeps it visually sticky and avoids mass-closes), `Close Others`, and `Close All (Keep Pinned)`.
 - **Integration**: Added `isPinned` to `EditorFile` interface and expanded actions in `useNoteEditorStore`.
+
+### Feature Addition: Log SQL Extractor
+- **Added**: Entirely new isolated tool built under `src/tools/sql-log-parser`.
+- **Backend Dependency**: Uses the universal `read_file_encoded` to safely import and reload log content in specific encodings.
+- **Library Architecture**: The `useSqlLogStore` manages an array of `LogFile` objects, each containing its own `DaoSession`s and state.
+- **Layout Refactor**: Implemented a two-column layout:
+  - **Left Sidebar**: Hierarchical tree (Files -> DAO Sessions).
+  - **Main Area**: Clean 4-column data table showing **Time**, **DAO Name**, **Reconstructed SQL Query**, and a **Copy Action**.
+- **Logic Parsing**: Typescript Regex routines inside `parser.ts` isolating `InvokeDao` and `endSession`. It now uses a robust detection logic that extracts the **timestamp**, **threadName**, and **DAO Name** even when merged with Japanese text (e.g., `Daoの開始jp.co...`) or separated by extra commas/spaces.
+- **Clipboard & Encoding**: Integrated a native copy button for query results and a dedicated **Encoding Selector** in the toolbar for precise file decoding.
+- **Session Persistence**: Integrated `tauri-plugin-store` (saving to `sql_log_files.json`) to persist file paths and encodings. On app mount, the tool automatically re-reads and re-parses all previously opened files.
+- **SQL Formatter Modal**: Clicking any SQL query cell opens a VSCode-style modal with a full Monaco Editor in **read-only** mode. Features include SQL syntax highlighting, minimap, line numbers, code folding, and a blue VSCode-themed status bar.
+
+## Bug Fix Log — 2026-03-08
+
+### BUG-1: DAO Sidebar Layout and SQL Modal Visibility
+- **Discovered in:** Phase 3-B
+- **Test case:** Load log file and click on an SQL log.
+- **Symptom:** The sidebar showed grouped DAOs which the user didn't want, and the SQL Modal was blank (didn't render the SQL text).
+- **Root cause:** Monaco Editor inside the flex container lacked explicit height (`min-h-[400px]` with `flex-1` failed to allocate height when modal opened). Sidebar grouped DAOs by sessions.
+- **Fix applied:** Refactored `SqlLogParser.tsx` to flatten the view by aggregating all SQL logs across sessions instead of rendering a DAO tree. Added fixed `h-[60vh]` and `min-h-[450px]` bounds to the Monaco Editor container so it always renders. Removed the "Collapse" feature entirely and replaced it with a read-only Monaco Editor.
+- **Files modified:** `src/tools/sql-log-parser/SqlFormatterModal.tsx`, `src/tools/sql-log-parser/SqlLogParser.tsx`
+- **Verified:** Build passed, layout successfully flattened, modal has absolute dimensions for proper Monaco Editor rendering.
+### BUG-2: SQL Dialect Selection Failures
+- **Discovered in:** Phase 3-B
+- **Test case:** Open SQL Formatter Modal and switch to T-SQL (SQL Server) or PL/SQL (Oracle).
+- **Symptom:** SQL remained unformatted (returned unformatted raw string).
+- **Root cause:** The dialect IDs used in the `DIALECTS` array (`sqlserver`, `oracle`) were not compatible with `sql-formatter` v15.7.2, which expects `tsql` and `plsql`. This caused the `format` function to throw an error, hitting the `catch` block which returned the raw `sql`.
+- **Fix applied:** Updated `DIALECTS` array in `SqlFormatterModal.tsx` to use correct IDs (`tsql`, `plsql`). Added `Standard SQL (sql)`, `BigQuery`, and `Snowflake` to the supported list.
+- **Files modified:** `src/tools/sql-log-parser/SqlFormatterModal.tsx`
+- **Verified:** Build passed, code logic is now aligned with `sql-formatter` documentation.
+### BUG-3: SQL Parameters Not Loading and DAO Names Showing as Unknown/Global
+- **Discovered in:** User Report / Phase 3 Testing
+- **Test case:** Open a log file where a PreparedStatement is executed multiple times with different parameters, or where DAO calls are nested on the same thread.
+- **Symptom:** Only the last parameter execution was shown. DAO names appeared as "Unknown/Global" due to nested sessions overwriting the thread state.
+- **Root cause:** `parser.ts` used a flat dictionary per thread, causing nested DAOs to overwrite each other. Parameter parsing overwrote previous parameters in `paramMap`, so multiple executions of the same SQL ID only yielded one reconstructed query.
+- **Fix applied:** Refactored `parser.ts` to use a stack (`threadStacks`) for nested DAO tracking. Changed the reconstruction pass to map every `paramsString` log independently to the globally collected SQL string.
+- **Files modified:** `src/tools/sql-log-parser/parser.ts`
+- **Verified:** Build passed. Code properly tracks executions sequentially and correctly identifies nested DAO boundaries.
+
+### BUG-4: DAO Names Showing as Unknown/Global despite active InvokeDao log
+- **Discovered in:** User Report / Phase 3 Testing
+- **Test case:** Open a log file where the `InvokeDao` line does not have a leading space before `Daoの開始` or where subsequent logs lack `threadName` while 'unknown' session is initialized.
+- **Symptom:** SQL logs were incorrectly grouped into "Unknown/Global" instead of the active DAO session.
+- **Root cause:** The `threadName` fallback logic was picking the first key in `threadStacks`, which often defaulted to `'unknown'` if any log appeared before the first DAO. Additionally, the DAO Start regex was slightly too strict for some log variations.
+- **Fix applied:** Refined the `DAO Start` regex to be more flexible (`(?:InvokeDao)?.*?,?Daoの開始\s*([\w.]+)`). Updated the thread fallback logic to explicitly exclude `'unknown'` when other active DAO sessions exist.
+- **Files modified:** `src/tools/sql-log-parser/parser.ts`
+- **Verified:** Build passed. Code logic ensures that logs without explicit thread names favor active DAO sessions over the global bucket.
+
+### BUG-5: SQL Parameter Extraction, Chronology & Identity (4d9ac0b4 reported case)
+- **Discovered in:** User Report / Phase 3 Testing
+- **Test case:** Log file with multiple executions of the same PreparedStatement ID, where one execution has 50+ parameters.
+- **Symptom:** Parameters were not filling (or only partially filling), and only one execution appeared in the UI instead of the multiple executed instances. Chronology was also broken (SQL logs appeared out of order due to session pop-back ordering).
+- **Root cause:** 
+  1. `paramsMatch` regex was stripping the leading `[` bracket of the first parameter captured, causing `reconstructSql`'s internal regex to fail on the first element.
+  2. SQL logs were being flattened by session order, and since DAOs only "finish" (and thus enter the sessions list) when popped, nested DAOs appeared out of sequence.
+  3. The association of parameters to SQL prepare statements was global, but the UI list was not correctly iterating through all execution instances.
+- **Fix applied:** 
+  1. Updated `paramsMatch` to preserve the leading bracket.
+  2. Introduced a global `logIndex` to every `LogEntry` during parsing.
+  3. Modified `SqlLogParser.tsx` to sort the flattened SQL list by `logIndex`.
+  4. Confirmed that each parameter log generates its own `type: 'sql'` entry with `reconstructedSql`, ensuring all executions are visible.
+- **Files modified:** `src/tools/sql-log-parser/parser.ts`, `src/tools/sql-log-parser/SqlLogParser.tsx`
+- **Verified:** Build passed. Data logic preserves arrival order and bracket integrity.
++
++### BUG-6: SQL Parameters Failing to Fill (Identity 4d9ac0b4 Case)
++- **Discovered in:** User Report / Phase 3 Testing
++- **Test case:** Log file with long parameter lists where `reconstructSql` was potentially failing on type comparisons or greedy regex matches.
++- **Symptom:** UI showed only the base SQL (with `?`) instead of the parameter-filled versions. The base SQL formatting was also compressed.
++- **Root cause:** 
++  1. `paramsMatch` regex was too strict about trailing spaces after the ID.
++  2. `reconstructSql` was splitting by a fixed `][` delimiter, which failed if the logger added spaces (e.g., `] [`).
++  3. Lack of `trim()` on extracted types made `'STRING'` !== `' STRING'`, preventing value quoting.
++  4. Global space compression in `reconstructSql` destroyed user's indentation formatting.
++- **Fix applied:** 
++  1. Relaxed `paramsMatch` regex (`.*?params=`).
++  2. Used regex-based splitting for parameters (`split(/\]\s*\[/)`).
++  3. Added `trim()` to `type`, `index`, and `value` extraction.
++  4. Removed the `replace(/\s+/g, ' ')` compression to preserve formatting.
++  5. Refined `executedIds` logic to ensure empty params still hide the base query.
++- **Files modified:** `src/tools/sql-log-parser/parser.ts`
++- **Verified:** Reproduction script confirmed correct mapping and formatting preservation.
+
+### BUG-7: Duplicate SQL Rows (Bare Query with '?' not hiding)
+- **Discovered in:** User Report / Phase 3 Testing
+- **Symptom:** UI showed both the bare SQL (with `?`) and the filled version, even if parameters were found.
+- **Root cause:** 
+  1. **Case Sensitivity**: SQL IDs (often hex) were treated as case-sensitive in the internal `Set`. If one log used `id=4d...` and another `id=4D...`, they wouldn't match.
+  2. **Inflexible Match**: Regex was strictly looking for `id=... sql=` or `id=... params=`. If a line had both or was formatted differently, it might partially fail.
+  3. **Greedy Hiding**: Hiding logic didn't account for redundancy when the same ID was prepared/executed multiple times across different threads or sessions.
+- **Fix applied:** 
+  1. **Normalization**: All extracted IDs are now `.trim().toLowerCase()`.
+  2. **Independent Grouping**: Captured ID, SQL, and Params independently using separate regexes, allowing for more flexible log line formats.
+  3. **Aggressive Hiding**: Explicitly set `reconstructedSql = undefined` and `type = 'info'` for any prep statement log whose ID exists in the `executedIds` set.
+- **Files modified:** `src/tools/sql-log-parser/parser.ts`
+- **Verified:** Reproduction script confirmed that mixed-case IDs are normalized and correctly hide the redundant prep statement rows.
+
+### BUG-8: Duplicate SQL Rows (Parameterless UI Pollution)
+- **Discovered in:** User Report / Phase 3 Testing
+- **Symptom:** Bare SQL queries (with `?`) still appeared in the UI if they were prepared but lacked a matching execution log, or if the execution log had empty parameters (`params=`).
+- **Root cause:** `parser.ts` would default to pushing the bare `sql=` log into the UI if it didn't find its ID in the `executedIds` set. This led to "preparation" logs polluting the UI independently of their actual execution sequence.
+- **Fix applied:** Strictly set `type = 'info'` and `reconstructedSql = undefined` for ALL `sql=` preparation logs. We now ONLY yield reconstructed SQL for the `params=` execution logs, ensuring SQL only appears in the UI when actually executed.
+- **Files modified:** `src/tools/sql-log-parser/parser.ts`
+- **Verified:** Tested with isolated reproduction script. Preparation logs are correctly hidden, and parameterless executions yield their base SQL exactly at the execution log index.

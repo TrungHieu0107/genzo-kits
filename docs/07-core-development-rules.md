@@ -4,7 +4,7 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 
 ## 1. Project Structure & Modularity (Never Break)
 - Project root folder must always be exactly `genzo-kit`.
-- All tools MUST be placed in `src/tools/[kebab-case-tool-name]` (e.g. `text-comparator`, `json-formatter`, `note-editor`).
+- All tools MUST be placed in `src/tools/[kebab-case-tool-name]` (e.g. `text-comparator`, `json-formatter`, `note-editor`, `folder-searcher`).
 - Never modify any existing tool folder when adding a new feature unless the User explicitly invokes a Core Override Command.
 - Use dynamic imports only for adding new tools to the sidebar/navigation (via `src/tools/index.ts`).
 - The app must remain fully functional even if one tool is removed.
@@ -55,12 +55,12 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 ## 8. Response & Communication Rules
 - Always provide the full updated code for changed files.
 - Always provide the complete content of all 8 docs files after changes.
-- Give exact build command: `call npm run tauri build -- --target x86_64-pc-windows-msvc`
+- Give exact build command: `cargo tauri build --target x86_64-pc-windows-msvc`
 - Never ask unnecessary questions if the request is clear.
 - When user says "add a new feature" or "fix bug", automatically apply the correct workflow.
 
 ## 9. Naming & Versioning
-- Tool names: Genzo [Tool Name] (e.g. Text Comparator, Note Editor)
+- Tool names: Genzo [Tool Name] (e.g. Text Comparator, Note Editor, Log Extractor, System File Searcher)
 - Version starts at 1.0 and increases only when major features are added.
 - Commit messages must follow the exact style in workflows 05 and 06.
 
@@ -68,4 +68,4 @@ These rules override everything else. If any future instruction conflicts with t
 
 Last updated: March 2026
 
-**Test Status**: Full feature- **Status**: Tested on March 08, 2026 (including Slim Resizable Sidebar & BUG-14)
+**Test Status**: Full feature test passed on March 08, 2026 (File Searcher, Log Extractor Filters & Time Ordering upgrade successfully implemented following modularity rule).

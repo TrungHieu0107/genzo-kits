@@ -82,10 +82,11 @@ For each test below, follow this inner loop:
 For **each tool** listed in \`02-features.md\`:
 
 1. Open the tool from the sidebar/navigation
-2. Test every feature and input type listed for that tool (e.g., Note Editor encodings, session persisting, and inline text context comparison modal view)
-3. Test edge cases: empty input, very long input, special characters, rapid repeated actions
-4. Verify UI renders correctly, no layout breakage, no overlapping elements
-5. Verify no performance regression compared to baseline in \`04-current-code.md\`
+2. Test every feature and input type listed for that tool (e.g., Note Editor encodings, Log Extractor Target Filters, Folder Searcher recursion bounds).
+3. Check Folder Searcher Mode functionality (Filter correctly mapped to `Files Only`, `Folders Only` against the UI dropdown). Ensure no app freeze occurs due to unbounded search loops in `search_system` backend parsing.
+4. Test edge cases: empty input, very long input, special characters, rapid repeated actions
+5. Verify UI renders correctly, no layout breakage, no overlapping elements
+6. Verify no performance regression compared to baseline in \`04-current-code.md\`
 
 Apply the same inner fix loop: **Test → Bug Found → Fix immediately → Rebuild → Retest → Confirm**
 
@@ -154,12 +155,10 @@ End every response with one of these two outcomes — never skip this:
 **If bugs were found and fixed:**
 > **Tested + Fixed using Workflow 08** — All tests passed after fixes ✅  
 > **Bugs fixed this session:** [N]  
-> [Short summary list of each bug and its fix]  
+> [Short summary list of each bug and stroke]  
 > Build clean. Documentation updated.
 
 **Never mark the task complete if:**
 - Any test still fails after fix attempts
 - The build is broken
 - A bug was found but not yet fixed
-<!-- Doc- **Audit Touch D**Status**: Tested on March 08, 2026 (including Slim Resizable Sidebar & BUG-14)
- -->

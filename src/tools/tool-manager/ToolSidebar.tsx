@@ -17,24 +17,32 @@ interface ToolSidebarProps {
 export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleCollapse }: ToolSidebarProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, toolId: string } | null>(null);
 
+  // Mở tool trong cửa sổ mới (Tauri WebviewWindow)
+  // Open tool in a new standalone window (Tauri WebviewWindow)
   const handleOpenInNewWindow = async (toolId: string) => {
     const tool = tools.find(t => t.id === toolId);
     if (!tool) return;
     
-    const windowLabel = `window_${toolId}_${Date.now()}`;
-    const webview = new WebviewWindow(windowLabel, {
-      url: `/?window=${toolId}`,
-      title: `Genzo-Kit - ${tool.name}`,
-      width: 1000,
-      height: 700,
-      decorations: true,
-      resizable: true,
-      center: true
-    });
+    try {
+      const windowLabel = `window_${toolId}_${Date.now()}`;
+      const webview = new WebviewWindow(windowLabel, {
+        url: `/?window=${toolId}`,
+        title: `Genzo-Kit - ${tool.name}`,
+        width: 1000,
+        height: 700,
+        decorations: true,
+        resizable: true,
+        center: true
+      });
 
-    webview.once('tauri://error', function (e) {
-      console.error('Error opening window', e);
-    });
+      webview.once('tauri://error', function (e) {
+        console.error('[Genzo] Error opening new window:', e);
+      });
+    } catch (err) {
+      // Fallback: nếu không có Tauri runtime (browser dev mode), log lỗi
+      // Fallback: if Tauri runtime is not available (browser dev mode), log error
+      console.warn('[Genzo] Cannot open new window outside Tauri runtime:', err);
+    }
   };
 
   return (

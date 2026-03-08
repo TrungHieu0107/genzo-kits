@@ -13,11 +13,10 @@
 - `src/`: Main frontend files.
   - `components/`: Generic, reusable UI components (buttons, modals, toolbars).
   - `tools/`: The core application's distinct features are constructed as individual tools.
-    - **Text Comparator**: Advanced diffing with Monaco.
-    - **Note Editor**: Universal note-taking with session persistence.
-    - **Log SQL Extractor**: Specialized parsing for executing SQL queries from thread logs.
-    - **Settings**: Centralized preference management with hierarchical overrides.
-    - **State Management**: Zustand stores dedicated per tool.
+    - `text-comparator/`: The standalone native Monaco `DiffEditor` instance configured precisely for raw string tracking and ignoreTrimWhitespace granularities. Holds `useTextCompareStore` state provider for cross-tool text piping and user-interactive editing.
+    - `note-editor/`: The Universal Monaco text processor handling arbitrary encoding tabs securely. Pipes diff commands into `text-comparator`.
+    - `sql-log-parser/`: Powerful Regex Log Extractor identifying DAO sessions and executing Advanced Operator conditional filtering logic over sequence boundaries. Maps Time-ordered sequences perfectly tracking native Chronological sorting on rendering pipelines.
+    - `folder-searcher/`: Implements async multi-threaded Rust backend Breadth-First Scanning (`std::fs::read_dir`) to query nested directories and files based on target match modes without locking the UI main thread. Returns normalized objects containing `path` schemas.
     - `tool-manager/`: The main UI Sidebar infrastructure tracking `index.ts`.
     - `index.ts`: The central registry exporting all available tools for dynamic sidebar rendering.
 - `src-tauri/`: Rust backend and build configuration logic.
@@ -25,8 +24,6 @@
 
 ## Core Rules Implementation (Enforced by Antigravity AI)
 As detailed in `07-core-development-rules.md`, Genzo-Kit implements a strict feature segmentation policy. ANY new user request is automatically handled by the `05-workflow-new-feature.md` process. Existing tools are isolated and immutable upon validation unless bug fixes are called.
-- Note: The user explicitly authorized overriding Rule 1 to implement a complete Monaco Overhaul onto the `Text Comparator` folder natively.
 - Note: The Monaco Comparator has been further refined to support full user interactivity (editing) on both panels.
-- Note: Fixed build error by switching from `cargo tauri` to `npm run tauri` and ensuring `tauri-cli` cargo subcommand is installed (March 08, 2026).
-- Note: Enhanced Note Editor with dedicated "Open File" button and fixed stale closures. Fixed Text Comparator character reversal, focus loss, and refined highlighting with dimmer row backgrounds and a toggle (March 08, 2026).
-- Note: Enhanced Log SQL Extractor with flattened Library view, Monaco SQL Modal, a Dialect Selector, Multi-Condition Tag Filtering, Sidebar File Aliasing, a Resizable "Slim Bar" Sidebar, and Standalone New Window Mode (March 08, 2026). Fixed: Nested DAO extraction, SQL parameter binding, execution identity, formatting, ID normalization, and parameterless query UI pollution (BUG-4/5/6/7/8/14).
+- Note: Log Extractor Filter options were upgraded to support specific Operators and Time-based Ordering per request.
+- Note: A System File & Folder Searcher capability was installed avoiding unbounded `C:\` parsing to protect against extreme local load configurations. Matches target directories and queries natively mapping payload schemas.

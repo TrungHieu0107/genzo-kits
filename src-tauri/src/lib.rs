@@ -100,6 +100,72 @@ async fn save_file_encoded(
     Ok(true)
 }
 
+#[derive(serde::Serialize)]
+pub struct SearchResultItem {
+    pub path: String,
+    pub is_dir: bool,
+}
+
+#[tauri::command]
+async fn search_system(root: String, query: String, mode: String) -> Result<Vec<SearchResultItem>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut results = Vec::new();
+        let query_lower = query.to_lowercase();
+        
+        let mut stack = vec![std::path::PathBuf::from(root)];
+        
+        while let Some(current_path) = stack.pop() {
+            // Respect a reasonable limit to prevent unbounded memory growth if querying C:\
+            if results.len() >= 500 {
+                break; 
+            }
+
+            let entries = match std::fs::read_dir(&current_path) {
+                Ok(e) => e,
+                Err(_) => continue, // Skip folders we don't have permission to read
+            };
+
+            for entry in entries.flatten() {
+                if let Ok(metadata) = entry.metadata() {
+                    let is_dir = metadata.is_dir();
+                    let path = entry.path();
+                    
+                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                        // Check match condition
+                        let matches_query = name.to_lowercase().contains(&query_lower);
+                        
+                        // Check mode condition
+                        let matches_mode = match mode.as_str() {
+                            "file" => !is_dir,
+                            "folder" => is_dir,
+                            _ => true, // "all"
+                        };
+
+                        if matches_query && matches_mode {
+                            if let Some(path_str) = path.to_str() {
+                                results.push(SearchResultItem {
+                                    path: path_str.to_string(),
+                                    is_dir,
+                                });
+                            }
+                        }
+                        
+                        // Always continue searching deeper if it's a directory,
+                        // even if it didn't match the query itself
+                        if is_dir {
+                            stack.push(path);
+                        }
+                    }
+                }
+            }
+        }
+        
+        Ok(results)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -113,7 +179,8 @@ pub fn run() {
             read_file_encoded,
             save_file_encoded,
             save_note_session,
-            load_note_session
+            load_note_session,
+            search_system
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

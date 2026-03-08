@@ -23,6 +23,7 @@ export default function SqlLogParser() {
    const [sidebarWidth, setSidebarWidth] = useState(300);
    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
    const [isDragging, setIsDragging] = useState(false);
+   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
  
    const { 
      files, activeFileIndex,
@@ -69,14 +70,31 @@ export default function SqlLogParser() {
 
   const sqlLogs = activeFile ? activeFile.sessions.flatMap(
     sess => sess.logs.filter(l => l.type === 'sql' && l.reconstructedSql).map(l => ({ ...l, daoName: sess.daoName }))
-  ).sort((a, b) => a.logIndex - b.logIndex)
+  ).sort((a, b) => sortOrder === 'asc' ? a.logIndex - b.logIndex : b.logIndex - a.logIndex)
    .filter(log => {
       if (filters.length === 0) return true;
       return filters.every(f => {
-        if (f.type === 'query') return log.reconstructedSql?.toLowerCase().includes(f.value.toLowerCase());
-        if (f.type === 'dao') return log.daoName.toLowerCase().includes(f.value.toLowerCase());
-        if (f.type === 'time') return log.timestamp?.includes(f.value);
-        return true;
+        let textValue = '';
+        if (f.type === 'query') textValue = log.reconstructedSql || '';
+        if (f.type === 'dao') textValue = log.daoName;
+        if (f.type === 'time') textValue = log.timestamp || '';
+
+        const target = textValue.toLowerCase();
+        const search = f.value.toLowerCase();
+
+        switch (f.operator) {
+          case 'equals':
+            return target === search;
+          case 'greater_than':
+            if (f.type === 'time') return target > search;
+            return target.localeCompare(search) > 0;
+          case 'less_than':
+            if (f.type === 'time') return target < search;
+            return target.localeCompare(search) < 0;
+          case 'contains':
+          default:
+            return target.includes(search);
+        }
       });
    })
    : [];
@@ -329,6 +347,16 @@ export default function SqlLogParser() {
               >
                 <Filter className={`w-3.5 h-3.5 ${activeFile ? 'text-blue-400' : 'text-gray-600'}`} /> Filter
               </button>
+
+              <button 
+                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                disabled={!activeFile}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ml-2 ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
+                title="Toggle Time Sort Order"
+              >
+                <Clock className={`w-3.5 h-3.5 ${activeFile ? 'text-purple-400' : 'text-gray-600'}`} />
+                {sortOrder === 'asc' ? 'Time: Asc' : 'Time: Desc'}
+              </button>
             </div>
             
             {activeFile && (
@@ -349,7 +377,7 @@ export default function SqlLogParser() {
               </span>
               {filters.map((f) => (
                 <div key={f.id} className="flex items-center gap-1.5 bg-blue-600/10 border border-blue-500/30 text-blue-400 px-2.5 py-1 rounded-full text-[11px] font-medium animate-in fade-in zoom-in-95 duration-200">
-                  <span className="opacity-60 text-[9px] uppercase font-bold">{f.type}:</span>
+                  <span className="opacity-60 text-[9px] uppercase font-bold">{f.type} {f.operator === 'equals' ? '==' : f.operator === 'greater_than' ? '>' : f.operator === 'less_than' ? '<' : 'in'}:</span>
                   <span className="max-w-[150px] truncate">{f.value}</span>
                   <button 
                     onClick={() => removeFilter(f.id)}

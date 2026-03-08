@@ -10,4 +10,4 @@
 - **UI Constraints**: Always rely on TailwindCSS for styling and ensure dark mode adherence. Keep interfaces simple and clean, removing visual clutter (like Tab bars) when requested.
 - **Executable**: Final build target is ALWAYS \`genzo-kit.exe\`.
 
-**Status**: Tested on March 08, 2026 (including Slim Resizable Sidebar & BUG-14)
+**Test Status**: Full feature test passed on March 08, 2026 (including File & Folder Mode Searcher upgrade, Log Extractor Filter Operators + Time Ordering).

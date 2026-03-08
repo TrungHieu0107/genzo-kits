@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
-import { X, Plus, Search, Database, Clock } from 'lucide-react';
-import { useSqlLogStore, SqlFilter } from './store';
+import { X, Plus, Search, Database, Clock, Filter } from 'lucide-react';
+import { useSqlLogStore, SqlFilter, FilterOperator } from './store';
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -11,13 +10,14 @@ interface FilterModalProps {
 export function FilterModal({ isOpen, onClose }: FilterModalProps) {
   const { addFilter } = useSqlLogStore();
   const [type, setType] = useState<SqlFilter['type']>('query');
+  const [operator, setOperator] = useState<FilterOperator>('contains');
   const [value, setValue] = useState('');
 
   if (!isOpen) return null;
 
   const handleAdd = () => {
     if (value.trim()) {
-      addFilter(type, value.trim());
+      addFilter(type, operator, value.trim());
       setValue('');
       onClose();
     }
@@ -31,14 +31,14 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
-        className="w-[450px] bg-[#252526] border border-[#454545] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-[480px] bg-[#252526] border border-[#454545] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
         <div className="h-[50px] flex items-center justify-between px-5 border-b border-[#333] bg-[#2d2d2d]">
           <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-bold text-gray-200 uppercase tracking-tight">Add SQL Filter</span>
+            <Filter className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-bold text-gray-200 uppercase tracking-tight">Add Advanced SQL Filter</span>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-[#3c3c3c] rounded-md transition-colors text-gray-400 hover:text-white">
             <X className="w-4 h-4" />
@@ -48,7 +48,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
         {/* Body */}
         <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Filter Type</label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Filter Target</label>
             <div className="flex gap-2">
               {[
                 { id: 'query', label: 'Query', icon: Database },
@@ -71,18 +71,32 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Value to Filter</label>
-            <div className="relative group">
-              <input
-                autoFocus
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={`Search ${type === 'query' ? 'SQL content...' : type === 'dao' ? 'DAO name...' : 'time (e.g. 21:44:08)'}`}
-                className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-4 py-3 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
-              />
-            </div>
+          <div className="flex gap-3">
+             <div className="flex flex-col gap-2 w-1/3">
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Operator</label>
+                <select
+                  value={operator}
+                  onChange={(e) => setOperator(e.target.value as FilterOperator)}
+                  className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-3 py-3 rounded-lg text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="contains">Contains (in)</option>
+                  <option value="equals">Equals (==)</option>
+                  <option value="greater_than">Greater than (&gt;)</option>
+                  <option value="less_than">Less than (&lt;)</option>
+                </select>
+             </div>
+
+             <div className="flex flex-col gap-2 flex-1">
+               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Value</label>
+               <input
+                 autoFocus
+                 type="text"
+                 value={value}
+                 onChange={(e) => setValue(e.target.value)}
+                 placeholder={type === 'time' ? 'e.g. 21:44:08' : 'Search value...'}
+                 className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-4 py-3 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
+               />
+             </div>
           </div>
         </div>
 

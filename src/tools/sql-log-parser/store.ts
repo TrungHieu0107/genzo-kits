@@ -12,9 +12,12 @@ export interface LogFile {
   content: string;
 }
 
+export type FilterOperator = 'contains' | 'equals' | 'greater_than' | 'less_than';
+
 export interface SqlFilter {
   id: string;
   type: 'query' | 'dao' | 'time';
+  operator: FilterOperator;
   value: string;
 }
 
@@ -34,7 +37,7 @@ interface SqlLogStore {
   saveFiles: () => Promise<void>;
   clear: () => void;
 
-  addFilter: (type: SqlFilter['type'], value: string) => void;
+  addFilter: (type: SqlFilter['type'], operator: FilterOperator, value: string) => void;
   removeFilter: (id: string) => void;
   clearFilters: () => void;
 }
@@ -168,8 +171,8 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
     }).catch(err => console.error("Failed to clear store:", err));
   },
 
-  addFilter: (type, value) => set((state) => ({
-    filters: [...state.filters, { id: crypto.randomUUID(), type, value }]
+  addFilter: (type, operator, value) => set((state) => ({
+    filters: [...state.filters, { id: crypto.randomUUID(), type, operator, value }]
   })),
 
   removeFilter: (id) => set((state) => ({

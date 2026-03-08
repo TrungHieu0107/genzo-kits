@@ -2,7 +2,8 @@ import { TextComparator } from "./text-comparator/TextComparator";
 import { NoteEditor } from "./note-editor/NoteEditor";
 import { Settings } from "./settings/Settings";
 import { SqlLogParser } from "./sql-log-parser";
-import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database } from "lucide-react";
+import FolderSearcher from "./folder-searcher/FolderSearcher";
+import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch } from "lucide-react";
 
 export interface ToolDefinition {
   id: string;
@@ -33,6 +34,13 @@ export const tools: ToolDefinition[] = [
     description: "Parse log files to find DAO sessions, reconstruct SQL queries with parameters.",
     icon: Database,
     component: SqlLogParser
+  },
+  {
+    id: "folder-searcher",
+    name: "Folder Searcher",
+    description: "Search system directories quickly without freezing the UI.",
+    icon: FolderSearch,
+    component: FolderSearcher
   },
   {
     id: "settings",

@@ -1,8 +1,8 @@
 {
   "identifier": "default",
-  "description": "Capability for the main window",
+  "description": "Capability for all windows (including dynamically created ones)",
   "windows": [
-    "main"
+    "*"
   ],
   "permissions": [
     "core:default",

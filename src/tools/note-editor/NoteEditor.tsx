@@ -5,7 +5,7 @@ import Editor from "@monaco-editor/react";
 import { 
   FileCode, X, Plus, File, 
   FileJson, FileType, ChevronLeft, ChevronRight, FolderOpen, Save,
-  Terminal, Database, Globe, FileText
+  Terminal, Database, Globe, FileText, Pin, PinOff
 } from "lucide-react";
 import { useNoteEditorStore, EditorFile } from "./store";
 import { useTextCompareStore } from "../text-comparator/store";
@@ -92,10 +92,27 @@ interface SafeFileResponse {
 export function NoteEditor() {
   const { 
     files, activeFileId, 
-    openFile, createFile, closeFile, 
+    openFile, createFile, closeFile, closeAll, closeOther,
     updateContent, updateEncoding, updateLanguage, setActiveFile, markClean,
-    hydrateSession
+    togglePin, hydrateSession
   } = useNoteEditorStore();
+
+  const [contextMenu, setContextMenu] = useState<{ id: string, x: number, y: number } | null>(null);
+
+  useEffect(() => {
+    const handleGlobalClick = () => setContextMenu(null);
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, []);
+
+  const handleContextMenu = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    setContextMenu({ id, x: e.clientX, y: e.clientY });
+  };
+
+  const pinnedFiles = files.filter(f => f.isPinned);
+  const unpinnedFiles = files.filter(f => !f.isPinned);
+  const displayFiles = [...pinnedFiles, ...unpinnedFiles];
 
   const { setLeftText, setRightText } = useTextCompareStore();
   const { tools: toolSettings } = useSettingsStore();
@@ -370,14 +387,21 @@ export function NoteEditor() {
             </div>
 
             <div className="flex flex-col pb-2 w-full gap-[2px]">
-              {files.map((file) => (
-                <div key={file.id} onClick={() => setActiveFile(file.id)} className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"}`}>
+              {displayFiles.map((file) => (
+                <div 
+                  key={file.id} 
+                  onClick={() => setActiveFile(file.id)} 
+                  onContextMenu={(e) => handleContextMenu(e, file.id)}
+                  className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"}`}
+                >
                   <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
                     {getFileIcon(file.language)}
                     {isSidebarCollapsed && file.isDirty && <div className="absolute top-0 -right-2 w-1.5 h-1.5 rounded-full bg-white"></div>}
+                    {isSidebarCollapsed && file.isPinned && <Pin className="absolute -top-1 -right-2 w-2.5 h-2.5 text-blue-400 rotate-45" />}
                   </div>
                   {!isSidebarCollapsed && (
                     <>
+                      {file.isPinned && <Pin className="w-3 h-3 text-blue-400 rotate-45 mr-1" />}
                       <span className="truncate flex-1">{file.name}</span>
                       <button onClick={(e) => { e.stopPropagation(); closeFile(file.id); }} className="opacity-0 group-hover:opacity-100 hover:bg-[#4C4C4C] rounded-sm p-0.5"><X className="w-3 h-3" /></button>
                       {file.isDirty && <div className="w-1.5 h-1.5 rounded-full bg-white group-hover:hidden ml-1"></div>}
@@ -422,6 +446,49 @@ export function NoteEditor() {
            onEncodingChange={(enc) => { if(activeFile) handleEncodingChange(activeFile, enc); }}
         />
       </div>
+
+      {contextMenu && (
+        <div 
+          className="fixed z-50 bg-[#252526] border border-[#3C3C3D] rounded-md shadow-lg py-1 min-w-[200px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+        >
+          <button 
+            onClick={() => {
+              togglePin(contextMenu.id);
+              setContextMenu(null);
+            }} 
+            className="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-blue-600 hover:text-white transition-colors"
+          >
+            {files.find(f => f.id === contextMenu.id)?.isPinned ? (
+              <><PinOff className="w-3.5 h-3.5 text-gray-400" /> Unpin Tab</>
+            ) : (
+              <><Pin className="w-3.5 h-3.5 text-blue-400 rotate-45" /> Pin Tab</>
+            )}
+          </button>
+          
+          <div className="h-[1px] bg-[#3C3C3D] my-1 mx-2"></div>
+          
+          <button 
+            onClick={() => {
+              closeOther(contextMenu.id);
+              setContextMenu(null);
+            }} 
+            className="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-blue-600 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5 text-orange-400" /> Close Others
+          </button>
+
+          <button 
+            onClick={() => {
+              closeAll();
+              setContextMenu(null);
+            }} 
+            className="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5 text-red-400" /> Close All (Keep Pinned)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

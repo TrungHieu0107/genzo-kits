@@ -171,3 +171,8 @@ Standard exclusions for node_modules, Tauri target directories, and OS files.
 ### Feature Addition: Whitespace Toggle in Settings UI
 - **Added**: A dropdown for configuring `renderWhitespace` in `Settings.tsx` under "General Editor Appearance".
 - **Integration**: Plumbed directly into the global `useConfigStore` to synchronize across all tools and StatusBars instantly.
+
+### Feature Addition: Pinned Tabs & Context Window in Note Editor
+- **Added**: Custom right-click Context Menu on the Explorer File List in Note Editor.
+- **Capabilities**: Features `Pin Tab` (keeps it visually sticky and avoids mass-closes), `Close Others`, and `Close All (Keep Pinned)`.
+- **Integration**: Added `isPinned` to `EditorFile` interface and expanded actions in `useNoteEditorStore`.

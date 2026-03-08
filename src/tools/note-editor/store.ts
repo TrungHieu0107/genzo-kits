@@ -8,6 +8,7 @@ export interface EditorFile {
   isDirty: boolean;
   language: string;
   encoding: string;
+  isPinned?: boolean;
 }
 
 export interface NoteEditorSession {
@@ -24,11 +25,14 @@ interface NoteEditorState {
   openFile: (file: Omit<EditorFile, 'isDirty'>) => void;
   createFile: () => void;
   closeFile: (id: string) => void;
+  closeAll: () => void;
+  closeOther: (id: string) => void;
   updateContent: (id: string, newContent: string) => void;
   updateEncoding: (id: string, newEncoding: string) => void;
   updateLanguage: (id: string, newLanguage: string) => void;
   setActiveFile: (id: string | null) => void;
   markClean: (id: string) => void;
+  togglePin: (id: string) => void;
   hydrateSession: (session: NoteEditorSession) => void;
 }
 
@@ -87,6 +91,29 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
     };
   }),
 
+  // Đóng toàn bộ tab (nếu bị dirty có thể cần xử lý lưu sau, tạm thời ta filter clean hoặc close all)
+  closeAll: () => set((state) => {
+    // Chỉ giữ lại những files đã pin (tuỳ chọn) hoặc xoá sạch. Tạm thời xoá all = clear
+    return {
+      files: state.files.filter(f => f.isPinned), // Optionally keep pinned
+      activeFileId: state.files.find(f => f.isPinned)?.id || null
+    };
+  }),
+
+  // Đóng tất cả tab KHÁC tab hiện tại
+  closeOther: (id) => set((state) => {
+    const targetFile = state.files.find(f => f.id === id);
+    const pinnedFiles = state.files.filter(f => f.isPinned && f.id !== id);
+    if (!targetFile) return state;
+
+    const newFiles = targetFile.isPinned ? [targetFile, ...pinnedFiles] : [...pinnedFiles, targetFile];
+    
+    return {
+      files: newFiles,
+      activeFileId: id
+    };
+  }),
+
   updateContent: (id, newContent) => set((state) => ({
     files: state.files.map(f => 
       f.id === id ? { ...f, content: newContent, isDirty: true } : f
@@ -95,7 +122,7 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
 
   updateEncoding: (id, newEncoding) => set((state) => ({
     files: state.files.map(f =>
-      f.id === id ? { ...f, encoding: newEncoding } : f
+      f.id === id ? { ...f, encoding: newEncoding, isDirty: true } : f
     )
   })),
 
@@ -112,6 +139,12 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
   markClean: (id) => set((state) => ({
     files: state.files.map(f => 
       f.id === id ? { ...f, isDirty: false } : f
+    )
+  })),
+
+  togglePin: (id) => set((state) => ({
+    files: state.files.map(f =>
+      f.id === id ? { ...f, isPinned: !f.isPinned } : f
     )
   })),
 

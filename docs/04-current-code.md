@@ -155,6 +155,19 @@ Standard exclusions for node_modules, Tauri target directories, and OS files.
 - **Files modified**: `src-tauri/capabilities/default.json`
 - **Verified**: Permission granted for clipboard write operations.
 
+### Latest Additions (March 08, 2026)
+- **SQL Filtering System**: Added Multi-Condition tag-based filtering (Query, DAO, Time) to `SqlLogParser`. Integrated `FilterModal.tsx` and updated state in `store.ts` to combine filters via `AND` logic.
+- **File Alias System**: Added the ability to assign custom names (aliases) to log files in the `SqlLogParser` sidebar via a right-click Context Menu. State persists via `store.ts` and uses `AliasModal.tsx`.
+- **Resizable & Collapsible Sidebar**: Implemented a draggable divider and "Slim Bar" collapse toggle for the Library sidebar in `SqlLogParser.tsx` using `PanelLeftClose`/`PanelLeftOpen` icons. The sidebar now shrinks to 32px with a vertical title instead of becoming a floating button.
+
+### BUG-14: Refined Sidebar Collapse UI
+- **Discovered in:** User feedback (March 08, 2026)
+- **Symptom:** The previous collapse implementation turned the sidebar into a small floating button, which felt disconnected.
+- **Root cause:** Standard absolute positioning implementation for collapsed states.
+- **Fix applied:** Refactored sidebar to always occupy a `div`. When collapsed, it uses `width: 32px` and shows a vertical "Library" text with an expand icon.
+- **Files modified:** `src/tools/sql-log-parser/SqlLogParser.tsx`
+- **Verified:** Rebuilt and verified the smooth transition and professional slim-bar look.
+
 ### BUG-13: Localized notifications causing inconsistent UI experiences
 - **Discovered in:** User report (March 08, 2026)
 - **Symptom:** Unstyled alerts/localized toasts acting inconsistently in `NoteEditor` and `Settings`.

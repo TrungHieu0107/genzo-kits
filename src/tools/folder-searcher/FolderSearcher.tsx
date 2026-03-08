@@ -13,10 +13,12 @@ export default function FolderSearcher() {
   const [rootDir, setRootDir] = useState<string>('');
   const [query, setQuery] = useState<string>('');
   const [mode, setMode] = useState<'all' | 'file' | 'folder'>('all');
+  const [useRegex, setUseRegex] = useState<boolean>(false);
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSelectRoot = async () => {
     try {
@@ -39,16 +41,19 @@ export default function FolderSearcher() {
     setIsSearching(true);
     setHasSearched(true);
     setResults([]);
+    setErrorMsg(null);
 
     try {
       const found: SearchResultItem[] = await invoke('search_system', { 
         root: rootDir, 
         query: query.trim(),
-        mode: mode
+        mode: mode,
+        useRegex: useRegex 
       });
       setResults(found);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Search failed:", err);
+      setErrorMsg(typeof err === 'string' ? err : err.message || "Unknown error occurred");
     } finally {
       setIsSearching(false);
     }
@@ -107,7 +112,18 @@ export default function FolderSearcher() {
 
           {/* Query Input */}
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Target</label>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Target</label>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-400 hover:text-gray-200 transition-colors">
+                <input 
+                   type="checkbox" 
+                   checked={useRegex}
+                   onChange={e => setUseRegex(e.target.checked)}
+                   className="accent-emerald-500 w-3 h-3"
+                />
+                <span>Use Regex (.*)</span>
+              </label>
+            </div>
             <div className="flex gap-2 relative group w-full">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none z-10">
                 <Search className="w-4 h-4" />
@@ -117,7 +133,7 @@ export default function FolderSearcher() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="e.g. node_modules, target, logs, main.rs..."
+                placeholder={useRegex ? "e.g. ^module_.*\\.ts$" : "e.g. node_modules, target, logs, main.rs..."}
                 className="flex-1 min-w-0 bg-[#1e1e1e] border border-[#333] group-hover:border-[#444] focus:border-emerald-500/50 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 outline-none transition-colors"
                 autoFocus
               />
@@ -167,6 +183,12 @@ export default function FolderSearcher() {
                 <div className="h-[200px] flex items-center justify-center flex-col gap-3 text-gray-500">
                   <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
                   <span className="text-xs font-medium animate-pulse">Scanning file system recursively...</span>
+                </div>
+              ) : errorMsg ? (
+                <div className="h-[200px] flex flex-col items-center justify-center text-red-400 gap-2 p-6 text-center">
+                   <AlertTriangle className="w-8 h-8 opacity-50 mb-2" />
+                   <p className="text-sm font-bold">Search Error</p>
+                   <p className="text-xs opacity-70 font-mono bg-red-950/40 p-2 rounded w-full overflow-hidden text-ellipsis whitespace-nowrap" title={errorMsg}>{errorMsg}</p>
                 </div>
               ) : results.length === 0 ? (
                 <div className="h-[200px] flex flex-col items-center justify-center text-gray-500 gap-2">

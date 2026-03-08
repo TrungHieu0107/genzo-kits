@@ -83,10 +83,11 @@ For **each tool** listed in \`02-features.md\`:
 
 1. Open the tool from the sidebar/navigation
 2. Test every feature and input type listed for that tool (e.g., Note Editor encodings, Log Extractor Target Filters, Folder Searcher recursion bounds).
-3. Check Folder Searcher Mode functionality (Filter correctly mapped to `Files Only`, `Folders Only` against the UI dropdown). Ensure no app freeze occurs due to unbounded search loops in `search_system` backend parsing.
-4. Test edge cases: empty input, very long input, special characters, rapid repeated actions
-5. Verify UI renders correctly, no layout breakage, no overlapping elements
-6. Verify no performance regression compared to baseline in \`04-current-code.md\`
+3. Check Folder Searcher Mode functionality (Filter correctly mapped to `Files Only`, `Folders Only` against the UI dropdown).
+4. **Test Folder Searcher Regex functionality**: Toggle **Use Regex (.*)**, enter a valid pattern (e.g., `^.*\.tsx$`), and verify correct results. Enter an invalid pattern (e.g., `[`) and verify error message reporting.
+5. Test edge cases: empty input, very long input, special characters, rapid repeated actions
+6. Verify UI renders correctly, no layout breakage, no overlapping elements
+7. Verify no performance regression compared to baseline in \`04-current-code.md\`
 
 Apply the same inner fix loop: **Test → Bug Found → Fix immediately → Rebuild → Retest → Confirm**
 

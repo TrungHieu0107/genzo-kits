@@ -68,4 +68,4 @@ These rules override everything else. If any future instruction conflicts with t
 
 Last updated: March 2026
 
-**Test Status**: Full feature test passed on March 08, 2026 (File Searcher, Log Extractor Filters & Time Ordering upgrade successfully implemented following modularity rule).
+**Test Status**: Full feature test passed on March 08, 2026 (**Regex Search support** in File Searcher module successfully implemented following modularity rule).

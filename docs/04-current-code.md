@@ -7,7 +7,7 @@ Contains the primary layout combining \`ToolSidebar\` and the dynamically active
 Exports a \`tools\` array dictating the entire layout of available sidebars. Now includes `TextComparator`, `NoteEditor`, `SqlLogParser`, `FolderSearcher`, and `Settings`.
 
 ## ToolSidebar.tsx
-Contains the main logic for rendering the fixed left-side menu, holding mapped buttons for every tool inside \`index.ts\`. Remembers active tab and collapsed state via \`localStorage\` synced down from \`App\`. Provides a toggle collapse button to shrink into an icon-only representation.
+Contains the main logic for rendering the fixed left-side menu, holding mapped buttons for every tool inside \`index.ts\`. Remembers active tab and collapsed state via \`localStorage\` synced down from \`App\`.
 
 ## TextComparator.tsx
 Contains the overhauled Advanced Text Comparator leveraging Monaco's native `DiffEditor`. Hooked natively via `useTextCompareStore` (`store.ts`) to toggle `includeWhitespace` states (`ignoreTrimWhitespace`) and set advanced character-level tracking logic. Supports **bi-directional editing** on both original and modified panels with real-time state synchronization.
@@ -19,10 +19,10 @@ A full-featured Universal Note-taking application powered by Monaco Editor (`@mo
 Parses generic Java backend .log and .txt files looking specifically for Database Access Object (DAO) sessions. Maps reconstructed SQL queries sequentially by stripping noise. Features advanced filtering combinations over Query string, DAO Name, or Timestamps using explicit operators (`Contains`, `Equals`, `>`, `<`). Includes a Top-Bar Toolbar toggle to dynamically sort mapped logs chronologically (Time: Ascending / Descending). Includes a context menu in the explorer to map custom human-readable Alias names to files. Features built-in SQL code formatter via `sql-formatter` inside a Modal for beautiful multi-line query viewing.
 
 ## FolderSearcher.tsx
-A search utility leveraging `search_system` spawned blocking Rust Thread inside `lib.rs`. Safely executes recursive queries on any folder bypassing system hangs. Maps string inputs and outputs a `SearchResultItem { path, is_dir: boolean }` parsing explicit "Mode" dropdown states ("all", "file", "folder") mapped automatically into dynamic icons via `lucide-react`. Outputs nested File System structure queries safely to the UI array boundary limits. Generates endpoints that can be rapidly piped outwards to `tauri_plugin_clipboard_manager`.
+A search utility leveraging `search_system` spawned blocking Rust Thread inside `lib.rs`. Safely executes recursive queries on any folder bypassing system hangs. Maps string inputs and outputs a `SearchResultItem { path, is_dir: boolean }` parsing explicit "Mode" dropdown states ("all", "file", "folder") and **Regex toggle state**. If `useRegex` is enabled, the backend utilizes the `regex` crate to provide pattern matching. Includes error message handling for invalid regex syntax. Outputs nested File System structure queries safely to the UI array boundary limits. Generates endpoints that can be rapidly piped outwards to `tauri_plugin_clipboard_manager`.
 
 ## Cargo.toml (Rust)
-Includes `encoding_rs` to support rapid local disk byte-string parsing based on the Status Bar Encoding configuration state. Includes `serde_json` for serialization inside the Session Management hooks and schema parsing mapping for Search limits.
+Includes `encoding_rs` to support rapid local disk byte-string parsing based on the Status Bar Encoding configuration state. Includes `serde_json` for serialization inside the Session Management hooks and schema parsing mapping for Search limits. **Now includes `regex` crate for system-level pattern matching.**
 
 *(For the complete code snippet of any tool, rely on the actual source file in \`src/tools/\` as the source of truth.)*
 
@@ -49,7 +49,7 @@ Standard exclusions for node_modules, Tauri target directories, and OS files.
 
 ## Test Results
 - **Date**: March 08, 2026
-- **Tested**: Text Comparator (Monaco Refinement Override + Editable Panels). Tool Management Menu. Universal Note Editor. SqlLogParser (Advanced Operators & Sort Order). Folder Searcher (`spawn_blocking` UI Safety hooks, File Mode parsing schemas).
+- **Tested**: Text Comparator (Monaco Refinement Override + Editable Panels). Tool Management Menu. Universal Note Editor. SqlLogParser (Advanced Operators & Sort Order). Folder Searcher (**Regex Support**, `spawn_blocking` UI Safety hooks, File Mode parsing schemas).
 - **Result**: PASS ✅
 
 ## Bug Fix Log — March 07, 2026

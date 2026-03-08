@@ -107,7 +107,18 @@ pub struct SearchResultItem {
 }
 
 #[tauri::command]
-async fn search_system(root: String, query: String, mode: String) -> Result<Vec<SearchResultItem>, String> {
+async fn search_system(root: String, query: String, mode: String, use_regex: bool) -> Result<Vec<SearchResultItem>, String> {
+    // If using regex, try to compile it first on the main thread so we can fail fast
+    // and send a meaningful error back to the UI before spawning the blocking task.
+    let re = if use_regex {
+        match regex::Regex::new(&query) {
+            Ok(r) => Some(r),
+            Err(e) => return Err(format!("Invalid Regex: {}", e)),
+        }
+    } else {
+        None
+    };
+
     tauri::async_runtime::spawn_blocking(move || {
         let mut results = Vec::new();
         let query_lower = query.to_lowercase();
@@ -131,8 +142,12 @@ async fn search_system(root: String, query: String, mode: String) -> Result<Vec<
                     let path = entry.path();
                     
                     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                        // Check match condition
-                        let matches_query = name.to_lowercase().contains(&query_lower);
+                        // Check match condition based on regex or standard contains
+                        let matches_query = if let Some(ref regex) = re {
+                            regex.is_match(name)
+                        } else {
+                            name.to_lowercase().contains(&query_lower)
+                        };
                         
                         // Check mode condition
                         let matches_mode = match mode.as_str() {

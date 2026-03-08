@@ -7,7 +7,7 @@
   - Global rules are enforced by \`07-core-development-rules.md\`.
   - Testing is required by \`08-workflow-test-application.md\`.
 - **Modularity**: Never break existing tools when adding a new one. All tools must reside in \`src/tools/\`. Each tool is strictly isolated and only registered inside \`src/tools/index.ts\`. Note: Explicit user override is required and recorded before mutating any core tool implementation directly.
-- **UI Constraints**: Always rely on TailwindCSS for styling and ensure dark mode adherence. Keep interfaces simple and clean, removing visual clutter (like Tab bars) when requested.
+- **UI Constraints**: Always rely on TailwindCSS for styling and ensure dark mode adherence. Keep interfaces simple and clean.
 - **Executable**: Final build target is ALWAYS \`genzo-kit.exe\`.
 
-**Test Status**: Full feature test passed on March 08, 2026 (including File & Folder Mode Searcher upgrade, Log Extractor Filter Operators + Time Ordering).
+**Test Status**: Full feature test passed on March 08, 2026 (including System File Searcher Regex Support upgrade).

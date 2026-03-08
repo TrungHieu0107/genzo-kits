@@ -26,4 +26,4 @@
 
 When the user asks to "fix a bug", automatically apply this workflow and reply: "Done using Workflow 06".
 
-**Test Status**: Full feature test passed on March 08, 2026 (System File Searcher Dropdown Module, Log Extractor Advanced Operators + Time Sort Order features tested).
+**Test Status**: Full feature test passed on March 08, 2026 (Regex support in File Searcher module tested).

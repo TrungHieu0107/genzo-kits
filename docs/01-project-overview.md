@@ -16,7 +16,7 @@
     - `text-comparator/`: The standalone native Monaco `DiffEditor` instance configured precisely for raw string tracking and ignoreTrimWhitespace granularities. Holds `useTextCompareStore` state provider for cross-tool text piping and user-interactive editing.
     - `note-editor/`: The Universal Monaco text processor handling arbitrary encoding tabs securely. Pipes diff commands into `text-comparator`.
     - `sql-log-parser/`: Powerful Regex Log Extractor identifying DAO sessions and executing Advanced Operator conditional filtering logic over sequence boundaries. Maps Time-ordered sequences perfectly tracking native Chronological sorting on rendering pipelines.
-    - `folder-searcher/`: Implements async multi-threaded Rust backend Breadth-First Scanning (`std::fs::read_dir`) to query nested directories and files based on target match modes without locking the UI main thread. Returns normalized objects containing `path` schemas.
+    - `folder-searcher/`: Implements async multi-threaded Rust backend Breadth-First Scanning (`std::fs::read_dir`) to query nested directories and files based on target match modes. **Supports both standard substring and Regular Expression (Regex) matching** without locking the UI main thread. Returns normalized objects containing `path` schemas.
     - `tool-manager/`: The main UI Sidebar infrastructure tracking `index.ts`.
     - `index.ts`: The central registry exporting all available tools for dynamic sidebar rendering.
 - `src-tauri/`: Rust backend and build configuration logic.
@@ -26,4 +26,4 @@
 As detailed in `07-core-development-rules.md`, Genzo-Kit implements a strict feature segmentation policy. ANY new user request is automatically handled by the `05-workflow-new-feature.md` process. Existing tools are isolated and immutable upon validation unless bug fixes are called.
 - Note: The Monaco Comparator has been further refined to support full user interactivity (editing) on both panels.
 - Note: Log Extractor Filter options were upgraded to support specific Operators and Time-based Ordering per request.
-- Note: A System File & Folder Searcher capability was installed avoiding unbounded `C:\` parsing to protect against extreme local load configurations. Matches target directories and queries natively mapping payload schemas.
+- Note: A System File & Folder Searcher capability was installed avoiding unbounded `C:\` parsing. **Upgraded with Regex support and File/Folder mode filtering.**

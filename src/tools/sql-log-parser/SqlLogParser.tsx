@@ -2,13 +2,14 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useState, useEffect } from 'react';
 import { 
-  Database, Trash2, FolderOpen, FileText, X, Clock, Copy, Check, RefreshCw, Filter, Search as SearchIcon 
+  Database, Trash2, FolderOpen, FileText, X, Clock, Copy, Check, RefreshCw, Filter, Search as SearchIcon, Edit3 
 } from 'lucide-react';
 import { useSqlLogStore } from './store';
 import { useConfigStore } from '../../components/configStore';
 import { StatusBar } from '../../components/StatusBar';
 import { SqlFormatterModal } from './SqlFormatterModal';
 import { FilterModal } from './FilterModal';
+import { AliasModal } from './AliasModal';
 
 export default function SqlLogParser() {
    const { encoding, updateConfig } = useConfigStore();
@@ -16,11 +17,13 @@ export default function SqlLogParser() {
    const [selectedSql, setSelectedSql] = useState<string | null>(null);
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileIndex: number } | null>(null);
+   const [aliasModalProps, setAliasModalProps] = useState({ isOpen: false, index: 0, initialValue: '' });
  
    const { 
      files, activeFileIndex,
      addFile, removeFile, selectFile, updateFileContent, loadFiles, clear,
-     filters, removeFilter, clearFilters
+     filters, removeFilter, clearFilters, setFileAlias
    } = useSqlLogStore();
 
   useEffect(() => {
@@ -143,13 +146,27 @@ export default function SqlLogParser() {
           </div>
           <div className="flex-1 overflow-y-auto hide-scrollbar p-1">
             {files.map((file, fIdx) => (
-              <div key={fIdx} className="mb-1">
+              <div key={fIdx} className="mb-1 relative">
                 <div 
                   onClick={() => selectFile(fIdx)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setContextMenu({ x: e.clientX, y: e.clientY, fileIndex: fIdx });
+                  }}
                   className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer group transition-colors ${activeFileIndex === fIdx ? 'bg-[#37373D] text-white shadow-sm' : 'text-gray-400 hover:bg-[#2A2D2E]'}`}
                 >
                   <FileText className={`w-4 h-4 flex-shrink-0 ${activeFileIndex === fIdx ? 'text-blue-400' : 'text-gray-500'}`} />
-                  <span className="text-[13px] font-medium truncate flex-1">{file.name}</span>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className={`text-[13px] font-medium truncate ${activeFileIndex === fIdx ? 'text-white' : 'text-gray-300'}`}>{file.alias || file.name}</span>
+                    {file.alias && (
+                      <span 
+                        className={`text-[9.5px] truncate mt-0.5 leading-tight ${activeFileIndex === fIdx ? 'text-blue-200/70' : 'text-gray-500'}`} 
+                        title={file.name}
+                      >
+                        {file.name}
+                      </span>
+                    )}
+                  </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); removeFile(fIdx); }}
                     className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all"
@@ -159,6 +176,29 @@ export default function SqlLogParser() {
                 </div>
               </div>
             ))}
+
+            {contextMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
+                <div 
+                  className="fixed z-50 bg-[#252526] border border-[#454545] rounded-md shadow-xl py-1 min-w-[150px] animate-in fade-in zoom-in-95 duration-100"
+                  style={{ top: contextMenu.y, left: contextMenu.x }}
+                >
+                  <button 
+                    className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-blue-600 hover:text-white transition-colors flex items-center gap-2"
+                    onClick={() => {
+                      const f = files[contextMenu.fileIndex];
+                      setAliasModalProps({ isOpen: true, index: contextMenu.fileIndex, initialValue: f.alias || '' });
+                      setContextMenu(null);
+                    }}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    Set Alias Name
+                  </button>
+                </div>
+              </>
+            )}
+
             {files.length === 0 && (
               <div className="p-8 flex flex-col items-center justify-center text-center opacity-30 h-full">
                 <FolderOpen className="w-12 h-12 mb-4" />
@@ -323,6 +363,13 @@ export default function SqlLogParser() {
       <FilterModal 
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
+      />
+
+      <AliasModal
+        isOpen={aliasModalProps.isOpen}
+        initialValue={aliasModalProps.initialValue}
+        onClose={() => setAliasModalProps(p => ({ ...p, isOpen: false }))}
+        onSave={(alias) => setFileAlias(aliasModalProps.index, alias || undefined)}
       />
     </div>
   );

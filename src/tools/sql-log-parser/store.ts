@@ -99,6 +99,9 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
       };
     });
     // Sync to disk
+    get().saveFiles();
+  },
+
   setFileAlias: (index, alias) => {
     set((state) => ({
       files: state.files.map((f, i) => i === index ? { ...f, alias } : f)

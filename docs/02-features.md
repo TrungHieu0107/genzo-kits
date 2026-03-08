@@ -53,5 +53,6 @@
 7. **Reload Feature**: Dedicated button to refresh the active log file from disk, allowing for real-time analysis as log files grow.
 8. **Robust Parsing**: Advanced regex detection for DAO sessions that handles mixed Japanese characters and complex log formats.
 9. **Multi-Condition Filtering**: Tag-based filtering system allowing users to combine (AND logic) conditions by Query Content, DAO Name, or Timestamp via a dedicated modal UI.
+10. **Custom File Aliasing**: Right-click context menu on sidebar log files to uniquely rename them, with persistent multi-session saving functionality.
 
-*Tested and verified on 2026-03-08 (Added: Filtering System. Fixed: UI Pollution & ID Normalization BUG-7/8).*
+*Tested and verified on 2026-03-08 (Added: Filtering & File Alias Systems. Fixed: UI Pollution & ID Normalization BUG-7/8).*

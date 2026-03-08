@@ -25,6 +25,14 @@ function App() {
     if (windowParam) {
       setStandaloneToolId(windowParam);
     }
+
+    // Trigger background file system indexing on app startup
+    // Khởi chạy quét hệ thống file ở background khi app mở
+    import("@tauri-apps/api/core").then(({ invoke }) => {
+      invoke('start_background_index').catch((err: unknown) => {
+        console.error("[Genzo] Failed to start background index:", err);
+      });
+    });
   }, []);
 
   useEffect(() => {

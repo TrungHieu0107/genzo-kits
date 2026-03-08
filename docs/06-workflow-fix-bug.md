@@ -2,28 +2,13 @@
 
 **Goal:** Fix a bug without breaking any working feature.
 
-**Mandatory Step-by-Step Process:**
+**Steps:**
+1. **Identify Root Cause** — Trace to a single tool.
+2. **Isolate Changes** — Fix only inside `src/tools/[tool]`.
+3. **Documentation Update** — Touch all 8 docs files.
+4. **Testing** — Verify fix, ensure other features intact.
+5. **Commit** — `fix: [tool-name] - [short description]`
 
-1. **Identify Root Cause**
-   - Understand why the bug happens.
-   - Trace the bug specifically to a single tool.
+Reply: "Done using Workflow 06".
 
-2. **Isolate Changes**
-   - Fix the bug only inside the specific tool's folder `src/tools/[kebab-case-name]`.
-   - Do NOT edit shared configurations unless absolutely necessary.
-
-3. **Documentation Update**
-   - Update `docs/04-current-code.md` with the new corrected code snippets.
-   - Do NOT overwrite existing unrelated code snippets.
-   - Touch all 8 files in `docs/` to satisfy the update requirement.
-
-4. **Testing**
-   - Verify the bug is fixed.
-   - Run the entire Genzo-Kit to ensure other features are intact.
-
-5. **Final Commit Message Style**
-   - `fix: resolve [bug-description] in [tool-name]`
-
-When the user asks to "fix a bug", automatically apply this workflow and reply: "Done using Workflow 06".
-
-**Test Status**: Full feature test passed on March 08, 2026 (Regex support in File Searcher module tested).
+**Test Status**: PASS — March 09, 2026 (System Cache Manager, Stale-While-Revalidate, Resizable Columns, Full-Width, Collapsible Options, Persistence).

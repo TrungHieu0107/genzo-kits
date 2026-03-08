@@ -1,13 +1,9 @@
 # Editing Principles
 
-- **Documentation**: Every time there is a request to change code in Genzo-Kit, ALL 8 files in \`docs/\` MUST be completely updated.
-- **Workflow Policies**:
-  - New features must follow \`05-workflow-new-feature.md\`.
-  - Bug fixes must follow \`06-workflow-fix-bug.md\`.
-  - Global rules are enforced by \`07-core-development-rules.md\`.
-  - Testing is required by \`08-workflow-test-application.md\`.
-- **Modularity**: Never break existing tools when adding a new one. All tools must reside in \`src/tools/\`. Each tool is strictly isolated and only registered inside \`src/tools/index.ts\`. Note: Explicit user override is required and recorded before mutating any core tool implementation directly.
-- **UI Constraints**: Always rely on TailwindCSS for styling and ensure dark mode adherence. Keep interfaces simple and clean.
-- **Executable**: Final build target is ALWAYS \`genzo-kit.exe\`.
+- **Documentation**: Every change → update ALL 8 files in `docs/`.
+- **Workflow Policies**: New features → `05`. Bug fixes → `06`. Rules → `07`. Testing → `08`.
+- **Modularity**: Tools isolated in `src/tools/`. Registered in `index.ts`.
+- **UI Constraints**: TailwindCSS, dark mode, synchronized tables.
+- **Executable**: `genzo-kit.exe`.
 
-**Test Status**: Full feature test passed on March 08, 2026 (including System File Searcher Regex Support upgrade).
+**Test Status**: PASS — March 09, 2026 (System Cache Manager, Stale-While-Revalidate, Resizable Columns, Full-Width, Collapsible Options, Cache Control, Row Management, System-wide Search, Persistence).

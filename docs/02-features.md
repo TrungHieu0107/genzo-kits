@@ -4,27 +4,40 @@
 - Extremely lightweight and fast startup.
 - Modular tool architecture for easy expansion.
 - Dark theme only.
-- Utility scripts (\`build.bat\`, \`run.bat\`) for fast development and deployment.
-- *Tested and verified on March 07, 2026*
+- Utility scripts (`build.bat`, `run.bat`) for fast development and deployment.
+- *Tested and verified on March 08, 2026 (Fixed: Alt+Shift+S shortcut in production builds via tauri-plugin-global-shortcut)*
 
-**Tool Management Menu** (\`src/tools/tool-manager\`):
+**Settings & Preferences** (`src/tools/settings`):
+- **Universal Context Menus:** Toggle Whitespace and Change Language right from the editor.
+- **Global Settings Persistence:** Universal settings like Theme, Tab Size, Word Wrap, and Whitespace Rendering persist across sessions on disk.
+- Centralized UI for application-wide and tool-specific configurations.
+- Hierarchical editor settings (Font Size, Wrap, Minimap).
+- App-Wide UI Preferences (**Global Configurable Toast Notification System**).
+- Tool-specific defaults (Encoding for Note Editor, Whitespace for Comparator).
+- **Shortcut**: `Ctrl+Shift+S` to open Settings instantly from anywhere.
+- "Reset All" functionality for easy troubleshooting.
+
+**Tool Management Menu** (`src/tools/tool-manager`):
 - Fixed sidebar layout integrating smoothly with main content
 - **Collapsible sidebar**: Collapse to icon-only mode to save screen real estate.
-- Dynamic tool list populated directly from \`src/tools/index.ts\`
-- Selected state and collapsed state retention using \`localStorage\`
+- Dynamic tool list populated directly from `src/tools/index.ts`
+- Selected state and collapsed state retention using `localStorage`
 - Smooth, aesthetic tool switching without full app reload
-- Add New Tool entry point stub
 
-**Text Comparator** (\`src/tools/text-comparator\`):
-1. **Load/Paste Text**: Load local files (JSON, JS, Java, TXT, MD, etc.) or paste from clipboard.
-2. **Side-by-side Diff**: Two panels highlighting Added (green), Removed (red), and Modified (yellow) lines.
-3. **Syntax Highlighting**: Beautiful syntax colors (via PrismJS).
-4. **Synchronized Scroll**: The two panels scroll perfectly in sync.
-5. **Clear Summary**: Bottom bar showing exactly how many lines were added, removed, or modified.
-6. **Export Diff**: Capability to export the comparison to HTML or TXT.
+**Text Comparator** (`src/tools/text-comparator`):
+**Text Comparator** (`src/tools/text-comparator`):
+1. **Raw String Diffing**: Complete adherence to initial source input mapping through to a natively configured `Monaco Editor`.
+2. **Granular Highlighting**: Modern `diffAlgorithm: 'advanced'` enabling character-level string visualization mapping differences perfectly side by side instead of full line rewriting logic.
+3. **Whitespace Configurator**: Built in "Include Whitespace" visual toggle enabling `<DiffEditor ignoreTrimWhitespace={!toggle} />` to natively track newline variations, space padding anomalies, or tab conversion mutations securely.
+4. **Interactive Panels**: Full support for manual typing, editing, and pasting within both original and modified panels with real-time state bridge.
+5. **Editor Interop**: Directly linked to Note Editor context menus (`Alt+1/2`) via Zustand cross-store hydration.
 
-**Note Editor** (\`src/tools/note-editor\`):
-1. **File Explorer**: VS Code-style left sidebar to select a folder and display `.md` and `.txt` files.
-2. **Monaco Editor Integration**: Powerful code editing experience powered by `@monaco-editor/react`.
-3. **Local Persistence**: Ability to open and save files directly to the local file system.
-4. **Shortcuts**: Ctrl+S bound to local save, alongside all default Monaco shortcut features (find, replace, line operations).
+**Note Editor** (`src/tools/note-editor`):
+1. **Universal File Explorer**: VS Code-style left sidebar with "New File" and "Open File" actions. Resizable and fully collapsible.
+2. **Multi-Tab Execution**: Streamlined single-window rendering focusing purely on the active file via Explorer.
+3. **Session Auto-saving**: 100% loss-free crash-proof architecture utilizing `load_note_session` on initialization. "Untitled" disk-less files are automatically persisted.
+4. **Monaco Editor Integration**: Powerful code editing experience powered by `@monaco-editor/react`. Automatic language detection via file extensions.
+5. **Rust Binary Safe Checking**: Verify file byte safety natively before crashing the UI.
+6. **Dynamic Encodings**: Bottom status bar encoding dropdown to quickly toggle and reload files in `UTF-8`, `Shift_JIS`, `Windows-1252`, and `UTF-16LE` using `encoding_rs`.
+7. **Native Context Diffing**: Integrated Context Menu actions inside the Editor ("Set as First to Compare" and "Set as Second to Compare") that pipe string data securely and cross-navigate values instantly into the Text Comparator tool.
+8. **Modern Keybindings**: `Ctrl+S` (Save), `Ctrl+W` (Close Tab), `Ctrl+N` (New Untitled File), and `Ctrl+O` (Open System Match).

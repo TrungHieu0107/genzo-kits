@@ -7,6 +7,12 @@ export interface EditorFile {
   content: string;
   isDirty: boolean;
   language: string;
+  encoding: string;
+}
+
+export interface NoteEditorSession {
+  files: EditorFile[];
+  activeFileId: string | null;
 }
 
 interface NoteEditorState {
@@ -19,8 +25,11 @@ interface NoteEditorState {
   createFile: () => void;
   closeFile: (id: string) => void;
   updateContent: (id: string, newContent: string) => void;
+  updateEncoding: (id: string, newEncoding: string) => void;
+  updateLanguage: (id: string, newLanguage: string) => void;
   setActiveFile: (id: string | null) => void;
   markClean: (id: string) => void;
+  hydrateSession: (session: NoteEditorSession) => void;
 }
 
 export const useNoteEditorStore = create<NoteEditorState>((set) => ({
@@ -54,7 +63,8 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
       name: `Untitled-${untitledCount}`,
       content: "",
       isDirty: false,
-      language: "plaintext"
+      language: "plaintext",
+      encoding: "UTF-8"
     };
 
     return {
@@ -83,6 +93,20 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
     )
   })),
 
+  updateEncoding: (id, newEncoding) => set((state) => ({
+    files: state.files.map(f =>
+      f.id === id ? { ...f, encoding: newEncoding } : f
+    )
+  })),
+
+  // Cập nhật ngôn ngữ syntax highlighting cho file
+  // Update the syntax highlighting language for a file
+  updateLanguage: (id, newLanguage) => set((state) => ({
+    files: state.files.map(f =>
+      f.id === id ? { ...f, language: newLanguage } : f
+    )
+  })),
+
   setActiveFile: (id) => set({ activeFileId: id }),
 
   markClean: (id) => set((state) => ({
@@ -90,4 +114,9 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
       f.id === id ? { ...f, isDirty: false } : f
     )
   })),
+
+  hydrateSession: (session) => set({
+    files: session.files || [],
+    activeFileId: session.activeFileId || null
+  }),
 }));

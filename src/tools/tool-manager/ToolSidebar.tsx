@@ -1,4 +1,7 @@
-import { Plus, PanelLeftClose, PanelLeft } from "lucide-react";
+import { 
+  ChevronLeft, 
+  ChevronRight
+} from "lucide-react";
 import { tools } from "../index";
 
 interface ToolSidebarProps {
@@ -14,25 +17,25 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
       {/* Header */}
       <div className={`p-4 border-b border-[#2d2d2d] flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? "hidden" : "flex"}`}>
-          <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold text-white shadow-lg">G</div>
+          <img src="/logo.png" className="w-6 h-6 rounded object-cover shadow-lg" alt="Genzo" />
           <div>
             <h2 className="text-white font-bold tracking-wide">Genzo-Kit</h2>
             <p className="text-xs text-gray-500">v1.0+</p>
           </div>
         </div>
         <button 
-          onClick={onToggleCollapse} 
-          className="text-gray-400 hover:text-white transition p-1 rounded hover:bg-[#2d2d2d]"
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={onToggleCollapse}
+          className="p-2 hover:bg-[#3C3C3D] rounded-md transition-colors text-gray-400 hover:text-white"
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
-          {isCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
       </div>
 
       {/* Tools List */}
       <div className={`flex-1 overflow-y-auto ${isCollapsed ? "p-2" : "p-3"} flex flex-col gap-1 hide-scrollbar`}>
         {!isCollapsed && <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2 whitespace-nowrap">Installed Tools</div>}
-        {tools.map((tool) => {
+        {tools.filter(t => t.id !== 'settings').map((tool) => {
           const isActive = tool.id === activeToolId;
           const Icon = tool.icon;
           return (
@@ -48,7 +51,7 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
             >
               <div className={`flex items-center gap-3 ${isCollapsed ? "" : "w-full"}`}>
                 <div className={`p-1.5 rounded-md ${isActive ? 'bg-blue-600/20 text-blue-400' : 'bg-[#1e1e1e] group-hover:bg-[#2d2d2d]'}`}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                 </div>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
@@ -66,15 +69,30 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
         })}
       </div>
 
-      {/* Footer / Add New Tool */}
+      {/* Footer / Settings Launcher */}
+      {/* Footer / Nút mở Settings */}
       <div className={`p-4 border-t border-[#2d2d2d] ${isCollapsed ? "flex justify-center" : ""}`}>
-        <button 
-          title={isCollapsed ? "Add New Tool" : undefined}
-          className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md bg-[#252526] hover:bg-[#2d2d2d] text-gray-300 font-semibold border border-[#3d3d3d] transition hover:text-white ${isCollapsed ? "w-10 h-10 p-0" : "w-full"}`}
-          onClick={() => alert("Stub: Implement modal to scaffold new tool folder structure.")}
-        >
-          <Plus className="w-4 h-4" /> {!isCollapsed && <span className="whitespace-nowrap">Add New Tool</span>}
-        </button>
+        {(() => {
+          const settingsTool = tools.find(t => t.id === 'settings');
+          if (!settingsTool) return null;
+          const isActive = activeToolId === 'settings';
+          const Icon = settingsTool.icon;
+          
+          return (
+            <button 
+              title={isCollapsed ? "Settings" : undefined}
+              className={`flex items-center ${isCollapsed ? "justify-center p-0 w-10 h-10" : "justify-start gap-3 py-2 px-4 w-full"} rounded-md transition-all duration-200 border ${
+                  isActive 
+                    ? 'bg-blue-600 text-white border-blue-500' 
+                    : 'bg-[#252526] hover:bg-[#2d2d2d] text-gray-400 hover:text-white border-[#3d3d3d]'
+              }`}
+              onClick={() => onSelectTool('settings')}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} /> 
+              {!isCollapsed && <span className="font-semibold text-sm">Settings</span>}
+            </button>
+          );
+        })()}
       </div>
     </div>
   );

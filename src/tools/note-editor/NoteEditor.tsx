@@ -1,221 +1,426 @@
-import { useState, useEffect } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readDir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import Editor, { useMonaco } from "@monaco-editor/react";
-import { FolderOpen, FileText, FileCode, Save, File } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import Editor from "@monaco-editor/react";
+import { 
+  FileCode, X, Plus, File, 
+  FileJson, FileType, ChevronLeft, ChevronRight, FolderOpen, Save,
+  Terminal, Database, Globe, FileText
+} from "lucide-react";
+import { useNoteEditorStore, EditorFile } from "./store";
+import { useTextCompareStore } from "../text-comparator/store";
+import { useSettingsStore } from "../settings/store";
+import { useToastStore } from "../../components/toastStore";
+import { StatusBar } from "../../components/StatusBar";
+import { useEditorConfig } from "../../components/useEditorConfig";
+import { useConfigStore } from "../../components/configStore";
 
-interface FileEntry {
-  name: string;
-  path: string;
-  isDir: boolean;
+// Helper to determine Monaco language from filename
+const getLanguageFromPath = (name: string): string => {
+  const ext = name.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js':
+    case 'jsx': return 'javascript';
+    case 'ts':
+    case 'tsx': return 'typescript';
+    case 'json': return 'json';
+    case 'html': return 'html';
+    case 'css': return 'css';
+    case 'md': return 'markdown';
+    case 'rs': return 'rust';
+    case 'py': return 'python';
+    case 'java': return 'java';
+    case 'cpp':
+    case 'c':
+    case 'h': return 'cpp';
+    case 'xml': return 'xml';
+    case 'sql': return 'sql';
+    case 'sh':
+    case 'bat': return 'shell';
+    case 'yml':
+    case 'yaml': return 'yaml';
+    case 'toml': return 'toml';
+    case 'ini': return 'ini';
+    case 'txt': return 'plaintext';
+    default: return 'plaintext';
+  }
+};
+
+// Helper for file icons based on language mode
+const getFileIcon = (language: string) => {
+  switch (language) {
+    case 'javascript':
+    case 'typescript':
+      return <FileCode className="w-4 h-4 text-yellow-400" />;
+    case 'json':
+      return <FileJson className="w-4 h-4 text-green-400" />;
+    case 'html':
+    case 'css':
+    case 'scss':
+      return <Globe className="w-4 h-4 text-orange-400" />;
+    case 'markdown':
+      return <FileType className="w-4 h-4 text-blue-400" />;
+    case 'python':
+    case 'java':
+    case 'csharp':
+    case 'cpp':
+    case 'ruby':
+    case 'php':
+    case 'swift':
+    case 'kotlin':
+    case 'rust':
+    case 'go':
+      return <FileCode className="w-4 h-4 text-purple-400" />;
+    case 'sql':
+      return <Database className="w-4 h-4 text-pink-400" />;
+    case 'shell':
+    case 'dockerfile':
+      return <Terminal className="w-4 h-4 text-gray-300" />;
+    case 'plaintext':
+      return <FileText className="w-4 h-4 text-gray-400" />;
+    default:
+      return <File className="w-4 h-4 text-gray-400" />;
+  }
+};
+
+interface SafeFileResponse {
+  content: string | null;
+  is_binary: boolean;
+  error: string | null;
 }
 
 export function NoteEditor() {
-  const [folderPath, setFolderPath] = useState<string | null>(null);
-  const [files, setFiles] = useState<FileEntry[]>([]);
-  const [activeFile, setActiveFile] = useState<FileEntry | null>(null);
-  const [content, setContent] = useState<string>("");
-  const [isDirty, setIsDirty] = useState(false);
-  const monaco = useMonaco();
+  const { 
+    files, activeFileId, 
+    openFile, createFile, closeFile, 
+    updateContent, updateEncoding, updateLanguage, setActiveFile, markClean,
+    hydrateSession
+  } = useNoteEditorStore();
 
-  const loadFolder = async () => {
-    try {
-      const selected = await open({ directory: true, multiple: false });
-      if (typeof selected === 'string') {
-        setFolderPath(selected);
-        refreshDir(selected);
-      }
-    } catch (err) {
-      console.error("Failed to open folder:", err);
-    }
-  };
+  const { setLeftText, setRightText } = useTextCompareStore();
+  const { tools: toolSettings } = useSettingsStore();
+  const noteSettings = toolSettings['note-editor'];
+  
+  const { getCommonOptions, config } = useEditorConfig();
 
-  const refreshDir = async (path: string) => {
-    try {
-      const entries = await readDir(path);
-      const filtered = entries
-        .filter(e => !e.isDirectory && (e.name?.endsWith(".md") || e.name?.endsWith(".txt")))
-        .map(e => ({
-          name: e.name || "Unknown",
-          path: `${path}\\${e.name}`, // simplistic join for windows, assuming windows due to env
-          isDir: e.isDirectory
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      
-      setFiles(filtered);
-    } catch (err) {
-      console.error("Failed to read directory:", err);
-    }
-  };
+  const { showToast } = useToastStore();
 
-  const openFile = async (file: FileEntry) => {
-    try {
-      const text = await readTextFile(file.path);
-      setContent(text);
-      setActiveFile(file);
-      setIsDirty(false);
-    } catch (err) {
-      console.error("Failed to read file:", err);
-    }
-  };
-
-  const saveFile = async () => {
-    if (!activeFile) return;
-    try {
-      await writeTextFile(activeFile.path, content);
-      setIsDirty(false);
-    } catch (err) {
-      console.error("Failed to save file:", err);
-    }
-  };
-
-  // Register Ctrl+S when Monaco loads
+  const activeFile = files.find(f => f.id === activeFileId);
+  const activeFileRef = useRef(activeFile);
   useEffect(() => {
-    if (monaco) {
-      monaco.editor.addKeybindingRules([
-        {
-          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-          command: "saveFile",
-        }
-      ]);
-    }
-  }, [monaco]);
+    activeFileRef.current = activeFile;
+  }, [activeFile]);
 
-  const handleEditorDidMount = (editor: any, monaco: any) => {
+  const [isRestoring, setIsRestoring] = useState(true);
+  const isFirstMount = useRef(true);
+
+  // Restore session from Rust backend
+  useEffect(() => {
+    const loadSession = async () => {
+      try {
+        const sessionStr: string = await invoke('load_note_session');
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          hydrateSession(session);
+        }
+      } catch (err) {
+        console.log("No previous session found.");
+      } finally {
+        setIsRestoring(false);
+      }
+    };
+    loadSession();
+  }, [hydrateSession]);
+
+  // Debounce save session to Rust backend
+  useEffect(() => {
+    if (isRestoring) return;
+    if (isFirstMount.current) {
+        isFirstMount.current = false;
+        return;
+    }
+    const timer = setTimeout(() => {
+       const session = { files, activeFileId };
+       invoke('save_note_session', { stateJson: JSON.stringify(session) }).catch(err => {
+         console.error("Failed to save session:", err);
+       });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [files, activeFileId, isRestoring]);
+
+  const [sidebarWidth, setSidebarWidth] = useState(250);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+    const handleMouseMove = (mouseMoveEvent: MouseEvent) => {
+      const newWidth = Math.max(150, Math.min(600, startWidth + (mouseMoveEvent.clientX - startX)));
+      setSidebarWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); createFile(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); if (activeFileId) closeFile(activeFileId); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') { e.preventDefault(); handleOpenFile(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (activeFile) handleSaveFile(activeFile); }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') { 
+        e.preventDefault(); 
+        if (activeFile && activeFile.path) {
+          import('@tauri-apps/plugin-clipboard-manager').then(({ writeText }) => {
+            writeText(activeFile.path as string).then(() => {
+              showToast("Path copied to clipboard!", "success");
+            }).catch(err => {
+              console.error("Failed to copy path:", err);
+              showToast("Failed to copy path", "error");
+            });
+          });
+        } else if (activeFile) {
+          showToast("File not saved yet.", "info");
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFileId, activeFile]);
+
+  const handleOpenFile = async () => {
+    try {
+      const selected = await open({ multiple: false });
+      if (typeof selected === 'string') {
+        const name = selected.split(/[/\\]/).pop() || selected;
+        const existing = files.find(f => f.path === selected);
+        if (existing) { setActiveFile(existing.id); return; }
+
+        const defaultEnc = noteSettings.defaultEncoding;
+        const response: SafeFileResponse = await invoke('read_file_encoded', { 
+          path: selected, 
+          encoding: defaultEnc 
+        });
+        
+        if (response.error) { console.error("Error reading file:", response.error); return; }
+        if (response.is_binary) {
+          openFile({
+            id: selected, path: selected, name, 
+            content: "Binary file or unsupported encoding.", language: "plaintext", encoding: defaultEnc
+          });
+        } else {
+          openFile({
+            id: selected, path: selected, name, content: response.content || "",
+            language: getLanguageFromPath(name), encoding: defaultEnc
+          });
+        }
+      }
+    } catch (err) { console.error("Failed to open file dialog:", err); }
+  };
+
+  const handleEncodingChange = async (file: EditorFile, newEncoding: string) => {
+    if (!file.path) { updateEncoding(file.id, newEncoding); return; }
+    try {
+      const response: SafeFileResponse = await invoke('read_file_encoded', { path: file.path, encoding: newEncoding });
+      if (response.error) return;
+      if (!response.is_binary) {
+        updateEncoding(file.id, newEncoding);
+        updateContent(file.id, response.content || "");
+        markClean(file.id);
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSaveFile = async (file: EditorFile) => {
+    if (!file.isDirty) return;
+    try {
+      if (file.path) {
+        await invoke('save_file_encoded', { path: file.path, content: file.content, encoding: file.encoding });
+        markClean(file.id);
+      } else {
+        const savePath = await save({ title: "Save File As", defaultPath: file.name });
+        if (typeof savePath === 'string') {
+          await invoke('save_file_encoded', { path: savePath, content: file.content, encoding: file.encoding });
+          markClean(file.id);
+          closeFile(file.id);
+          const name = savePath.split(/[/\\]/).pop() || savePath;
+          openFile({
+            id: savePath, path: savePath, name, content: file.content, 
+            language: getLanguageFromPath(name), encoding: file.encoding
+          });
+        }
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleEditorDidMount = (editor: any, monacoInstance: any) => {
     editor.addAction({
-      id: "saveFile",
-      label: "Save File",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+      id: "save-action", label: "Save File",
+      keybindings: [monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyS],
+      run: () => { if (activeFileRef.current) handleSaveFile(activeFileRef.current); }
+    });
+    editor.addAction({
+      id: "close-action", label: "Close File",
+      keybindings: [monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyW],
+      run: () => { if (activeFileRef.current) closeFile(activeFileRef.current.id); }
+    });
+    editor.addAction({
+      id: "set-compare-first", label: "Set as First to Compare",
+      keybindings: [monacoInstance.KeyMod.Alt | monacoInstance.KeyCode.Digit1],
       run: () => {
-        saveFile();
+        const text = editor.getValue();
+        setLeftText(text || "");
+        showToast("First text set.");
+      }
+    });
+    editor.addAction({
+      id: "set-compare-second", label: "Set as Second to Compare",
+      keybindings: [monacoInstance.KeyMod.Alt | monacoInstance.KeyCode.Digit2],
+      run: () => {
+        const text = editor.getValue();
+        setRightText(text || "");
+        showToast("Second text set.");
+      }
+    });
+
+    // Toggle Whitespace via Context Menu
+    editor.addAction({
+      id: "toggle-whitespace",
+      label: "Toggle Whitespace Visibility",
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.5,
+      run: () => {
+        useConfigStore.getState().updateConfig({
+           renderWhitespace: useConfigStore.getState().renderWhitespace === 'all' ? 'none' : 'all'
+        });
+      }
+    });
+
+    // Change Language via Context Menu
+    editor.addAction({
+      id: "change-language",
+      label: "Change Language Mode",
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.6,
+      run: () => {
+        if (!activeFileRef.current) return;
+        const newLang = window.prompt("Enter new language (e.g. javascript, rust, json):", activeFileRef.current.language);
+        if (newLang && newLang.trim() !== '') {
+          updateLanguage(activeFileRef.current.id, newLang.trim().toLowerCase());
+        }
+      }
+    });
+    
+    // Copy active file path to clipboard
+    editor.addAction({
+      id: "copy-path-action", label: "Copy File Path",
+      keybindings: [monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.KeyC],
+      run: () => {
+        if (activeFileRef.current && activeFileRef.current.path) {
+          import('@tauri-apps/plugin-clipboard-manager').then(({ writeText }) => {
+            writeText(activeFileRef.current!.path as string).then(() => {
+              showToast("Path copied to clipboard!", "success");
+            }).catch(err => {
+              console.error("Failed to copy path:", err);
+              showToast("Failed to copy path", "error");
+            });
+          });
+        } else if (activeFileRef.current) {
+          showToast("File not saved yet.", "info");
+        }
       }
     });
   };
 
-  const onChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setContent(value);
-      setIsDirty(true);
-    }
-  };
+  const isBinaryTab = activeFile?.content === "Binary file or unsupported encoding.";
+
+  if (isRestoring) return <div className="flex w-full h-full bg-[#1E1E1E] items-center justify-center text-gray-500">Restoring...</div>;
 
   return (
-    <div className="flex w-full h-full bg-[#1e1e1e] text-gray-300 font-sans">
-      {/* Internal Explorer Sidebar */}
-      <div className="w-64 flex-shrink-0 border-r border-[#2d2d2d] bg-[#181818] flex flex-col h-full">
-        <div className="p-3 border-b border-[#2d2d2d] flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-gray-500">
-          <span>Explorer</span>
-          <button onClick={loadFolder} className="hover:text-white transition group" title="Open Folder">
-            <FolderOpen className="w-4 h-4" />
+    <div className="flex w-full h-full bg-[#1E1E1E] text-[#CCCCCC] font-sans overflow-hidden">
+      <div 
+        className={`flex-shrink-0 bg-[#252526] flex flex-col relative border-r border-[#1E1E1E] transition-all duration-300 ${isSidebarCollapsed ? "w-[48px] items-center overflow-hidden" : ""}`}
+        style={!isSidebarCollapsed ? { width: `${sidebarWidth}px` } : {}}
+      >
+        <div className={`h-[35px] flex items-center px-4 text-xs text-gray-400 uppercase tracking-widest ${isSidebarCollapsed ? "justify-center w-full px-0" : "justify-between"}`}>
+          {!isSidebarCollapsed && <span>Explorer</span>}
+          <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hover:bg-[#3C3C3D] p-1 rounded">
+            {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-2">
-          {!folderPath ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4 gap-3 text-gray-500">
-              <FolderOpen className="w-12 h-12 opacity-20" />
-              <p className="text-sm">No folder opened</p>
-              <button 
-                onClick={loadFolder}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition"
-              >
-                Open Folder
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              <div className="text-xs px-2 py-1 text-gray-400 font-bold truncate mb-1">
-                {folderPath.split('\\').pop() || folderPath}
-              </div>
-              {files.length === 0 ? (
-                <div className="px-2 py-1 text-xs text-gray-600 italic">No .md or .txt files found.</div>
-              ) : (
-                files.map(f => (
-                  <button
-                    key={f.path}
-                    onClick={() => openFile(f)}
-                    className={`flex items-center gap-2 px-2 py-1 w-full text-left text-sm rounded transition-colors truncate ${
-                      activeFile?.path === f.path 
-                        ? "bg-[#37373d] text-white" 
-                        : "hover:bg-[#2a2d2e] text-gray-400"
-                    }`}
-                  >
-                    {f.name.endsWith('.md') ? <FileText className="w-4 h-4 text-blue-400" /> : <File className="w-4 h-4 text-gray-400" />}
-                    <span className="truncate">{f.name}</span>
+        <div className="flex flex-col flex-1 overflow-y-auto w-full hide-scrollbar">
+          <div className="flex flex-col w-full">
+            <div className={`flex items-center py-1 group/header cursor-pointer hover:bg-[#2A2D2E] ${isSidebarCollapsed ? "justify-center flex-col gap-1 mt-2" : "justify-between px-2"}`}>
+              {!isSidebarCollapsed && <span className="text-[11px] font-bold text-gray-300 uppercase">Open Editors</span>}
+              <div className={`flex items-center gap-1 transition-opacity ${isSidebarCollapsed ? "flex-col opacity-100 mb-2 border-b border-[#3C3C3D] pb-3 w-full" : "opacity-0 group-hover/header:opacity-100"}`}>
+                <button onClick={() => createFile()} className="p-1 hover:bg-[#3C3C3D] rounded"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => handleOpenFile()} className="p-1 hover:bg-[#3C3C3D] rounded"><FolderOpen className="w-4 h-4" /></button>
+                {!isSidebarCollapsed && (
+                  <button onClick={() => { if (activeFile) handleSaveFile(activeFile); }} disabled={!activeFile?.isDirty} className={`p-1 rounded ${activeFile?.isDirty ? "hover:bg-[#3C3C3D] text-gray-400" : "opacity-30"}`}>
+                    <Save className="w-4 h-4" />
                   </button>
-                ))
-              )}
+                )}
+              </div>
             </div>
-          )}
+
+            <div className="flex flex-col pb-2 w-full gap-[2px]">
+              {files.map((file) => (
+                <div key={file.id} onClick={() => setActiveFile(file.id)} className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"}`}>
+                  <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
+                    {getFileIcon(file.language)}
+                    {isSidebarCollapsed && file.isDirty && <div className="absolute top-0 -right-2 w-1.5 h-1.5 rounded-full bg-white"></div>}
+                  </div>
+                  {!isSidebarCollapsed && (
+                    <>
+                      <span className="truncate flex-1">{file.name}</span>
+                      <button onClick={(e) => { e.stopPropagation(); closeFile(file.id); }} className="opacity-0 group-hover:opacity-100 hover:bg-[#4C4C4C] rounded-sm p-0.5"><X className="w-3 h-3" /></button>
+                      {file.isDirty && <div className="w-1.5 h-1.5 rounded-full bg-white group-hover:hidden ml-1"></div>}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+        {!isSidebarCollapsed && <div className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/50" onMouseDown={handleMouseDown}></div>}
       </div>
 
-      {/* Main Editor Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-[#1e1e1e]">
-        <div className="h-10 border-b border-[#2d2d2d] flex items-center px-4 justify-between select-none">
-          <div className="flex items-center gap-2">
-            {activeFile ? (
-              <>
-                <FileCode className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-200 font-medium">
-                  {activeFile.name} {isDirty && <span className="text-white">*</span>}
-                </span>
-                <span className="text-xs text-gray-500 truncate ml-2 max-w-[300px]" title={activeFile.path}>
-                  {activeFile.path}
-                </span>
-              </>
-            ) : (
-              <span className="text-sm text-gray-500 italic">No file opened</span>
-            )}
-          </div>
-          {activeFile && (
-            <button 
-              onClick={saveFile}
-              disabled={!isDirty}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition ${
-                isDirty 
-                  ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                  : "bg-transparent text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              <Save className="w-4 h-4" /> Save
-            </button>
-          )}
-        </div>
-
-        <div className="flex-1">
-          {activeFile ? (
+      <div className="flex-1 flex flex-col min-w-0 bg-[#1E1E1E]">
+        <div className="flex-1 relative">
+          {files.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full opacity-20"><Plus className="w-12 h-12 mb-4" /> No files open</div>
+          ) : isBinaryTab ? (
+            <div className="flex items-center justify-center h-full text-gray-500 uppercase tracking-widest text-xs">Binary file</div>
+          ) : activeFile ? (
             <Editor
               height="100%"
-              theme="vs-dark"
-              language={activeFile.name.endsWith('.md') ? "markdown" : "plaintext"}
-              value={content}
-              onChange={onChange}
+              theme={config.theme}
+              language={activeFile.language}
+              value={activeFile.content}
+              onChange={(v) => updateContent(activeFile.id, v || "")}
               onMount={handleEditorDidMount}
-              options={{
-                wordWrap: 'on',
-                minimap: { enabled: false },
-                fontSize: 14,
-                fontFamily: "monospace",
-                lineHeight: 22,
-                scrollBeyondLastLine: false,
-                smoothScrolling: true,
-                cursorBlinking: "smooth",
-                autoClosingBrackets: "always",
-                autoClosingQuotes: "always",
-                formatOnPaste: true,
-              }}
+              options={getCommonOptions({
+                readOnly: false
+              })}
             />
-          ) : (
-            <div className="flex-1 flex items-center justify-center h-full">
-              <div className="text-center text-gray-500">
-                <FileCode className="w-20 h-20 opacity-10 mx-auto mb-4" />
-                <p className="text-xl font-light">Genzo Note Editor</p>
-                <p className="text-sm mt-2 opacity-50">Select a file from the explorer to begin editing.</p>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
+
+
+        <StatusBar 
+           activeFileName={activeFile?.name || "No File"}
+           activeLanguage={activeFile?.language || "plaintext"}
+           activeEncoding={activeFile?.encoding || "UTF-8"}
+           isCompareMode={false}
+           onLanguageChange={(lang) => { if(activeFile) updateLanguage(activeFile.id, lang); }}
+           onEncodingChange={(enc) => { if(activeFile) handleEncodingChange(activeFile, enc); }}
+        />
       </div>
     </div>
   );

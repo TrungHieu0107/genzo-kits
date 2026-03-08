@@ -159,6 +159,7 @@ Standard exclusions for node_modules, Tauri target directories, and OS files.
 - **SQL Filtering System**: Added Multi-Condition tag-based filtering (Query, DAO, Time) to `SqlLogParser`. Integrated `FilterModal.tsx` and updated state in `store.ts` to combine filters via `AND` logic.
 - **File Alias System**: Added the ability to assign custom names (aliases) to log files in the `SqlLogParser` sidebar via a right-click Context Menu. State persists via `store.ts` and uses `AliasModal.tsx`.
 - **Resizable & Collapsible Sidebar**: Implemented a draggable divider and "Slim Bar" collapse toggle for the Library sidebar in `SqlLogParser.tsx` using `PanelLeftClose`/`PanelLeftOpen` icons. The sidebar now shrinks to 32px with a vertical title instead of becoming a floating button.
+- **Standalone Window Mode**: Implemented support for opening Genzo-Kit tools in dedicated new desktop windows. Added `core:window:allow-create` to Tauri capabilities and updated `ToolSidebar.tsx` to handle right-clicks and spawn a `WebviewWindow`. Updated `App.tsx` routing to support `?window=toolId`.
 
 ### BUG-14: Refined Sidebar Collapse UI
 - **Discovered in:** User feedback (March 08, 2026)

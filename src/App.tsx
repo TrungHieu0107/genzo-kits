@@ -5,6 +5,8 @@ import { GlobalToast } from "./components/GlobalToast";
 import { useConfigStore } from "./components/configStore";
 
 function App() {
+  const [standaloneToolId, setStandaloneToolId] = useState<string | null>(null);
+
   const [activeToolId, setActiveToolId] = useState<string>(() => {
     return localStorage.getItem("genzoActiveTool") || tools[0].id;
   });
@@ -16,6 +18,13 @@ function App() {
   // Load global config on startup
   useEffect(() => {
     useConfigStore.getState().loadConfig();
+    
+    // Check if we are running in a standalone window mode
+    const params = new URLSearchParams(window.location.search);
+    const windowParam = params.get('window');
+    if (windowParam) {
+      setStandaloneToolId(windowParam);
+    }
   }, []);
 
   useEffect(() => {
@@ -73,6 +82,23 @@ function App() {
 
   const activeTool = tools.find(t => t.id === activeToolId) || tools[0];
   const ActiveComponent = activeTool.component;
+
+  // Render standalone mode if ?window=X is found in URL
+  if (standaloneToolId) {
+    const StandaloneTool = tools.find(t => t.id === standaloneToolId);
+    if (!StandaloneTool) {
+      return <div className="p-8 text-red-500 font-bold">Error: Unknown Tool ID</div>;
+    }
+    const ToolComponent = StandaloneTool.component;
+    return (
+      <div className="flex w-full h-screen bg-[#1e1e1e] text-gray-200 overflow-hidden font-sans">
+        <div className="flex-1 h-screen overflow-hidden relative">
+           <ToolComponent />
+        </div>
+        <GlobalToast />
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-screen bg-[#1e1e1e] text-gray-200 overflow-hidden font-sans">

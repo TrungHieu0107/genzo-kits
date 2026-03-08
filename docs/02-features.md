@@ -55,5 +55,6 @@
 9. **Multi-Condition Filtering**: Tag-based filtering system allowing users to combine (AND logic) conditions by Query Content, DAO Name, or Timestamp via a dedicated modal UI.
 10. **Custom File Aliasing**: Right-click context menu on sidebar log files to uniquely rename them, with persistent multi-session saving functionality.
 11. **Resizable & Collapsible Sidebar**: The left "Library" panel can be resized via dragging its right edge or collapsed into a slim, professional vertical bar to maximize the SQL display area.
+12. **Standalone Window Mode**: Support for launching any tool into its own dedicated desktop window. Accessed via a right-click context menu in the main sidebar.
 
-*Tested and verified on 2026-03-08 (Added: Filtering, File Alias, and Slim Resizable Sidebar. Fixed: UI Pollution & ID Normalization BUG-7/8/14).*
+*Tested and verified on 2026-03-08 (Added: Filtering, File Alias, Slim Resizable Sidebar, and Standalone Window Mode. Fixed: UI Pollution & ID Normalization BUG-7/8/14).*

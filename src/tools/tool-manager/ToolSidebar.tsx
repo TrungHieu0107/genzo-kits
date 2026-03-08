@@ -1,8 +1,11 @@
 import { 
   ChevronLeft, 
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from "lucide-react";
+import { useState } from "react";
 import { tools } from "../index";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 interface ToolSidebarProps {
   activeToolId: string;
@@ -12,8 +15,30 @@ interface ToolSidebarProps {
 }
 
 export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleCollapse }: ToolSidebarProps) {
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, toolId: string } | null>(null);
+
+  const handleOpenInNewWindow = async (toolId: string) => {
+    const tool = tools.find(t => t.id === toolId);
+    if (!tool) return;
+    
+    const windowLabel = `window_${toolId}_${Date.now()}`;
+    const webview = new WebviewWindow(windowLabel, {
+      url: `/?window=${toolId}`,
+      title: `Genzo-Kit - ${tool.name}`,
+      width: 1000,
+      height: 700,
+      decorations: true,
+      resizable: true,
+      center: true
+    });
+
+    webview.once('tauri://error', function (e) {
+      console.error('Error opening window', e);
+    });
+  };
+
   return (
-    <div className={`${isCollapsed ? "w-[68px]" : "w-[280px]"} h-screen bg-[#181818] border-r border-[#2d2d2d] flex flex-col flex-shrink-0 transition-all duration-300`}>
+    <div className={`${isCollapsed ? "w-[68px]" : "w-[280px]"} h-screen bg-[#181818] border-r border-[#2d2d2d] flex flex-col flex-shrink-0 transition-all duration-300 relative`}>
       {/* Header */}
       <div className={`p-4 border-b border-[#2d2d2d] flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? "hidden" : "flex"}`}>
@@ -42,6 +67,10 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
             <button
               key={tool.id}
               onClick={() => onSelectTool(tool.id)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setContextMenu({ x: e.clientX, y: e.clientY, toolId: tool.id });
+              }}
               title={isCollapsed ? tool.name : undefined}
               className={`w-full flex items-start text-left ${isCollapsed ? "p-2 justify-center" : "p-3"} rounded-md transition-all duration-200 group relative ${
                 isActive 
@@ -94,6 +123,28 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
           );
         })()}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
+          <div 
+            className="fixed z-50 bg-[#252526] border border-[#454545] rounded-md shadow-xl py-1 min-w-[200px] animate-in fade-in zoom-in-95 duration-100"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+          >
+            <button 
+              className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-blue-600 hover:text-white transition-colors flex items-center gap-3"
+              onClick={() => {
+                handleOpenInNewWindow(contextMenu.toolId);
+                setContextMenu(null);
+              }}
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in new window
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

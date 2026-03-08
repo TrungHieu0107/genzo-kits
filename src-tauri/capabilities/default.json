@@ -12,6 +12,9 @@
     "clipboard-manager:allow-write-text",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
-    "store:default"
+    "store:default",
+    "core:window:default",
+    "core:window:allow-create",
+    "core:window:allow-set-focus"
   ]
 }

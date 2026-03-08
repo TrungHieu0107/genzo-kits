@@ -14,13 +14,6 @@ export interface SearchResultItem {
   is_dir: boolean;
 }
 
-export interface IndexEntry {
-  name: string;
-  path: string;
-  is_dir: boolean;
-  modified: string;
-}
-
 const store = new LazyStore('folder_searcher.json');
 
 export default function FolderSearcher() {
@@ -43,10 +36,6 @@ export default function FolderSearcher() {
   
   // In-memory cache for search results
   const searchCache = useRef<Map<string, SearchResultItem[]>>(new Map());
-
-  // System-wide file index loaded into RAM
-  // Được load khi mount, xóa khi unmount để tiết kiệm RAM
-  const systemIndex = useRef<IndexEntry[] | null>(null);
 
   // Column resize state (px widths)
   const [columnWidths, setColumnWidths] = useState<[number, number, number]>([250, 0, 180]);
@@ -138,49 +127,36 @@ export default function FolderSearcher() {
     return () => clearTimeout(saveTimeout);
   }, [rootDirs, query, mode, useRegex, useCache, isOptionsCollapsed, isInitialLoad]);
 
-  // System Index lifecycle: load on mount, clear on unmount
-  // Vòng đời System Index: load khi vào tool, xóa khỏi RAM khi rời tool
+  // System Index status: check on mount + listen for events (no RAM loading)
   useEffect(() => {
     let isMounted = true;
 
-    const loadIndex = async () => {
+    const checkStatus = async () => {
       try {
         setIndexStatus('loading');
         const status = await invoke<{ status: string; count: number }>('get_index_status');
-        
+        if (!isMounted) return;
         if (status.status === 'scanning') {
           setIndexStatus('scanning');
           setIndexCount(0);
         } else if (status.status === 'ready') {
-          const entries = await invoke<IndexEntry[]>('load_system_index');
-          if (isMounted) {
-            systemIndex.current = entries;
-            setIndexStatus('ready');
-            setIndexCount(entries.length);
-          }
+          setIndexStatus('ready');
+          setIndexCount(status.count);
         } else {
           setIndexStatus('not_found');
         }
       } catch (err) {
-        console.error("[Genzo] Failed to load system index:", err);
+        console.error("[Genzo] Failed to check index status:", err);
         if (isMounted) setIndexStatus('not_found');
       }
     };
 
-    loadIndex();
+    checkStatus();
 
-    // Listen for index-complete event from background scan
-    const unlistenComplete = listen<number>('index-complete', async (event) => {
-      if (!isMounted) return;
-      try {
-        const entries = await invoke<IndexEntry[]>('load_system_index');
-        if (isMounted) {
-          systemIndex.current = entries;
-          setIndexStatus('ready');
-          setIndexCount(event.payload);
-        }
-      } catch (err) {
-        console.error("[Genzo] Failed to reload index after scan:", err);
+    const unlistenComplete = listen<number>('index-complete', (event) => {
+      if (isMounted) {
+        setIndexStatus('ready');
+        setIndexCount(event.payload);
       }
     });
 
@@ -191,10 +167,8 @@ export default function FolderSearcher() {
       }
     });
 
-    // Cleanup: xóa index khỏi RAM khi rời khỏi tool
     return () => {
       isMounted = false;
-      systemIndex.current = null;
       unlistenComplete.then(fn => fn());
       unlistenProgress.then(fn => fn());
     };
@@ -253,7 +227,7 @@ export default function FolderSearcher() {
     setRootDirs(['']);
   };
 
-  // Hàm thực hiện gọi backend search
+  // Hàm thực hiện gọi backend search (live scan)
   const performBackendSearch = async (cacheKey: string): Promise<SearchResultItem[]> => {
     const found: SearchResultItem[] = await invoke('search_system', { 
       roots: rootDirs.filter(r => r.trim() !== ''),
@@ -266,48 +240,19 @@ export default function FolderSearcher() {
     return data;
   };
 
-  // Lọc từ system index trong RAM (instant, không cần I/O)
-  const filterFromIndex = (queryStr: string, searchMode: string, isRegex: boolean): SearchResultItem[] => {
-    if (!systemIndex.current) return [];
-
-    const limit = 500;
-    const results: SearchResultItem[] = [];
-    const queryLower = queryStr.toLowerCase();
-
-    let regex: RegExp | null = null;
-    if (isRegex) {
-      try { regex = new RegExp(queryStr); } catch { return []; }
-    } else if (queryStr.includes('*') || queryStr.includes('?')) {
-      // Glob to regex conversion (simple)
-      const escaped = queryStr.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
-      try { regex = new RegExp(`^${escaped}$`, 'i'); } catch { return []; }
-    }
-
-    for (const entry of systemIndex.current) {
-      if (results.length >= limit) break;
-
-      const matchesMode = searchMode === 'file' ? !entry.is_dir : searchMode === 'folder' ? entry.is_dir : true;
-      if (!matchesMode) continue;
-
-      const matchesQuery = regex
-        ? regex.test(entry.name)
-        : entry.name.toLowerCase().includes(queryLower);
-      if (!matchesQuery) continue;
-
-      const basePath = entry.path.substring(0, entry.path.length - entry.name.length - 1) || '';
-      results.push({
-        path: entry.path,
-        name: entry.name,
-        base_path: basePath,
-        is_dir: entry.is_dir,
-        modified: entry.modified,
-      });
-    }
-
-    return results;
+  // Hàm query SQLite index trực tiếp (zero RAM)
+  const performIndexSearch = async (cacheKey: string): Promise<SearchResultItem[]> => {
+    const found: SearchResultItem[] = await invoke('search_index', {
+      query: query.trim(),
+      mode: mode,
+      useRegex: useRegex
+    });
+    const data = found || [];
+    searchCache.current.set(cacheKey, data);
+    return data;
   };
 
-  // Kiểm tra xem rootDirs có trống không (chỉ có 1 entry rỗng)
+  // Kiểm tra xem rootDirs có trống không
   const hasSpecificRoots = rootDirs.some(r => r.trim() !== '');
 
   const handleSearch = async (forceRefresh: boolean = false) => {
@@ -320,22 +265,18 @@ export default function FolderSearcher() {
       useRegex
     });
 
-    // Stale-While-Revalidate: nếu có cache, hiển thị ngay + tìm kiếm background
+    // Stale-While-Revalidate: nếu có cache, hiển thị ngay + refresh background
     if (!forceRefresh && useCache && searchCache.current.has(cacheKey)) {
-      // Hiển thị kết quả cache ngay lập tức
       setResults(searchCache.current.get(cacheKey) || []);
       setHasSearched(true);
       setIsCached(true);
       setErrorMsg(null);
 
-      // Đồng thời chạy backend search ở background để cập nhật
       setIsRevalidating(true);
       try {
         let freshData: SearchResultItem[];
-        // Ưu tiên dùng system index cho system-wide search
-        if (!hasSpecificRoots && systemIndex.current) {
-          freshData = filterFromIndex(query.trim(), mode, useRegex);
-          searchCache.current.set(cacheKey, freshData);
+        if (!hasSpecificRoots && indexStatus === 'ready') {
+          freshData = await performIndexSearch(cacheKey);
         } else {
           freshData = await performBackendSearch(cacheKey);
         }
@@ -349,24 +290,24 @@ export default function FolderSearcher() {
       return;
     }
 
-    // FAST PATH: Nếu có system index và không chỉ định rootDirs → filter từ RAM
-    if (!forceRefresh && !hasSpecificRoots && systemIndex.current) {
+    // FAST PATH: query SQLite index khi không có rootDirs cụ thể và index ready
+    if (!forceRefresh && !hasSpecificRoots && indexStatus === 'ready') {
       setHasSearched(true);
       setIsCached(false);
       setErrorMsg(null);
 
       try {
-        const data = filterFromIndex(query.trim(), mode, useRegex);
+        const data = await performIndexSearch(cacheKey);
         setResults(data);
-        searchCache.current.set(cacheKey, data);
       } catch (err: unknown) {
+        console.error("Index search failed:", err);
         const errMsg = err instanceof Error ? err.message : String(err);
         setErrorMsg(errMsg);
       }
       return;
     }
 
-    // Không có cache hoặc forceRefresh: hiển thị spinner, tìm kiếm mới hoàn toàn
+    // Fallback: live search
     setIsSearching(true);
     setHasSearched(true);
     setResults([]);

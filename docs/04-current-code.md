@@ -1,30 +1,32 @@
 # Current Code
 
-## lib.rs — Rust Backend
-**New System Cache Manager commands:**
-- `start_background_index`: Spawns background thread scanning all drives. Writes `system_index.json` to app data dir. Emits `index-progress` (every 10K entries) and `index-complete` events. Uses `.scanning` flag file to prevent duplicate scans.
-- `load_system_index`: Reads and deserializes `system_index.json`.
-- `get_index_status`: Returns scanning/ready/not_found status.
+## lib.rs — Rust Backend (SQLite System Cache Manager)
+**Dependency**: `rusqlite = { version = "0.31", features = ["bundled"] }`
 
-**New structs:** `IndexEntry` (name, path, is_dir, modified), `IndexStatus` (status, count).
+**Commands:**
+- `start_background_index`: Spawns background thread scanning all drives. Writes to `system_index.db` using SQLite with WAL mode, bulk transactions (commit every 10K), and `synchronous = OFF` for max write speed. Creates `idx_name` index on `name` column. Uses `.scanning` flag file.
+- `search_index`: Queries SQLite DB directly on disk. Uses SQL `LIKE` for pattern matching + Rust regex for regex mode. Returns `Vec<SearchResultItem>` with computed `base_path`. Zero RAM usage.
+- `get_index_status`: Returns scanning/ready/not_found status with COUNT query.
+
+**Structs:** `IndexStatus` (status, count). Removed `IndexEntry` (no longer needed).
 
 ## App.tsx
-- Added `invoke('start_background_index')` call on mount to trigger background indexing on app startup.
+- Calls `invoke('start_background_index')` on mount to trigger background indexing.
 
-## FolderSearcher.tsx
-**System Cache Manager lifecycle:**
-- On mount: Checks `get_index_status`, loads `load_system_index` into `systemIndex` ref (RAM). Listens for `index-complete` and `index-progress` Tauri events.
-- On unmount: Sets `systemIndex.current = null` to free RAM. Unsubscribes from events.
-- `filterFromIndex`: Filters in-memory index for instant results (no disk I/O). Supports regex, glob, and mode filtering.
-- `handleSearch` fast-path: When no specific rootDirs and system index available → uses `filterFromIndex` instead of `search_system`.
-- Header badge: Shows index status (Indexing.../Loading/Ready/No Index).
+## FolderSearcher.tsx (Refactored for SQLite)
+**Removed:** `IndexEntry` interface, `systemIndex` ref, `filterFromIndex` function. No RAM loading.
+**Simplified mount effect:** Only checks `get_index_status` and listens for `index-complete`/`index-progress` events.
+**New `performIndexSearch`:** Calls `invoke('search_index', ...)` to query SQLite directly.
+**`handleSearch` flow:**
+1. Cache → show immediately + revalidate (using `search_index` or `search_system`).
+2. Fast path → if no rootDirs + index ready → `search_index`.
+3. Fallback → `search_system` (live scan).
 
 ## Test Results — March 09, 2026: PASS ✅
 
 ## Feature Log
 
-### FEAT-14: System Cache Manager
-- Background full-system scan on app startup, saved to disk.
-- RAM lifecycle: load on mount, clear on unmount.
-- Instant search from in-memory index.
-- Status badge in header.
+### FEAT-15: Refactor System Cache to SQLite
+- Replaced JSON + RAM with SQLite DB (WAL, indexed, zero RAM).
+- Added `search_index` command.
+- Removed `IndexEntry`, `systemIndex`, `filterFromIndex` from frontend.

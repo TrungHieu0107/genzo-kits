@@ -198,15 +198,7 @@ fn get_windows_drives() -> Vec<std::path::PathBuf> {
     drives
 }
 
-// ===== System Cache Manager =====
-
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
-pub struct IndexEntry {
-    pub name: String,
-    pub path: String,
-    pub is_dir: bool,
-    pub modified: String,
-}
+// ===== System Cache Manager (SQLite) =====
 
 #[derive(serde::Serialize)]
 pub struct IndexStatus {
@@ -214,15 +206,15 @@ pub struct IndexStatus {
     pub count: usize,
 }
 
-/// Tập tin index nằm trong app_data_dir/system_index.json
-fn get_index_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+/// SQLite database path: app_data_dir/system_index.db
+fn get_index_db_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     let mut path = app.path().app_data_dir().map_err(|e| e.to_string())?;
     std::fs::create_dir_all(&path).ok();
-    path.push("system_index.json");
+    path.push("system_index.db");
     Ok(path)
 }
 
-/// Tập tin flag đánh dấu scan đang chạy
+/// Flag file đánh dấu scan đang chạy
 fn get_scanning_flag_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     let mut path = app.path().app_data_dir().map_err(|e| e.to_string())?;
     path.push(".scanning");
@@ -231,7 +223,7 @@ fn get_scanning_flag_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, 
 
 #[tauri::command]
 async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
-    let index_path = get_index_path(&app)?;
+    let db_path = get_index_db_path(&app)?;
     let flag_path = get_scanning_flag_path(&app)?;
 
     // Nếu đang scan thì bỏ qua
@@ -239,15 +231,41 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
         return Ok(());
     }
 
-    // Tạo flag file để đánh dấu đang scan
+    // Tạo flag file
     std::fs::write(&flag_path, "scanning").ok();
 
-    // Clone handle cho background thread
     let app_handle = app.clone();
     let flag_path_clone = flag_path.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
-        let mut entries: Vec<IndexEntry> = Vec::new();
+        // Mở/tạo SQLite database
+        let conn = match rusqlite::Connection::open(&db_path) {
+            Ok(c) => c,
+            Err(e) => {
+                let _ = std::fs::remove_file(&flag_path_clone);
+                let _ = app_handle.emit("index-error", e.to_string());
+                return;
+            }
+        };
+
+        // Tạo bảng (drop cũ nếu có để refresh)
+        let _ = conn.execute_batch("
+            DROP TABLE IF EXISTS files;
+            CREATE TABLE files (
+                name TEXT NOT NULL,
+                path TEXT NOT NULL,
+                is_dir INTEGER NOT NULL,
+                modified TEXT NOT NULL
+            );
+        ");
+
+        // Cấu hình SQLite cho performance (bulk insert)
+        let _ = conn.execute_batch("
+            PRAGMA journal_mode = WAL;
+            PRAGMA synchronous = OFF;
+            PRAGMA cache_size = 10000;
+            PRAGMA temp_store = MEMORY;
+        ");
 
         // Lấy toàn bộ drives
         let roots: Vec<std::path::PathBuf>;
@@ -259,6 +277,11 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
         {
             roots = vec![std::path::PathBuf::from("/")];
         }
+
+        let mut count: usize = 0;
+
+        // Dùng transaction cho bulk insert (cực nhanh)
+        let _ = conn.execute_batch("BEGIN TRANSACTION;");
 
         for root_path in roots {
             let mut stack = vec![root_path];
@@ -280,12 +303,12 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
                                     .map(|d| format_system_time(d.as_secs()))
                                     .unwrap_or_else(|| "Unknown".to_string());
 
-                                entries.push(IndexEntry {
-                                    name: name.to_string(),
-                                    path: path_str.to_string(),
-                                    is_dir,
-                                    modified: modified_str,
-                                });
+                                let _ = conn.execute(
+                                    "INSERT INTO files (name, path, is_dir, modified) VALUES (?1, ?2, ?3, ?4)",
+                                    rusqlite::params![name, path_str, is_dir as i32, modified_str],
+                                );
+
+                                count += 1;
                             }
 
                             if is_dir {
@@ -295,23 +318,24 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
                     }
                 }
 
-                // Emit progress mỗi 10000 entries
-                if entries.len() % 10000 == 0 {
-                    let _ = app_handle.emit("index-progress", entries.len());
+                // Emit progress mỗi 10000 entries, commit batch
+                if count % 10000 == 0 && count > 0 {
+                    let _ = conn.execute_batch("COMMIT; BEGIN TRANSACTION;");
+                    let _ = app_handle.emit("index-progress", count);
                 }
             }
         }
 
-        // Ghi ra file
-        if let Ok(json) = serde_json::to_string(&entries) {
-            let _ = std::fs::write(&index_path, json);
-        }
+        // Commit cuối cùng
+        let _ = conn.execute_batch("COMMIT;");
+
+        // Tạo index trên cột name để search nhanh
+        let _ = conn.execute_batch("CREATE INDEX IF NOT EXISTS idx_name ON files(name);");
 
         // Xóa flag file
         let _ = std::fs::remove_file(&flag_path_clone);
 
         // Emit hoàn tất
-        let count = entries.len();
         let _ = app_handle.emit("index-complete", count);
     });
 
@@ -319,21 +343,100 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn load_system_index(app: tauri::AppHandle) -> Result<Vec<IndexEntry>, String> {
-    let index_path = get_index_path(&app)?;
+async fn search_index(
+    app: tauri::AppHandle,
+    query: String,
+    mode: String,
+    use_regex: bool,
+) -> Result<Vec<SearchResultItem>, String> {
+    let db_path = get_index_db_path(&app)?;
 
-    if !index_path.exists() {
+    if !db_path.exists() {
         return Ok(Vec::new());
     }
 
-    let content = std::fs::read_to_string(&index_path).map_err(|e| e.to_string())?;
-    let entries: Vec<IndexEntry> = serde_json::from_str(&content).map_err(|e| e.to_string())?;
-    Ok(entries)
+    tauri::async_runtime::spawn_blocking(move || {
+        let conn = rusqlite::Connection::open_with_flags(
+            &db_path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        ).map_err(|e| e.to_string())?;
+
+        let limit = 500;
+
+        // Xây dựng SQL query dựa trên mode
+        let mode_filter = match mode.as_str() {
+            "file" => "AND is_dir = 0",
+            "folder" => "AND is_dir = 1",
+            _ => "", // "all"
+        };
+
+        let sql = format!(
+            "SELECT name, path, is_dir, modified FROM files WHERE name LIKE ?1 {} LIMIT ?2",
+            mode_filter
+        );
+
+        // Chuẩn bị pattern cho LIKE
+        let like_pattern = if use_regex {
+            // Với regex mode, dùng % wildcard rộng rồi lọc phía Rust
+            format!("%{}%", query)
+        } else if query.contains('*') || query.contains('?') {
+            // Chuyển glob sang LIKE pattern
+            query.replace('*', "%").replace('?', "_")
+        } else {
+            format!("%{}%", query)
+        };
+
+        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map(rusqlite::params![like_pattern, limit], |row| {
+            let name: String = row.get(0)?;
+            let path: String = row.get(1)?;
+            let is_dir: bool = row.get::<_, i32>(2)? != 0;
+            let modified: String = row.get(3)?;
+
+            // Compute base_path từ path và name
+            let base_path = if path.len() > name.len() + 1 {
+                path[..path.len() - name.len() - 1].to_string()
+            } else {
+                String::new()
+            };
+
+            Ok(SearchResultItem {
+                path,
+                name,
+                base_path,
+                modified,
+                is_dir,
+            })
+        }).map_err(|e| e.to_string())?;
+
+        let mut results = Vec::new();
+
+        if use_regex {
+            // Lọc thêm bằng regex phía Rust
+            let re = regex::Regex::new(&query).map_err(|e| format!("Invalid Regex: {}", e))?;
+            for row in rows.flatten() {
+                if re.is_match(&row.name) {
+                    results.push(row);
+                    if results.len() >= limit as usize {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for row in rows.flatten() {
+                results.push(row);
+            }
+        }
+
+        Ok(results)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
 async fn get_index_status(app: tauri::AppHandle) -> Result<IndexStatus, String> {
-    let index_path = get_index_path(&app)?;
+    let db_path = get_index_db_path(&app)?;
     let flag_path = get_scanning_flag_path(&app)?;
 
     if flag_path.exists() {
@@ -343,13 +446,22 @@ async fn get_index_status(app: tauri::AppHandle) -> Result<IndexStatus, String> 
         });
     }
 
-    if index_path.exists() {
-        // Đọc file để lấy count
-        let content = std::fs::read_to_string(&index_path).map_err(|e| e.to_string())?;
-        let entries: Vec<IndexEntry> = serde_json::from_str(&content).unwrap_or_default();
+    if db_path.exists() {
+        // Đọc count từ SQLite (rất nhanh với index)
+        let count = tauri::async_runtime::spawn_blocking(move || {
+            let conn = rusqlite::Connection::open_with_flags(
+                &db_path,
+                rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+            ).ok();
+
+            conn.and_then(|c| {
+                c.query_row("SELECT COUNT(*) FROM files", [], |row| row.get::<_, usize>(0)).ok()
+            }).unwrap_or(0)
+        }).await.unwrap_or(0);
+
         return Ok(IndexStatus {
             status: "ready".to_string(),
-            count: entries.len(),
+            count,
         });
     }
 
@@ -504,7 +616,7 @@ pub fn run() {
             search_system,
             open_path,
             start_background_index,
-            load_system_index,
+            search_index,
             get_index_status
         ])
         .run(tauri::generate_context!())

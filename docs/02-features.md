@@ -4,9 +4,9 @@
 - Lightweight, fast startup. Dark theme. Custom scrollbars. Modular tools.
 
 **System File & Folder Searcher** (`src/tools/folder-searcher`):
-1. **System Cache Manager**: Background system-wide file indexing on app startup. Index saved to disk, loaded into RAM when tool is active, freed when navigating away.
+1. **System Cache Manager (SQLite)**: Background system-wide file indexing on app startup, stored in SQLite DB. Search queries DB directly on disk — zero RAM usage.
 2. **Index Status Badge**: Header shows "Indexing...", "Loading Index...", "Index Ready (XK entries)", or "No Index".
-3. **Instant Search from Index**: When no specific folders are set and index is available, searches filter from RAM (no disk I/O needed).
+3. **SQLite-Powered Search**: When no specific folders are set and index is ready, searches query SQLite directly via `search_index` command. SQL LIKE + Rust regex filtering.
 4. **Stale-While-Revalidate**: Cached results shown first, background search updates silently.
 5. **Cache Control**: Toggleable "Enable Cache".
 6. **Collapsible Section**: "Target Directories" collapses to "Options".

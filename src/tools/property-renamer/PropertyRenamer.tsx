@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   FolderOpen, FileUp, Trash2, Search, Replace, Undo2, Eye, EyeOff,
-  Check, X, AlertTriangle, Loader2, FileCode
+  Check, X, AlertTriangle, Loader2, FileCode, ScanSearch
 } from "lucide-react";
 
 // ===== Types =====
@@ -76,6 +76,8 @@ export function PropertyRenamer() {
   const [statusType, setStatusType] = useState<"success" | "error" | "info">("info");
   // Filter
   const [filter, setFilter] = useState("");
+  // Scan source: only this file is scanned for property names
+  const [scanSourcePath, setScanSourcePath] = useState<string | null>(null);
 
   // Derived
   const checkedPaths = useMemo(() => files.filter(f => f.checked).map(f => f.path), [files]);
@@ -160,20 +162,22 @@ export function PropertyRenamer() {
     setMappings({});
     setSelectedName(null);
     setStatusMessage(null);
+    setScanSourcePath(null);
   }, []);
 
   // ===== Scan =====
   const handleScan = useCallback(async () => {
-    if (checkedPaths.length === 0) {
-      setStatusMessage("No files selected for scanning.");
+    if (!scanSourcePath) {
+      setStatusMessage("Please designate a scan source file (click the ◎ icon).");
       setStatusType("error");
       return;
     }
     setIsScanning(true);
-    setStatusMessage("Scanning files...");
+    setStatusMessage("Scanning scan source file...");
     setStatusType("info");
     try {
-      const results: ScanResult[] = await invoke("scan_files", { paths: checkedPaths });
+      // Scan ONLY the designated source file
+      const results: ScanResult[] = await invoke("scan_files", { paths: [scanSourcePath] });
       setScanResults(results);
       // Initialize mappings with empty strings
       const newMappings: Record<string, string> = {};
@@ -181,7 +185,8 @@ export function PropertyRenamer() {
         newMappings[r.old_name] = mappings[r.old_name] || "";
       }
       setMappings(newMappings);
-      setStatusMessage(`Found ${results.length} unique names across ${checkedPaths.length} files.`);
+      const srcName = scanSourcePath.split(/[/\\]/).pop() || scanSourcePath;
+      setStatusMessage(`Found ${results.length} unique names from "${srcName}". Replace applies to all ${checkedPaths.length} checked files.`);
       setStatusType("success");
     } catch (err) {
       setStatusMessage(`Scan error: ${err}`);
@@ -189,7 +194,7 @@ export function PropertyRenamer() {
     } finally {
       setIsScanning(false);
     }
-  }, [checkedPaths, mappings]);
+  }, [scanSourcePath, checkedPaths.length, mappings]);
 
   // ===== Replace =====
   const handleReplace = useCallback(async () => {
@@ -311,10 +316,12 @@ export function PropertyRenamer() {
                 <span>Add .jsp, .java, .js files</span>
               </div>
             ) : (
-              files.map((file, i) => (
+              files.map((file, i) => {
+                const isScanSource = scanSourcePath === file.path;
+                return (
                 <div
                   key={file.path}
-                  className="flex items-center gap-1 px-2 py-1.5 hover:bg-[#2A2D2E] text-[12px]"
+                  className={`flex items-center gap-1 px-2 py-1.5 hover:bg-[#2A2D2E] text-[12px] ${isScanSource ? "bg-[#1a2e3a] border-l-2 border-teal-500" : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -322,6 +329,13 @@ export function PropertyRenamer() {
                     onChange={() => toggleFile(i)}
                     className="accent-teal-500 cursor-pointer flex-shrink-0"
                   />
+                  <button
+                    onClick={() => setScanSourcePath(isScanSource ? null : file.path)}
+                    className={`flex-shrink-0 p-0.5 rounded transition ${isScanSource ? "text-teal-400" : "text-gray-600 hover:text-gray-400"}`}
+                    title={isScanSource ? "Remove as scan source" : "Set as scan source"}
+                  >
+                    <ScanSearch className="w-3 h-3" />
+                  </button>
                   <span
                     className={`truncate flex-1 min-w-0 cursor-pointer ${file.checked ? "text-gray-300" : "text-gray-600"}`}
                     title={file.path}
@@ -341,20 +355,36 @@ export function PropertyRenamer() {
                   >
                     {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
                   </select>
+                  <button
+                    onClick={() => {
+                      if (isScanSource) setScanSourcePath(null);
+                      setFiles(prev => prev.filter((_, idx) => idx !== i));
+                    }}
+                    className="flex-shrink-0 p-0.5 rounded text-gray-600 hover:text-red-400 transition"
+                    title="Remove file"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
 
           {/* Scan button */}
           <div className="p-3 border-t border-[#3C3C3D]">
+            {scanSourcePath && (
+              <div className="text-[10px] text-teal-400 mb-1.5 truncate" title={scanSourcePath}>
+                Scan source: {scanSourcePath.split(/[/\\]/).pop()}
+              </div>
+            )}
             <button
               onClick={handleScan}
-              disabled={isScanning || checkedPaths.length === 0}
+              disabled={isScanning || !scanSourcePath}
               className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold py-2 rounded transition"
             >
               {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              {isScanning ? "Scanning..." : "Scan Files"}
+              {isScanning ? "Scanning..." : scanSourcePath ? "Scan Source File" : "Set Scan Source ◎"}
             </button>
           </div>
         </div>

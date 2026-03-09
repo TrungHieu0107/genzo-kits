@@ -21,3 +21,5 @@
 **Text Comparator**: Monaco DiffEditor, bi-directional editing, Zustand interop.
 **Note Editor**: Multi-tab, session auto-save, dynamic encodings.
 **Log SQL Extractor**: Regex parsing, advanced filtering, SQL formatter.
+
+**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).

@@ -43,3 +43,5 @@
 - Updated `addFile` in `store.ts` to prevent duplicate file entries and update existing one if path matches.
 - Added `isReloading` state and visual feedback (spinning icon, "Reloading..." text) to `handleReload` in `SqlLogParser.tsx`.
 - Improved error handling for reload actions.
+
+**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).

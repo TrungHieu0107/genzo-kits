@@ -23,3 +23,5 @@
 9. Glob wildcards → Converted to SQL LIKE pattern. PASS.
 
 Added using Workflow 05.
+
+**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).

@@ -11,6 +11,6 @@ Permanent and non-negotiable.
 7. **Testing**: Verify Text Comparator works after every change.
 8. **Naming**: Genzo [Tool Name].
 
-**Test Status**: PASS — March 09, 2026 (SQLite System Cache, Stale-While-Revalidate, Resizable Columns, Full-Width, Collapsible Options, Persistence, Log SQL Extractor Date Compatibility, Advanced SQL Filters, Smart Log Reload).
+**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
 
 Last updated: March 2026

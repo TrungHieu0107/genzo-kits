@@ -37,3 +37,5 @@ From now on, every single response must respect the workflows and core rules. Ne
 Current project status is stored in the docs folder. You are now fully up-to-date.
 
 Begin.
+
+**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).

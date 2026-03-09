@@ -309,6 +309,12 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
                                 );
 
                                 count += 1;
+
+                                // Emit progress mỗi 10000 entries, commit batch (inside loop to catch exact multiples)
+                                if count % 10000 == 0 {
+                                    let _ = conn.execute_batch("COMMIT; BEGIN TRANSACTION;");
+                                    let _ = app_handle.emit("index-progress", count);
+                                }
                             }
 
                             if is_dir {
@@ -317,16 +323,9 @@ async fn start_background_index(app: tauri::AppHandle) -> Result<(), String> {
                         }
                     }
                 }
-
-                // Emit progress mỗi 10000 entries, commit batch
-                if count % 10000 == 0 && count > 0 {
-                    let _ = conn.execute_batch("COMMIT; BEGIN TRANSACTION;");
-                    let _ = app_handle.emit("index-progress", count);
-                }
             }
         }
 
-        // Commit cuối cùng
         let _ = conn.execute_batch("COMMIT;");
 
         // Tạo index trên cột name để search nhanh
@@ -370,24 +369,38 @@ async fn search_index(
             _ => "", // "all"
         };
 
-        let sql = format!(
-            "SELECT name, path, is_dir, modified FROM files WHERE name LIKE ?1 {} LIMIT ?2",
-            mode_filter
-        );
+        if use_regex {
+            // Đăng ký custom function REGEXP để lọc trên SQLite (zero RAM overhead)
+            let re = regex::Regex::new(&query).map_err(|e| format!("Invalid Regex: {}", e))?;
+            conn.create_scalar_function(
+                "regexp",
+                2,
+                rusqlite::functions::FunctionFlags::SQLITE_UTF8 | rusqlite::functions::FunctionFlags::SQLITE_DETERMINISTIC,
+                move |ctx| {
+                    let text = ctx.get::<String>(1)?;
+                    Ok(re.is_match(&text))
+                },
+            ).map_err(|e| e.to_string())?;
+        }
 
-        // Chuẩn bị pattern cho LIKE
-        let like_pattern = if use_regex {
-            // Với regex mode, dùng % wildcard rộng rồi lọc phía Rust
-            format!("%{}%", query)
-        } else if query.contains('*') || query.contains('?') {
-            // Chuyển glob sang LIKE pattern
-            query.replace('*', "%").replace('?', "_")
+        let sql = if use_regex {
+            format!("SELECT name, path, is_dir, modified FROM files WHERE name REGEXP ?1 {} LIMIT ?2", mode_filter)
         } else {
-            format!("%{}%", query)
+            format!("SELECT name, path, is_dir, modified FROM files WHERE name LIKE ?1 {} LIMIT ?2", mode_filter)
+        };
+
+        let like_pattern = if !use_regex {
+            if query.contains('*') || query.contains('?') {
+                query.replace('*', "%").replace('?', "_")
+            } else {
+                format!("%{}%", query)
+            }
+        } else {
+            String::new()
         };
 
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let rows = stmt.query_map(rusqlite::params![like_pattern, limit], |row| {
+        let rows = stmt.query_map(rusqlite::params![if use_regex { "" } else { &like_pattern }, limit], |row| {
             let name: String = row.get(0)?;
             let path: String = row.get(1)?;
             let is_dir: bool = row.get::<_, i32>(2)? != 0;
@@ -410,22 +423,8 @@ async fn search_index(
         }).map_err(|e| e.to_string())?;
 
         let mut results = Vec::new();
-
-        if use_regex {
-            // Lọc thêm bằng regex phía Rust
-            let re = regex::Regex::new(&query).map_err(|e| format!("Invalid Regex: {}", e))?;
-            for row in rows.flatten() {
-                if re.is_match(&row.name) {
-                    results.push(row);
-                    if results.len() >= limit as usize {
-                        break;
-                    }
-                }
-            }
-        } else {
-            for row in rows.flatten() {
-                results.push(row);
-            }
+        for row in rows.flatten() {
+            results.push(row);
         }
 
         Ok(results)

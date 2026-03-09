@@ -80,7 +80,9 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
                   className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-3 py-3 rounded-lg text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
                 >
                   <option value="contains">Contains (in)</option>
+                  <option value="not_contains">Not contains (not in)</option>
                   <option value="equals">Equals (==)</option>
+                  <option value="not_equals">Not equals (!=)</option>
                   <option value="greater_than">Greater than (&gt;)</option>
                   <option value="less_than">Less than (&lt;)</option>
                 </select>

@@ -85,12 +85,16 @@ export default function SqlLogParser() {
         switch (f.operator) {
           case 'equals':
             return target === search;
+          case 'not_equals':
+            return target !== search;
           case 'greater_than':
             if (f.type === 'time') return target > search;
             return target.localeCompare(search) > 0;
           case 'less_than':
             if (f.type === 'time') return target < search;
             return target.localeCompare(search) < 0;
+          case 'not_contains':
+            return !target.includes(search);
           case 'contains':
           default:
             return target.includes(search);
@@ -377,7 +381,7 @@ export default function SqlLogParser() {
               </span>
               {filters.map((f) => (
                 <div key={f.id} className="flex items-center gap-1.5 bg-blue-600/10 border border-blue-500/30 text-blue-400 px-2.5 py-1 rounded-full text-[11px] font-medium animate-in fade-in zoom-in-95 duration-200">
-                  <span className="opacity-60 text-[9px] uppercase font-bold">{f.type} {f.operator === 'equals' ? '==' : f.operator === 'greater_than' ? '>' : f.operator === 'less_than' ? '<' : 'in'}:</span>
+                  <span className="opacity-60 text-[9px] uppercase font-bold">{f.type} {f.operator === 'equals' ? '==' : f.operator === 'not_equals' ? '!=' : f.operator === 'greater_than' ? '>' : f.operator === 'less_than' ? '<' : f.operator === 'not_contains' ? 'not in' : 'in'}:</span>
                   <span className="max-w-[150px] truncate">{f.value}</span>
                   <button 
                     onClick={() => removeFilter(f.id)}

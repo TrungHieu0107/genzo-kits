@@ -34,3 +34,7 @@
 ### BUG-FIX-01: Log SQL Extractor Date Format Fix
 - Updated `entryRegex` and `timeMatch` in `parser.ts` to support both `/` and `-` as date separators.
 - Enabled compatibility with logs using `YYYY-MM-DD` format (e.g., `stclibApp.log`).
+
+### FEAT-16: Advanced SQL Filter Operators
+- Added `not_contains` and `not_equals` operators to SQL Log Parser.
+- Updated `store.ts` types, `SqlLogParser.tsx` filtering logic/UI, and `FilterModal.tsx` dropdown.

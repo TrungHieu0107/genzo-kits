@@ -12,7 +12,7 @@ export interface LogFile {
   content: string;
 }
 
-export type FilterOperator = 'contains' | 'equals' | 'greater_than' | 'less_than';
+export type FilterOperator = 'contains' | 'equals' | 'greater_than' | 'less_than' | 'not_equals' | 'not_contains';
 
 export interface SqlFilter {
   id: string;

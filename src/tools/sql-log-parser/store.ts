@@ -50,8 +50,22 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
 
   addFile: (path, name, content, encoding) => {
     const sessions = parseSqlLogs(content);
-    const newFile: LogFile = { path, name, content, sessions, encoding };
     set((state) => {
+      const existingIndex = state.files.findIndex(f => f.path === path);
+      if (existingIndex !== -1) {
+        // Update existing file
+        const updatedFiles = state.files.map((f, i) => 
+          i === existingIndex ? { ...f, content, sessions, encoding } : f
+        );
+        return {
+          files: updatedFiles,
+          activeFileIndex: existingIndex,
+          activeSessionIndex: sessions.length > 0 ? 0 : null
+        };
+      }
+
+      // Add new file
+      const newFile: LogFile = { path, name, content, sessions, encoding };
       const newFiles = [...state.files, newFile];
       return { 
         files: newFiles, 

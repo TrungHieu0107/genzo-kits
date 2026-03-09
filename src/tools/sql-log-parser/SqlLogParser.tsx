@@ -24,6 +24,7 @@ export default function SqlLogParser() {
    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
    const [isDragging, setIsDragging] = useState(false);
    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+   const [isReloading, setIsReloading] = useState(false);
  
    const { 
      files, activeFileIndex,
@@ -171,22 +172,28 @@ export default function SqlLogParser() {
   };
 
   const handleReload = async () => {
-    if (!activeFile || activeFileIndex === null) return;
+    if (!activeFile || activeFileIndex === null || isReloading) return;
     
+    setIsReloading(true);
     try {
       const response: { content: string | null; is_binary: boolean; error: string | null } = 
         await invoke('read_file_encoded', { path: activeFile.path, encoding: activeFile.encoding });
       
       if (response.error) {
         console.error("Error reloading log file:", response.error);
+        setIsReloading(false);
         return;
       }
       
       if (response.content) {
         updateFileContent(activeFileIndex, response.content, activeFile.encoding);
       }
+      
+      // Artificial delay for better UX visibility if scan is too fast
+      setTimeout(() => setIsReloading(false), 600);
     } catch (err) {
       console.error("Failed to reload log file:", err);
+      setIsReloading(false);
     }
   };
 
@@ -322,11 +329,12 @@ export default function SqlLogParser() {
 
               <button 
                 onClick={handleReload}
-                disabled={!activeFile}
+                disabled={!activeFile || isReloading}
                 title="Reload current log file from disk"
-                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200' : 'bg-[#333] text-gray-600 cursor-not-allowed'} ${isReloading ? 'opacity-70' : ''}`}
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${activeFile ? 'text-green-400' : 'text-gray-600'}`} /> Reload Results
+                <RefreshCw className={`w-3.5 h-3.5 ${activeFile ? 'text-green-400' : 'text-gray-600'} ${isReloading ? 'animate-spin' : ''}`} /> 
+                {isReloading ? 'Reloading...' : 'Reload Results'}
               </button>
 
               <div className="flex items-center gap-2 border-l border-[#444] pl-3 ml-1">

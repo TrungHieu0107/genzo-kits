@@ -38,3 +38,8 @@
 ### FEAT-16: Advanced SQL Filter Operators
 - Added `not_contains` and `not_equals` operators to SQL Log Parser.
 - Updated `store.ts` types, `SqlLogParser.tsx` filtering logic/UI, and `FilterModal.tsx` dropdown.
+
+### BUG-FIX-02: Log File Reload/Re-upload Fix
+- Updated `addFile` in `store.ts` to prevent duplicate file entries and update existing one if path matches.
+- Added `isReloading` state and visual feedback (spinning icon, "Reloading..." text) to `handleReload` in `SqlLogParser.tsx`.
+- Improved error handling for reload actions.

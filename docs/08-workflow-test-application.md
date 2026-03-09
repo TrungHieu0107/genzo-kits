@@ -9,6 +9,7 @@
 | Text Comparator | PASS |
 | Folder Searcher | PASS |
 | Advanced SQL Filters | PASS |
+| Smart Log Reload | PASS |
 
 **System Cache Manager (SQLite):**
 1. App startup → `start_background_index` called → `.scanning` flag → SQLite DB created with bulk inserts. PASS.

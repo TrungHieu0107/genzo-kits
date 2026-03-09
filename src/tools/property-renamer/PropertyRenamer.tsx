@@ -11,7 +11,13 @@ interface FileEntry {
   path: string;
   name: string;
   checked: boolean;
+  encoding: string;
 }
+
+const ENCODING_OPTIONS = [
+  "UTF-8", "Shift_JIS", "EUC-JP", "windows-1252", "windows-1251",
+  "windows-1258", "ISO-8859-1", "UTF-16LE", "UTF-16BE", "GBK", "Big5", "EUC-KR"
+];
 
 interface ScanOccurrence {
   file_path: string;
@@ -103,6 +109,7 @@ export function PropertyRenamer() {
               path: p,
               name: p.split(/[/\\]/).pop() || p,
               checked: true,
+              encoding: "UTF-8",
             }));
           return [...prev, ...newEntries];
         });
@@ -127,6 +134,7 @@ export function PropertyRenamer() {
               path: p,
               name: p.split(/[/\\]/).pop() || p,
               checked: true,
+              encoding: "UTF-8",
             }));
           return [...prev, ...newEntries];
         });
@@ -199,9 +207,15 @@ export function PropertyRenamer() {
     setStatusMessage("Replacing...");
     setStatusType("info");
     try {
+      // Build per-file encoding map from checked files
+      const encodingsMap: Record<string, string> = {};
+      for (const f of files) {
+        if (f.checked) encodingsMap[f.path] = f.encoding;
+      }
       const result: ReplaceResult = await invoke("replace_in_files", {
         mappings: validMappings,
         paths: checkedPaths,
+        encodings: encodingsMap,
       });
       let msg = `✅ Modified ${result.files_modified} files, ${result.total_replacements} replacements.`;
       if (result.errors.length > 0) {
@@ -264,7 +278,7 @@ export function PropertyRenamer() {
       {/* Main 3-column layout */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* LEFT: File Panel */}
-        <div className="w-[260px] flex-shrink-0 bg-[#252526] border-r border-[#3C3C3D] flex flex-col">
+        <div className="w-[300px] flex-shrink-0 bg-[#252526] border-r border-[#3C3C3D] flex flex-col">
           <div className="px-3 py-2 flex items-center justify-between border-b border-[#3C3C3D]">
             <span className="text-[11px] font-bold uppercase text-gray-400">Files</span>
             <div className="flex items-center gap-1">
@@ -300,19 +314,33 @@ export function PropertyRenamer() {
               files.map((file, i) => (
                 <div
                   key={file.path}
-                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#2A2D2E] cursor-pointer text-[12px]"
-                  onClick={() => toggleFile(i)}
+                  className="flex items-center gap-1 px-2 py-1.5 hover:bg-[#2A2D2E] text-[12px]"
                 >
                   <input
                     type="checkbox"
                     checked={file.checked}
                     onChange={() => toggleFile(i)}
-                    className="accent-teal-500 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
+                    className="accent-teal-500 cursor-pointer flex-shrink-0"
                   />
-                  <span className={`truncate ${file.checked ? "text-gray-300" : "text-gray-600"}`} title={file.path}>
+                  <span
+                    className={`truncate flex-1 min-w-0 cursor-pointer ${file.checked ? "text-gray-300" : "text-gray-600"}`}
+                    title={file.path}
+                    onClick={() => toggleFile(i)}
+                  >
                     {file.name}
                   </span>
+                  <select
+                    value={file.encoding}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, encoding: e.target.value } : f));
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent text-[10px] text-gray-500 border border-[#3C3C3D] rounded px-0.5 py-0.5 outline-none cursor-pointer hover:border-gray-500 flex-shrink-0 max-w-[80px]"
+                    title="Save Encoding"
+                  >
+                    {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
+                  </select>
                 </div>
               ))
             )}
@@ -462,21 +490,57 @@ export function PropertyRenamer() {
                   Click a name to preview occurrences
                 </div>
               ) : (
-                selectedOccurrences.map((occ, i) => (
-                  <div key={i} className="border-b border-[#3C3C3D] px-3 py-2">
-                    <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
-                      <span className="truncate" title={occ.file_path}>
-                        {occ.file_path.split(/[/\\]/).pop()}
-                      </span>
-                      <span className="flex-shrink-0 ml-2">
-                        L{occ.line_number} · {matchTypeLabel(occ.match_type)}
-                      </span>
+                selectedOccurrences.map((occ, i) => {
+                  const newName = selectedName ? (mappings[selectedName] || "").trim() : "";
+                  const hasMapping = newName !== "";
+                  // Compute the preview "after" line by replacing oldName with newName in context
+                  const afterLine = hasMapping && selectedName
+                    ? occ.line_content.split(selectedName).join(newName)
+                    : occ.line_content;
+
+                  return (
+                    <div key={i} className="border-b border-[#3C3C3D] px-3 py-2">
+                      <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+                        <span className="truncate" title={occ.file_path}>
+                          {occ.file_path.split(/[/\\]/).pop()}
+                        </span>
+                        <span className="flex-shrink-0 ml-2">
+                          L{occ.line_number} · {matchTypeLabel(occ.match_type)}
+                        </span>
+                      </div>
+                      {/* Before line — highlight old name in red */}
+                      <pre className="text-[11px] font-mono bg-[#1E1E1E] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap break-all">
+                        {hasMapping && selectedName
+                          ? occ.line_content.split(selectedName).map((part, idx, arr) => (
+                              <span key={idx}>
+                                <span className="text-gray-400">{part}</span>
+                                {idx < arr.length - 1 && (
+                                  <span className="bg-red-900/50 text-red-300 px-0.5 rounded">{selectedName}</span>
+                                )}
+                              </span>
+                            ))
+                          : <span className="text-gray-300">{occ.line_content}</span>
+                        }
+                      </pre>
+                      {/* After line — show only when a new name is mapped */}
+                      {hasMapping && (
+                        <>
+                          <div className="text-[9px] text-gray-600 my-0.5 uppercase tracking-wider">→ after</div>
+                          <pre className="text-[11px] font-mono bg-[#1a2e1a] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap break-all">
+                            {afterLine.split(newName).map((part: string, idx: number, arr: string[]) => (
+                              <span key={idx}>
+                                <span className="text-gray-400">{part}</span>
+                                {idx < arr.length - 1 && (
+                                  <span className="bg-green-900/50 text-green-300 px-0.5 rounded">{newName}</span>
+                                )}
+                              </span>
+                            ))}
+                          </pre>
+                        </>
+                      )}
                     </div>
-                    <pre className="text-[11px] font-mono text-gray-300 bg-[#1E1E1E] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap break-all">
-                      {occ.line_content}
-                    </pre>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

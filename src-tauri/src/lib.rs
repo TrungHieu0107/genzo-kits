@@ -839,7 +839,7 @@ async fn scan_files(paths: Vec<String>) -> Result<Vec<ScanResult>, String> {
 }
 
 #[tauri::command]
-async fn replace_in_files(mappings: Vec<RenameMapping>, paths: Vec<String>) -> Result<ReplaceResult, String> {
+async fn replace_in_files(mappings: Vec<RenameMapping>, paths: Vec<String>, encodings: std::collections::HashMap<String, String>) -> Result<ReplaceResult, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut files_modified = 0usize;
         let mut total_replacements = 0usize;
@@ -965,8 +965,18 @@ async fn replace_in_files(mappings: Vec<RenameMapping>, paths: Vec<String>) -> R
                     errors.push(format!("Backup failed {}: {}", bak_path, e));
                     continue;
                 }
-                // Write modified content
-                if let Err(e) = std::fs::write(file_path, &new_content) {
+                // Write modified content with selected encoding
+                let file_encoding = encodings.get(file_path).map(|s| s.as_str()).unwrap_or("UTF-8");
+                let write_result = if file_encoding == "UTF-8" {
+                    std::fs::write(file_path, &new_content)
+                } else {
+                    // Use encoding_rs to encode the string to bytes
+                    let encoder = Encoding::for_label(file_encoding.as_bytes())
+                        .unwrap_or(encoding_rs::UTF_8);
+                    let (encoded, _, _) = encoder.encode(&new_content);
+                    std::fs::write(file_path, &*encoded)
+                };
+                if let Err(e) = write_result {
                     errors.push(format!("Write failed {}: {}", file_path, e));
                     continue;
                 }

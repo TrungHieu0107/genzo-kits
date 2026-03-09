@@ -30,3 +30,7 @@
 - Replaced JSON + RAM with SQLite DB (WAL, indexed, zero RAM).
 - Added `search_index` command.
 - Removed `IndexEntry`, `systemIndex`, `filterFromIndex` from frontend.
+
+### BUG-FIX-01: Log SQL Extractor Date Format Fix
+- Updated `entryRegex` and `timeMatch` in `parser.ts` to support both `/` and `-` as date separators.
+- Enabled compatibility with logs using `YYYY-MM-DD` format (e.g., `stclibApp.log`).

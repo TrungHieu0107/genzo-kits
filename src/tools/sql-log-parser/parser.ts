@@ -20,7 +20,7 @@ export function parseSqlLogs(logContent: string): DaoSession[] {
   const threadStacks: Record<string, DaoSession[]> = {}; // threadName -> array of DaoSession (stack)
 
   // Split log by standard log timestamp to get full multiline entries
-  const entryRegex = /(^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2},.*?)(?=^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2},|\z)/gms;
+  const entryRegex = /(^\d{4}[\/-]\d{2}[\/-]\d{2}\s+\d{2}:\d{2}:\d{2},.*?)(?=^\d{4}[\/-]\d{2}[\/-]\d{2}\s+\d{2}:\d{2}:\d{2},|\z)/gms;
   
   let match;
   let logIndexCount = 0;
@@ -30,7 +30,7 @@ export function parseSqlLogs(logContent: string): DaoSession[] {
 
     const currentLogIndex = logIndexCount++;
     // Extract Timestamp
-    const timeMatch = rawEntry.match(/^(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2})/);
+    const timeMatch = rawEntry.match(/^(\d{4}[\/-]\d{2}[\/-]\d{2}\s+\d{2}:\d{2}:\d{2})/);
     const timestamp = timeMatch ? timeMatch[1] : '';
 
     // 1. Check for DAO Start

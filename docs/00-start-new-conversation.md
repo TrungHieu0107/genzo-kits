@@ -38,4 +38,4 @@ Current project status is stored in the docs folder. You are now fully up-to-dat
 
 Begin.
 
-**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
+**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).

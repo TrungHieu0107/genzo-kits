@@ -44,4 +44,14 @@
 - Added `isReloading` state and visual feedback (spinning icon, "Reloading..." text) to `handleReload` in `SqlLogParser.tsx`.
 - Improved error handling for reload actions.
 
-**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
+### FEAT-17: Text Comparator Encoding Selection (March 09, 2026)
+- **Store**: Added `leftPath`, `rightPath`, `leftEncoding`, `rightEncoding` states.
+- **UI**: Added `<select>` elements for encoding beside FILE 1 / FILE 2 buttons.
+- **Backend Sync**: Refactored `loadFile` and added `handleEncodingChange` to use `read_file_encoded` Rust command.
+
+### FEAT-18: Property Renamer Tool (March 09, 2026)
+- **Backend**: `collect_files`, `scan_files`, `replace_in_files`, `undo_last_replace` commands in `lib.rs`.
+- **Frontend**: `PropertyRenamer.tsx` — 3-column layout (File list | Mapping table | Preview panel).
+- **Registration**: Added to `src/tools/index.ts` with `Replace` icon.
+
+**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).

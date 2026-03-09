@@ -3,7 +3,8 @@ import { NoteEditor } from "./note-editor/NoteEditor";
 import { Settings } from "./settings/Settings";
 import { SqlLogParser } from "./sql-log-parser";
 import FolderSearcher from "./folder-searcher/FolderSearcher";
-import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch } from "lucide-react";
+import { PropertyRenamer } from "./property-renamer";
+import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch, Replace } from "lucide-react";
 
 export interface ToolDefinition {
   id: string;
@@ -41,6 +42,13 @@ export const tools: ToolDefinition[] = [
     description: "Search system directories quickly without freezing the UI.",
     icon: FolderSearch,
     component: FolderSearcher
+  },
+  {
+    id: "property-renamer",
+    name: "Property Renamer",
+    description: "Batch rename properties across JSP, Java, and JS files.",
+    icon: Replace,
+    component: PropertyRenamer
   },
   {
     id: "settings",

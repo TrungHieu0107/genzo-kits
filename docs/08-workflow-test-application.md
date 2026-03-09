@@ -22,6 +22,12 @@
 8. Regex search → SQL LIKE pre-filter + Rust regex post-filter. PASS.
 9. Glob wildcards → Converted to SQL LIKE pattern. PASS.
 
+**Text Comparator Encoding Selection:**
+1. Open file with Shift_JIS encoding → Corrupted characters shown. PASS.
+2. Select "Shift_JIS" from drop-down → File reloads and characters are correct. PASS.
+3. Switch back to "UTF-8" → Corrupted characters return. PASS.
+4. Repeat for File 2 independently. PASS.
+
 Added using Workflow 05.
 
-**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
+**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).

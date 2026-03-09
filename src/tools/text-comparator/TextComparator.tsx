@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { DiffEditor, DiffOnMount, loader } from "@monaco-editor/react";
 import { FileUp, ClipboardPaste, ArrowRightLeft, Trash2, CheckSquare, Square, Rows } from "lucide-react";
@@ -10,12 +10,26 @@ import { StatusBar } from "../../components/StatusBar";
 import { useEditorConfig } from "../../components/useEditorConfig";
 import { useConfigStore } from "../../components/configStore";
 
+const ENCODING_OPTIONS = [
+  "UTF-8", "UTF-16", "UTF-16LE", "UTF-16BE", "Shift_JIS", "EUC-JP", "ISO-8859-1", 
+  "windows-1250", "windows-1251", "windows-1252", "windows-1258",
+  "GBK", "GB18030", "EUC-KR", "Big5", "koi8-r"
+];
+
 export function TextComparator() {
   const { 
     leftText, 
     rightText, 
+    leftPath,
+    rightPath,
+    leftEncoding,
+    rightEncoding,
     setLeftText, 
     setRightText, 
+    setLeftPath,
+    setRightPath,
+    setLeftEncoding,
+    setRightEncoding,
     clearAll 
   } = useTextCompareStore();
 
@@ -72,14 +86,60 @@ export function TextComparator() {
     try {
       const selected = await open({ multiple: false });
       if (typeof selected === 'string') {
-        const content = await readTextFile(selected);
-        if (side === 'left') setLeftText(content);
-        else setRightText(content);
+        const encoding = side === 'left' ? leftEncoding : rightEncoding;
+        const response: any = await invoke('read_file_encoded', { 
+            path: selected, 
+            encoding: encoding 
+        });
+        
+        if (response.error) {
+            console.error("Error reading file:", response.error);
+            return;
+        }
+        
+        const text = response.is_binary ? "Binary file or unsupported encoding." : (response.content || "");
+        
+        if (side === 'left') {
+            setLeftPath(selected);
+            setLeftText(text);
+        } else {
+            setRightPath(selected);
+            setRightText(text);
+        }
       }
     } catch (err) {
       console.error("Failed to read file", err);
     }
   };
+
+  const handleEncodingChange = async (side: 'left' | 'right', newEncoding: string) => {
+      if (side === 'left') {
+          setLeftEncoding(newEncoding);
+          if (leftPath) {
+              try {
+                  const response: any = await invoke('read_file_encoded', { path: leftPath, encoding: newEncoding });
+                  if (!response.error && !response.is_binary) {
+                      setLeftText(response.content || "");
+                  }
+              } catch (e) {
+                  console.error(e);
+              }
+          }
+      } else {
+          setRightEncoding(newEncoding);
+          if (rightPath) {
+              try {
+                  const response: any = await invoke('read_file_encoded', { path: rightPath, encoding: newEncoding });
+                  if (!response.error && !response.is_binary) {
+                      setRightText(response.content || "");
+                  }
+              } catch (e) {
+                  console.error(e);
+              }
+          }
+      }
+  };
+
 
   const pasteClipboard = async (side: 'left' | 'right') => {
     try {
@@ -176,6 +236,14 @@ export function TextComparator() {
       {/* Top Header */}
       <div className="h-[50px] bg-[#252526] border-b border-[#3C3C3D] flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
         <div className="flex items-center gap-2">
+           <select 
+             value={leftEncoding} 
+             onChange={(e) => handleEncodingChange('left', e.target.value)}
+             className="bg-transparent text-xs text-gray-400 border border-[#3C3C3D] rounded px-1 py-1 mr-2 outline-none cursor-pointer hover:border-gray-500"
+             title="Select Encoding"
+           >
+             {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
+           </select>
            <button onClick={() => loadFile('left')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Load File 1">
              <FileUp className="w-4 h-4 text-blue-400" /> FILE 1
            </button>
@@ -213,6 +281,14 @@ export function TextComparator() {
            <button onClick={() => loadFile('right')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Load File 2">
              FILE 2 <FileUp className="w-4 h-4 text-orange-400" />
            </button>
+           <select 
+             value={rightEncoding} 
+             onChange={(e) => handleEncodingChange('right', e.target.value)}
+             className="bg-transparent text-xs text-gray-400 border border-[#3C3C3D] rounded px-1 py-1 ml-2 outline-none cursor-pointer hover:border-gray-500"
+             title="Select Encoding"
+           >
+             {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
+           </select>
         </div>
       </div>
 

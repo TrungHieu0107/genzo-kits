@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
 
-**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
+**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
 
 ---
 
@@ -164,7 +164,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Clipboard paste | Dán nội dung từ clipboard vào left/right panel |
 | Inline decorations | Custom decorations cho diff highlights |
 | Whitespace toggle | Bật/tắt hiển thị whitespace, bật/tắt ignore whitespace trong diff |
-| Encoding support | UTF-8, Shift_JIS, Windows-1252, UTF-16LE |
+| Encoding support | Independent per-pane (UTF-8, Shift_JIS, v.v.) |
 | StatusBar | Hiển thị file name, language, encoding |
 
 **Files**: `TextComparator.tsx` (248 lines), `store.ts` (496 bytes)

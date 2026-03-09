@@ -11,6 +11,6 @@ Permanent and non-negotiable.
 7. **Testing**: Verify Text Comparator works after every change.
 8. **Naming**: Genzo [Tool Name].
 
-**Test Status**: PASS -- March 09, 2026 (Fixed SQLite Background Indexer logic bug + SQLite Regex matching).
+**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
 
 Last updated: March 2026

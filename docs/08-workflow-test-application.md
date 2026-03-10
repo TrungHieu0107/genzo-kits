@@ -1,6 +1,6 @@
 # Genzo-Kit Workflow: Test Application
 
-**Test Matrix (March 09, 2026):**
+**Test Matrix (March 10, 2026):**
 
 | Feature | Status |
 | :--- | :--- |
@@ -10,6 +10,7 @@
 | Folder Searcher | PASS |
 | Advanced SQL Filters | PASS |
 | Smart Log Reload | PASS |
+| Note Editor URL Fetch | PASS |
 
 **System Cache Manager (SQLite):**
 1. App startup → `start_background_index` called → `.scanning` flag → SQLite DB created with bulk inserts. PASS.
@@ -28,6 +29,12 @@
 3. Switch back to "UTF-8" → Corrupted characters return. PASS.
 4. Repeat for File 2 independently. PASS.
 
+**Note Editor URL Feature:**
+1. Click Globe icon → Prompt appears. PASS.
+2. Enter valid text URL (github readme) → Content loads in new tab. PASS.
+3. Extension detection → `.md` detected as markdown. PASS.
+4. Error handling → Invalid URL shows toast error. PASS.
+
 Added using Workflow 05.
 
-**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
+**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).

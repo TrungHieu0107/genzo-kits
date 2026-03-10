@@ -19,8 +19,8 @@
 13. **Double-click Open, Click-to-Copy**.
 
 **Text Comparator**: Monaco DiffEditor, bi-directional editing, independent per-pane encoding selection, and Zustand interop.
-**Note Editor**: Multi-tab, session auto-save, dynamic encodings.
+**Note Editor**: Multi-tab, session auto-save, dynamic encodings, open from URL.
 **Log SQL Extractor**: Regex parsing, advanced filtering, SQL formatter.
 **Property Renamer**: Batch rename properties across JSP, Java, and JS files with scan, map, replace, and undo.
 
-**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
+**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).

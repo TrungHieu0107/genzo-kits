@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
 
-**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
+**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).
 
 ---
 
@@ -44,6 +44,7 @@
 | **encoding_rs** | 0.8 | Multi-encoding file read/write (UTF-8, Shift_JIS, Windows-1252, UTF-16LE) |
 | **regex** | 1.x | Pattern matching cho search |
 | **directories** | 6.0 | OS-specific directory paths |
+| **reqwest** | 0.12 | URL fetching (dùng để mở file từ URL trong Note Editor) |
 
 ### Tauri Plugins
 | Plugin | Mục đích |
@@ -98,7 +99,7 @@ genzo-kit/
 │   ├── tauri.conf.json           # Tauri config (window 1200×800, identifier com.genzokit.dev)
 │   ├── src/
 │   │   ├── main.rs               # Entry point (calls lib::run)
-│   │   └── lib.rs                # All Tauri commands (625 lines, 12 commands)
+│   │   └── lib.rs                # All Tauri commands (650 lines, 13 commands)
 │   ├── capabilities/             # Tauri v2 permission capabilities
 │   └── icons/                    # App icons
 ├── docs/                         # Documentation (8 files)
@@ -186,6 +187,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | File icons | Icon động theo ngôn ngữ (JS, TS, JSON, Python, Java, HTML, CSS, v.v.) |
 | Dirty state | Hiển thị dot indicator khi file chưa lưu |
 | Binary detection | Phát hiện file binary và hiển thị cảnh báo |
+| Open from URL | Cho phép fetch nội dung từ URL và mở trực tiếp trong Note Editor qua Rust backend |
 
 **Files**: `NoteEditor.tsx` (495 lines), `store.ts` (156 lines)
 
@@ -284,6 +286,7 @@ File: `src-tauri/src/lib.rs` (625 lines, 12 commands)
 | `start_background_index` | Scan toàn bộ drives → ghi vào SQLite DB (WAL, bulk transactions, emit progress events) |
 | `search_index` | Query SQLite DB trực tiếp (LIKE + regex filter, zero RAM) |
 | `get_index_status` | Kiểm tra trạng thái index (scanning/ready/not_found) |
+| `fetch_url_content` | Fetch nội dung text từ web URL |
 
 ### Helper Functions
 | Function | Mô tả |

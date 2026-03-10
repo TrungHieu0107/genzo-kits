@@ -240,6 +240,33 @@ export function NoteEditor() {
     } catch (err) { console.error("Failed to open file dialog:", err); }
   };
 
+  const handleOpenUrl = async () => {
+    const url = window.prompt("Enter the URL to open (e.g. https://example.com/file.txt):");
+    if (!url || url.trim() === "") return;
+
+    try {
+      showToast("Fetching URL content...", "info");
+      const content: string = await invoke("fetch_url_content", { url });
+      
+      const urlObj = new URL(url);
+      const name = urlObj.pathname.split('/').pop() || "url-content.txt";
+      const id = `url-${Date.now()}`;
+      
+      openFile({
+        id,
+        path: url, // Storing URL as path
+        name,
+        content,
+        language: getLanguageFromPath(name),
+        encoding: "UTF-8"
+      });
+      showToast("URL content loaded!", "success");
+    } catch (err) {
+      console.error("Failed to fetch URL:", err);
+      showToast(`Failed to fetch URL: ${err}`, "error");
+    }
+  };
+
   const handleEncodingChange = async (file: EditorFile, newEncoding: string) => {
     if (!file.path) { updateEncoding(file.id, newEncoding); return; }
     try {
@@ -377,7 +404,8 @@ export function NoteEditor() {
               {!isSidebarCollapsed && <span className="text-[11px] font-bold text-gray-300 uppercase">Open Editors</span>}
               <div className={`flex items-center gap-1 transition-opacity ${isSidebarCollapsed ? "flex-col opacity-100 mb-2 border-b border-[#3C3C3D] pb-3 w-full" : "opacity-0 group-hover/header:opacity-100"}`}>
                 <button onClick={() => createFile()} className="p-1 hover:bg-[#3C3C3D] rounded"><Plus className="w-4 h-4" /></button>
-                <button onClick={() => handleOpenFile()} className="p-1 hover:bg-[#3C3C3D] rounded"><FolderOpen className="w-4 h-4" /></button>
+                <button onClick={() => handleOpenFile()} className="p-1 hover:bg-[#3C3C3D] rounded" title="Open File"><FolderOpen className="w-4 h-4" /></button>
+                <button onClick={() => handleOpenUrl()} className="p-1 hover:bg-[#3C3C3D] rounded" title="Open URL"><Globe className="w-4 h-4" /></button>
                 {!isSidebarCollapsed && (
                   <button onClick={() => { if (activeFile) handleSaveFile(activeFile); }} disabled={!activeFile?.isDirty} className={`p-1 rounded ${activeFile?.isDirty ? "hover:bg-[#3C3C3D] text-gray-400" : "opacity-30"}`}>
                     <Save className="w-4 h-4" />

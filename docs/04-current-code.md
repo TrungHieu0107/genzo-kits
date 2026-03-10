@@ -7,6 +7,7 @@
 - `start_background_index`: Spawns background thread scanning all drives. Writes to `system_index.db` using SQLite with WAL mode, bulk transactions (commit every 10K), and `synchronous = OFF` for max write speed. Creates `idx_name` index on `name` column. Uses `.scanning` flag file.
 - `search_index`: Queries SQLite DB directly on disk. Uses SQL `LIKE` for pattern matching + Rust regex for regex mode. Returns `Vec<SearchResultItem>` with computed `base_path`. Zero RAM usage.
 - `get_index_status`: Returns scanning/ready/not_found status with COUNT query.
+- `fetch_url_content`: Uses `reqwest` to fetch string content from a given URL. Timeout 30s.
 
 **Structs:** `IndexStatus` (status, count). Removed `IndexEntry` (no longer needed).
 
@@ -54,4 +55,9 @@
 - **Frontend**: `PropertyRenamer.tsx` — 3-column layout (File list | Mapping table | Preview panel).
 - **Registration**: Added to `src/tools/index.ts` with `Replace` icon.
 
-**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
+### FEAT-19: Note Editor URL Support (March 10, 2026)
+- **Backend**: Added `reqwest` and implemented `fetch_url_content` command.
+- **UI**: Added Globe icon button to sidebar. Simple prompt for URL entry.
+- **Integration**: Fetches content and opens as a new tab with automatic language detection based on URL extension.
+
+**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).

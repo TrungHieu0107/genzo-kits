@@ -94,9 +94,10 @@ export function NoteEditor() {
     files, activeFileId, 
     openFile, createFile, closeFile, closeAll, closeOther,
     updateContent, updateEncoding, updateLanguage, setActiveFile, markClean,
-    togglePin, hydrateSession
+    togglePin, reorderFiles, hydrateSession
   } = useNoteEditorStore();
 
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ id: string, x: number, y: number } | null>(null);
 
   useEffect(() => {
@@ -415,12 +416,39 @@ export function NoteEditor() {
             </div>
 
             <div className="flex flex-col pb-2 w-full gap-[2px]">
-              {displayFiles.map((file) => (
+              {displayFiles.map((file, index) => (
                 <div 
                   key={file.id} 
+                  draggable={!isSidebarCollapsed}
+                  onDragStart={(e) => {
+                    if (isSidebarCollapsed) return;
+                    setDraggedIndex(index);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedIndex === null || draggedIndex === index) return;
+                    
+                    // Find actual indices in the 'files' array
+                    const sourceFile = displayFiles[draggedIndex];
+                    const targetFile = displayFiles[index];
+                    
+                    const oldFilesIndex = files.findIndex(f => f.id === sourceFile.id);
+                    const newFilesIndex = files.findIndex(f => f.id === targetFile.id);
+                    
+                    if (oldFilesIndex !== -1 && newFilesIndex !== -1) {
+                      reorderFiles(oldFilesIndex, newFilesIndex);
+                    }
+                    setDraggedIndex(null);
+                  }}
+                  onDragEnd={() => setDraggedIndex(null)}
                   onClick={() => setActiveFile(file.id)} 
                   onContextMenu={(e) => handleContextMenu(e, file.id)}
-                  className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"}`}
+                  className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"} ${draggedIndex === index ? "opacity-50" : ""}`}
                 >
                   <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
                     {getFileIcon(file.language)}

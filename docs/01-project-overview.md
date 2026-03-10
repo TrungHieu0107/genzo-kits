@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
 
-**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).
+**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).
 
 ---
 
@@ -188,6 +188,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Dirty state | Hiển thị dot indicator khi file chưa lưu |
 | Binary detection | Phát hiện file binary và hiển thị cảnh báo |
 | Open from URL | Cho phép fetch nội dung từ URL và mở trực tiếp trong Note Editor qua Rust backend |
+| Drag-and-drop reorder | Kéo thả để sắp xếp lại vị trí các tab trong sidebar |
 
 **Files**: `NoteEditor.tsx` (495 lines), `store.ts` (156 lines)
 

@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html, body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  overscroll-behavior: none;
+  overflow: hidden; /* Prevent body itself from scrolling, let #root handle it if necessary, though Genzo-Kit tools are full-height */
 }
 
 #root {

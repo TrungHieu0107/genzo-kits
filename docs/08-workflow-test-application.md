@@ -1,6 +1,6 @@
 # Genzo-Kit Workflow: Test Application
 
-**Test Matrix (March 10, 2026):**
+**Test Matrix (March 10, 2024):**
 
 | Feature | Status |
 | :--- | :--- |
@@ -11,6 +11,8 @@
 | Advanced SQL Filters | PASS |
 | Smart Log Reload | PASS |
 | Note Editor URL Fetch | PASS |
+| Note Editor Tab Reorder | PASS |
+| Global Layout Stability | PASS |
 
 **System Cache Manager (SQLite):**
 1. App startup → `start_background_index` called → `.scanning` flag → SQLite DB created with bulk inserts. PASS.
@@ -35,6 +37,17 @@
 3. Extension detection → `.md` detected as markdown. PASS.
 4. Error handling → Invalid URL shows toast error. PASS.
 
-Added using Workflow 05.
+**Note Editor Tab Reordering:**
+1. Click and hold tab name in sidebar. PASS.
+2. Drag to new position → drop. PASS.
+3. Order updates in UI immediately. PASS.
+4. Verify correct mapping with pinned/unpinned mixed tabs. PASS.
 
-**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).
+Add**Global Layout Stability (Touchpad):**
+1. Scroll to the bottom of any tool (e.g. Note Editor) using touchpad. PASS.
+2. Attempt to scroll past the limit → Layout remains locked (no rubber-banding). PASS.
+3. Repeat for top limit. PASS.
+
+Done using Workflow 06.
+
+**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).

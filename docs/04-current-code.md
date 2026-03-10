@@ -60,4 +60,14 @@
 - **UI**: Added Globe icon button to sidebar. Simple prompt for URL entry.
 - **Integration**: Fetches content and opens as a new tab with automatic language detection based on URL extension.
 
-**Test Status**: PASS -- March 10, 2026 (Note Editor URL feature added).
+### FEAT-20: Note Editor Tab Reordering (March 10, 2024)
+- **Store**: Added `reorderFiles` action using `splice` logic.
+- **UI**: Added `draggable` and `onDrag*` handlers to file list items.
+- **Logic**: Maps `displayFiles` indices back to absolute `files` indices for correct state updates.
+
+### BUG-FIX-03: Touchpad Overscroll "Rubber-Banding" Fix (March 10, 2024)
+- **Problem**: Touchpad scrolling on reach limits caused the entire application layout to "bounce" or "rubber-band".
+- **Fix**: Added `overscroll-behavior: none` to `html, body` in `src/index.css`.
+- **Side Effect**: Prevents the browser-level overscroll effect globally, keeping the IDE-like interface stable.
+
+**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).

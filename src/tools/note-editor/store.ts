@@ -33,6 +33,7 @@ interface NoteEditorState {
   setActiveFile: (id: string | null) => void;
   markClean: (id: string) => void;
   togglePin: (id: string) => void;
+  reorderFiles: (oldIndex: number, newIndex: number) => void;
   hydrateSession: (session: NoteEditorSession) => void;
 }
 
@@ -147,6 +148,13 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
       f.id === id ? { ...f, isPinned: !f.isPinned } : f
     )
   })),
+
+  reorderFiles: (oldIndex, newIndex) => set((state) => {
+    const newFiles = [...state.files];
+    const [movedFile] = newFiles.splice(oldIndex, 1);
+    newFiles.splice(newIndex, 0, movedFile);
+    return { files: newFiles };
+  }),
 
   hydrateSession: (session) => set({
     files: session.files || [],

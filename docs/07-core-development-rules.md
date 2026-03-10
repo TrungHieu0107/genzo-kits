@@ -11,6 +11,6 @@ Permanent and non-negotiable.
 7. **Testing**: Verify Text Comparator works after every change.
 8. **Naming**: Genzo [Tool Name].
 
-**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).
+**Test Status**: PASS -- March 10, 2024 (Build installers added).
 
 Last updated: March 2026

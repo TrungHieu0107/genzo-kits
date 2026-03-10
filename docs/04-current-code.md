@@ -70,4 +70,9 @@
 - **Fix**: Added `overscroll-behavior: none` to `html, body` in `src/index.css`.
 - **Side Effect**: Prevents the browser-level overscroll effect globally, keeping the IDE-like interface stable.
 
-**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).
+### FEAT-21: Production Bundling & Installer Support (March 10, 2024)
+- **Config**: Updated `tauri.conf.json` with a `bundle` section to enable MSI and NSIS targets.
+- **Build**: Successfully generated production assets using `cargo tauri build --target x86_64-pc-windows-msvc`.
+- **Output**: MSI and EXE installers available for distribution.
+
+**Test Status**: PASS -- March 10, 2024 (Build installers added).

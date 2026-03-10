@@ -13,6 +13,7 @@
 | Note Editor URL Fetch | PASS |
 | Note Editor Tab Reorder | PASS |
 | Global Layout Stability | PASS |
+| Production Bundle (MSI/EXE) | PASS |
 
 **System Cache Manager (SQLite):**
 1. App startup → `start_background_index` called → `.scanning` flag → SQLite DB created with bulk inserts. PASS.
@@ -43,11 +44,17 @@
 3. Order updates in UI immediately. PASS.
 4. Verify correct mapping with pinned/unpinned mixed tabs. PASS.
 
-Add**Global Layout Stability (Touchpad):**
+**Global Layout Stability (Touchpad):**
 1. Scroll to the bottom of any tool (e.g. Note Editor) using touchpad. PASS.
 2. Attempt to scroll past the limit → Layout remains locked (no rubber-banding). PASS.
 3. Repeat for top limit. PASS.
 
+**Production Bundle Packaging:**
+1. Run `cargo tauri build` with bundle config. PASS.
+2. Verify `.msi` output in `bundle\msi` folder. PASS.
+3. Verify `-setup.exe` output in `bundle\nsis` folder. PASS.
+4. Verify standalone `.exe` in `release` folder. PASS.
+
 Done using Workflow 06.
 
-**Test Status**: PASS -- March 10, 2024 (Touchpad overscroll fixed).
+**Test Status**: PASS -- March 10, 2024 (Build installers added).

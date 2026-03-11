@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+**Test Status**: PASS -- March 11, 2026 (Searcher multi-tool integration completed).
 
 ---
 
@@ -139,9 +139,11 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 ├─────────────────────────────────────────────┤
 │ configStore.ts    → Global editor config     │
 │                     (tauri-plugin-store)      │
+│ appStore.ts       → App navigation & UI state│
 │ toastStore.ts     → Toast notifications      │
 │ settings/store.ts → App settings             │
 │                     (zustand/persist)         │
+│ property-renamer/st → Renamer state          │
 │ note-editor/store → Tab/file state           │
 │ sql-log-parser/st → Parser state             │
 │ text-comparator/s → Comparator state         │
@@ -240,6 +242,10 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | **Settings Persistence** | rootDirs, query, mode, useRegex, useCache, isOptionsCollapsed — lưu qua `tauri-plugin-store` |
 | **Search Modes** | All / File only / Folder only |
 | **Pattern Support** | Plain text, glob wildcards (*, ?), regex |
+| **Multi-Selection** | Chọn nhiều file/folder bằng checkbox |
+| **Action Bar** | Thanh công cụ nổi khi có item được chọn |
+| **Open in Note Tool** | Đọc nội dung file và mở tab mới trong Note Editor |
+| **Add to Renamer** | Inject file vào Property Renamer list và chuyển tab |
 | **Double-click Open** | Mở file/folder bằng ứng dụng mặc định |
 | **Click-to-Copy** | Copy đường dẫn vào clipboard |
 

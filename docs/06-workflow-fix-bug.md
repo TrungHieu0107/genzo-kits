@@ -11,4 +11,4 @@
 
 Reply: "Done using Workflow 06".
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).

@@ -4,16 +4,11 @@ import { tools } from "./tools/index";
 import { GlobalToast } from "./components/GlobalToast";
 import { useConfigStore } from "./components/configStore";
 
+import { useAppStore } from "./store/appStore";
+
 function App() {
   const [standaloneToolId, setStandaloneToolId] = useState<string | null>(null);
-
-  const [activeToolId, setActiveToolId] = useState<string>(() => {
-    return localStorage.getItem("genzoActiveTool") || tools[0].id;
-  });
-  
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    return localStorage.getItem("genzoSidebarCollapsed") === "true";
-  });
+  const { activeToolId, setActiveTool, isSidebarCollapsed, setSidebarCollapsed } = useAppStore();
 
   // Load global config on startup
   useEffect(() => {
@@ -25,23 +20,7 @@ function App() {
     if (windowParam) {
       setStandaloneToolId(windowParam);
     }
-
-    // Trigger background file system indexing on app startup
-    // Khởi chạy quét hệ thống file ở background khi app mở
-    import("@tauri-apps/api/core").then(({ invoke }) => {
-      invoke('start_background_index').catch((err: unknown) => {
-        console.error("[Genzo] Failed to start background index:", err);
-      });
-    });
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("genzoActiveTool", activeToolId);
-  }, [activeToolId]);
-
-  useEffect(() => {
-    localStorage.setItem("genzoSidebarCollapsed", isSidebarCollapsed.toString());
-  }, [isSidebarCollapsed]);
 
   // Global Keyboard Shortcuts
   // Phím tắt bàn phím toàn cục
@@ -55,13 +34,19 @@ function App() {
     const registerTauriShortcut = async () => {
       try {
         const { register, unregister } = await import('@tauri-apps/plugin-global-shortcut');
-        await register('Ctrl+Shift+S', (event) => {
-          if (event.state === 'Pressed') {
-            setActiveToolId("settings");
-          }
+        await register('Ctrl+Shift+S', () => {
+          setActiveTool('settings');
+        });
+        await register('Ctrl+N', () => {
+          setActiveTool('note-editor');
+        });
+        await register('Ctrl+C', () => {
+          setActiveTool('text-comparator');
         });
         cleanupTauri = () => {
           unregister('Ctrl+Shift+S').catch(() => {});
+          unregister('Ctrl+N').catch(() => {});
+          unregister('Ctrl+C').catch(() => {});
         };
       } catch {
         // Fallback: nếu không có Tauri (dev browser), dùng keydown listener
@@ -77,7 +62,7 @@ function App() {
       if (e.ctrlKey && e.shiftKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
         e.preventDefault();
         e.stopPropagation();
-        setActiveToolId("settings");
+        setActiveTool("settings");
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown, true);
@@ -112,9 +97,9 @@ function App() {
     <div className="flex w-full h-screen bg-[#1e1e1e] text-gray-200 overflow-hidden font-sans">
       <ToolSidebar 
         activeToolId={activeToolId} 
-        onSelectTool={setActiveToolId} 
+        onSelectTool={setActiveTool} 
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onToggleCollapse={() => setSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className="flex-1 h-screen overflow-hidden relative">
          <ActiveComponent />

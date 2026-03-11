@@ -75,4 +75,26 @@
 - **Build**: Successfully generated production assets using `cargo tauri build --target x86_64-pc-windows-msvc`.
 - **Output**: MSI and EXE installers available for distribution.
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+### FEAT-22: Full Automated Source Documentation (March 11, 2026)
+- **Feature**: Generated 4 core technical docs: `FEATURES.md`, `USER_FLOWS.md`, `ARCHITECTURE.md`, `COMPONENTS.md`.
+- **Scope**: Full analysis of 15 Tauri commands and 20+ React components.
+
+### FEAT-23: Open by Local Path in Note Editor (March 11, 2026)
+- **Change**: Replaced "Open from URL" with "Open by Path".
+- **Logic**: Uses a standard prompt to get a full file path and calls `read_file_encoded`.
+- **UI**: Changed Globe icon to Link icon.
+
+### FEAT-24: Manual System Indexing Trigger (March 11, 2026)
+- **Change**: Removed `start_background_index` call from `App.tsx` (auto-scan on mount).
+- **UI**: Added "Scan System Now" button to `FolderSearcher.tsx` header.
+- **Workflow**: Indexing only starts when explicitly requested by clicking the button.
+
+
+### FEAT-25: Searcher Multi-Tool Integration (March 11, 2026)
+- **Feature**: Added multi-selection checkboxes to `FolderSearcher.tsx` results.
+- **Action Bar**: Implemented a floating action bar that appears when items are selected.
+- **Note Editor Integration**: Added "Open in Note tool" action which reads file content via `read_file_encoded` and opens as tabs.
+- **Property Renamer Integration**: Added "Add to Property Renamer" action which injects paths into `propertyRenamerStore` and switches tools.
+- **State Management**: Migrated `activeToolId` to a global `appStore` to facilitate cross-tool navigation.
+
+**Test Status**: PASS -- March 11, 2026 (Searcher multi-tool integration completed).

@@ -11,6 +11,6 @@ Permanent and non-negotiable.
 7. **Testing**: Verify Text Comparator works after every change.
 8. **Naming**: Genzo [Tool Name].
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).
 
 Last updated: March 2026

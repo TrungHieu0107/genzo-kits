@@ -2,10 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import Editor from "@monaco-editor/react";
-import { 
-  FileCode, X, Plus, File, 
+import {
+  FileCode, X, Plus, File,
   FileJson, FileType, ChevronLeft, ChevronRight, FolderOpen, Save,
-  Terminal, Database, Globe, FileText, Pin, PinOff
+  Terminal, Database, Globe, FileText, Pin, PinOff, Link as LinkIcon
 } from "lucide-react";
 import { useNoteEditorStore, EditorFile } from "./store";
 import { useTextCompareStore } from "../text-comparator/store";
@@ -241,30 +241,42 @@ export function NoteEditor() {
     } catch (err) { console.error("Failed to open file dialog:", err); }
   };
 
-  const handleOpenUrl = async () => {
-    const url = window.prompt("Enter the URL to open (e.g. https://example.com/file.txt):");
-    if (!url || url.trim() === "") return;
+  const handleOpenPath = async () => {
+    const path = window.prompt("Enter the full file path to open (e.g. C:\\temp\\file.txt):");
+    if (!path || path.trim() === "") return;
 
     try {
-      showToast("Fetching URL content...", "info");
-      const content: string = await invoke("fetch_url_content", { url });
-      
-      const urlObj = new URL(url);
-      const name = urlObj.pathname.split('/').pop() || "url-content.txt";
-      const id = `url-${Date.now()}`;
-      
-      openFile({
-        id,
-        path: url, // Storing URL as path
-        name,
-        content,
-        language: getLanguageFromPath(name),
-        encoding: "UTF-8"
+      const name = path.split(/[/\\]/).pop() || path;
+      const existing = files.find(f => f.path === path);
+      if (existing) { setActiveFile(existing.id); return; }
+
+      const defaultEnc = noteSettings.defaultEncoding;
+      const response: SafeFileResponse = await invoke('read_file_encoded', { 
+        path, 
+        encoding: defaultEnc 
       });
-      showToast("URL content loaded!", "success");
+      
+      if (response.error) {
+        console.error("Error reading path:", response.error);
+        showToast(`Failed to open path: ${response.error}`, "error");
+        return;
+      }
+
+      if (response.is_binary) {
+        openFile({
+          id: path, path, name, 
+          content: "Binary file or unsupported encoding.", language: "plaintext", encoding: defaultEnc
+        });
+      } else {
+        openFile({
+          id: path, path, name, content: response.content || "",
+          language: getLanguageFromPath(name), encoding: defaultEnc
+        });
+      }
+      showToast("File opened by path!", "success");
     } catch (err) {
-      console.error("Failed to fetch URL:", err);
-      showToast(`Failed to fetch URL: ${err}`, "error");
+      console.error("Failed to open path:", err);
+      showToast(`Failed to open path: ${err}`, "error");
     }
   };
 
@@ -406,7 +418,7 @@ export function NoteEditor() {
               <div className={`flex items-center gap-1 transition-opacity ${isSidebarCollapsed ? "flex-col opacity-100 mb-2 border-b border-[#3C3C3D] pb-3 w-full" : "opacity-0 group-hover/header:opacity-100"}`}>
                 <button onClick={() => createFile()} className="p-1 hover:bg-[#3C3C3D] rounded"><Plus className="w-4 h-4" /></button>
                 <button onClick={() => handleOpenFile()} className="p-1 hover:bg-[#3C3C3D] rounded" title="Open File"><FolderOpen className="w-4 h-4" /></button>
-                <button onClick={() => handleOpenUrl()} className="p-1 hover:bg-[#3C3C3D] rounded" title="Open URL"><Globe className="w-4 h-4" /></button>
+                <button onClick={() => handleOpenPath()} className="p-1 hover:bg-[#3C3C3D] rounded" title="Open by Path"><LinkIcon className="w-4 h-4" /></button>
                 {!isSidebarCollapsed && (
                   <button onClick={() => { if (activeFile) handleSaveFile(activeFile); }} disabled={!activeFile?.isDirty} className={`p-1 rounded ${activeFile?.isDirty ? "hover:bg-[#3C3C3D] text-gray-400" : "opacity-30"}`}>
                     <Save className="w-4 h-4" />

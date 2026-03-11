@@ -19,9 +19,10 @@
 13. **Double-click Open, Click-to-Copy**.
 
 **Text Comparator**: Monaco DiffEditor, bi-directional editing, independent per-pane encoding selection, and Zustand interop.
-**Note Editor**: Multi-tab, session auto-save, dynamic encodings, open from URL, drag-and-drop reorder.
+**Note Editor**: Multi-tab, session auto-save, dynamic encodings, open by path, drag-and-drop reorder.
 **Installer Support**: MSI and NSIS (EXE) setup generation enabled.
-**Log SQL Extractor**: Regex parsing, advanced filtering, SQL formatter.
+**Documentation Suite**: Generated FEATURES.md, USER_FLOWS.md, ARCHITECTURE.md, and COMPONENTS.md.
+**Searcher Indexing**: Manual trigger for system-wide indexing; removes background overhead on startup.
 **Property Renamer**: Batch rename properties across JSP, Java, and JS files with scan, map, replace, and undo.
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).

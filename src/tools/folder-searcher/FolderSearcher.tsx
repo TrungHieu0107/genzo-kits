@@ -1,10 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
-import { FolderOpen, Search, Copy, Check, FolderSearch, AlertTriangle, FileText, RotateCw, History, Trash2, Plus, ChevronDown, ChevronRight, Database } from 'lucide-react';
+import { 
+  FolderOpen, Search, Copy, Check, FolderSearch, AlertTriangle, 
+  FileText, RotateCw, History, Trash2, Plus, ChevronDown, 
+  ChevronRight, Database, Replace
+} from 'lucide-react';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { LazyStore } from '@tauri-apps/plugin-store';
 import { listen } from '@tauri-apps/api/event';
+
+// Stores
+import { useAppStore } from '../../store/appStore';
+import { useNoteEditorStore } from '../note-editor/store';
+import { usePropertyRenamerStore } from '../property-renamer/store';
 
 export interface SearchResultItem {
   path: string;
@@ -34,12 +43,19 @@ export default function FolderSearcher() {
   const [indexStatus, setIndexStatus] = useState<'loading' | 'ready' | 'scanning' | 'not_found'>('not_found');
   const [indexCount, setIndexCount] = useState(0);
   
+  // Selection state
+  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
+  
+  // Stores
+  const { setActiveTool } = useAppStore();
+  const { openFile } = useNoteEditorStore();
+  const { addFiles: addToRenamer } = usePropertyRenamerStore();
+
   // In-memory cache for search results
   const searchCache = useRef<Map<string, SearchResultItem[]>>(new Map());
 
   // Column resize state (px widths)
   const [columnWidths, setColumnWidths] = useState<[number, number, number]>([250, 0, 180]);
-  // columnWidths[1] = 0 means "flex/auto" for Base Path column
   const resizingCol = useRef<number | null>(null);
   const resizeStartX = useRef<number>(0);
   const resizeStartWidth = useRef<number>(0);
@@ -127,7 +143,7 @@ export default function FolderSearcher() {
     return () => clearTimeout(saveTimeout);
   }, [rootDirs, query, mode, useRegex, useCache, isOptionsCollapsed, isInitialLoad]);
 
-  // System Index status: check on mount + listen for events (no RAM loading)
+  // System Index status
   useEffect(() => {
     let isMounted = true;
 
@@ -185,14 +201,12 @@ export default function FolderSearcher() {
       if (selected) {
         const paths = Array.isArray(selected) ? selected : [selected];
         if (index !== undefined) {
-          // Update specific row
           setRootDirs(prev => {
             const next = [...prev];
             next[index] = paths[0];
             return next;
           });
         } else {
-          // Append new rows
           setRootDirs(prev => {
             const newPaths = paths.filter(p => !prev.includes(p));
             return [...prev, ...newPaths];
@@ -227,7 +241,17 @@ export default function FolderSearcher() {
     setRootDirs(['']);
   };
 
-  // Hàm thực hiện gọi backend search (live scan)
+  const handleStartScan = async () => {
+    try {
+      setIndexStatus('scanning');
+      await invoke('start_background_index');
+    } catch (err) {
+      console.error("[Genzo] Failed to start index scan:", err);
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+      setIndexStatus('not_found');
+    }
+  };
+
   const performBackendSearch = async (cacheKey: string): Promise<SearchResultItem[]> => {
     const found: SearchResultItem[] = await invoke('search_system', { 
       roots: rootDirs.filter(r => r.trim() !== ''),
@@ -237,10 +261,10 @@ export default function FolderSearcher() {
     });
     const data = found || [];
     searchCache.current.set(cacheKey, data);
+    setSelectedPaths(new Set()); // Reset selection
     return data;
   };
 
-  // Hàm query SQLite index trực tiếp (zero RAM)
   const performIndexSearch = async (cacheKey: string): Promise<SearchResultItem[]> => {
     const found: SearchResultItem[] = await invoke('search_index', {
       query: query.trim(),
@@ -249,10 +273,10 @@ export default function FolderSearcher() {
     });
     const data = found || [];
     searchCache.current.set(cacheKey, data);
+    setSelectedPaths(new Set()); // Reset selection
     return data;
   };
 
-  // Kiểm tra xem rootDirs có trống không
   const hasSpecificRoots = rootDirs.some(r => r.trim() !== '');
 
   const handleSearch = async (forceRefresh: boolean = false) => {
@@ -265,13 +289,11 @@ export default function FolderSearcher() {
       useRegex
     });
 
-    // Stale-While-Revalidate: nếu có cache, hiển thị ngay + refresh background
     if (!forceRefresh && useCache && searchCache.current.has(cacheKey)) {
       setResults(searchCache.current.get(cacheKey) || []);
       setHasSearched(true);
       setIsCached(true);
       setErrorMsg(null);
-
       setIsRevalidating(true);
       try {
         let freshData: SearchResultItem[];
@@ -290,27 +312,24 @@ export default function FolderSearcher() {
       return;
     }
 
-    // FAST PATH: query SQLite index khi không có rootDirs cụ thể và index ready
     if (!forceRefresh && !hasSpecificRoots && indexStatus === 'ready') {
       setHasSearched(true);
       setIsCached(false);
       setErrorMsg(null);
-
       try {
         const data = await performIndexSearch(cacheKey);
         setResults(data);
       } catch (err: unknown) {
         console.error("Index search failed:", err);
-        const errMsg = err instanceof Error ? err.message : String(err);
-        setErrorMsg(errMsg);
+        setErrorMsg(err instanceof Error ? err.message : String(err));
       }
       return;
     }
 
-    // Fallback: live search
     setIsSearching(true);
     setHasSearched(true);
     setResults([]);
+    setSelectedPaths(new Set());
     setIsCached(false);
     setErrorMsg(null);
 
@@ -319,8 +338,7 @@ export default function FolderSearcher() {
       setResults(data);
     } catch (err: unknown) {
       console.error("Search failed:", err);
-      const errMsg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(errMsg);
+      setErrorMsg(err instanceof Error ? err.message : String(err));
     } finally {
       setIsSearching(false);
     }
@@ -337,9 +355,7 @@ export default function FolderSearcher() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
   };
 
   const handleOpenPath = async (path: string) => {
@@ -350,6 +366,63 @@ export default function FolderSearcher() {
     }
   };
 
+  const handleToggleSelect = (path: string) => {
+    setSelectedPaths(prev => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (results.length > 0 && selectedPaths.size === results.length) {
+      setSelectedPaths(new Set());
+    } else {
+      setSelectedPaths(new Set(results.map(r => r.path)));
+    }
+  };
+
+  const handleOpenInNoteAction = async () => {
+    const filesOnly = results.filter(r => selectedPaths.has(r.path) && !r.is_dir);
+    if (filesOnly.length === 0) return;
+
+    for (const file of filesOnly) {
+      try {
+        const content: string = await invoke('read_file_encoded', { 
+          path: file.path, 
+          encoding: 'UTF-8' 
+        });
+        
+        const extension = file.path.split('.').pop()?.toLowerCase() || 'plaintext';
+        let language = 'plaintext';
+        if (['js', 'ts', 'jsx', 'tsx'].includes(extension)) language = 'javascript';
+        else if (['java', 'jsp'].includes(extension)) language = 'java';
+        else if (['json'].includes(extension)) language = 'json';
+        else if (['html', 'xml'].includes(extension)) language = 'html';
+        else if (['css'].includes(extension)) language = 'css';
+
+        openFile({
+          id: `file-${Date.now()}-${Math.random()}`,
+          path: file.path,
+          name: file.name,
+          content: content,
+          language: language,
+          encoding: 'UTF-8'
+        });
+      } catch (err) {
+        console.error(`Failed to open ${file.path} in Note tool:`, err);
+      }
+    }
+    setActiveTool('note-editor');
+  };
+
+  const handleAddToRenamerAction = () => {
+    const paths = Array.from(selectedPaths);
+    addToRenamer(paths);
+    setActiveTool('property-renamer');
+  };
+
   return (
     <div className="h-full flex flex-col bg-[#1e1e1e] text-gray-200 font-sans overflow-hidden">
       {/* Header */}
@@ -358,59 +431,60 @@ export default function FolderSearcher() {
           <FolderSearch className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-bold text-gray-200 tracking-wide uppercase">System File & Folder Searcher</span>
         </div>
-        <div className="flex items-center gap-2">
-          {indexStatus === 'scanning' && (
-            <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1.5 animate-pulse">
-              <Database className="w-3 h-3" />
-              Indexing... {indexCount > 0 ? `${(indexCount / 1000).toFixed(0)}K` : ''}
-            </span>
-          )}
-          {indexStatus === 'loading' && (
-            <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1.5">
-              <Database className="w-3 h-3 animate-spin" />
-              Loading Index...
-            </span>
-          )}
-          {indexStatus === 'ready' && (
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 flex items-center gap-1.5">
-              <Database className="w-3 h-3" />
-              Index Ready ({(indexCount / 1000).toFixed(0)}K entries)
-            </span>
-          )}
-          {indexStatus === 'not_found' && (
-            <span className="text-[10px] font-medium text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full border border-gray-500/20 flex items-center gap-1.5">
-              <Database className="w-3 h-3" />
-              No Index
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleStartScan}
+            disabled={indexStatus === 'scanning' || indexStatus === 'loading'}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
+              indexStatus === 'scanning' 
+                ? 'bg-amber-400/10 border-amber-400/30 text-amber-400 opacity-80 cursor-not-allowed' 
+                : 'bg-emerald-600/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/20 active:scale-95'
+            } disabled:opacity-30 disabled:cursor-not-allowed`}
+          >
+            <Database className={`w-3 h-3 ${indexStatus === 'scanning' ? 'animate-pulse' : ''}`} />
+            {indexStatus === 'scanning' ? 'Scanning...' : 'Scan System Now'}
+          </button>
+          <div className="h-4 w-[1px] bg-[#333]" />
+          <div className="flex items-center gap-2">
+            {indexStatus === 'scanning' && (
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1.5 animate-pulse">
+                Indexing... {indexCount > 0 ? `${(indexCount / 1000).toFixed(0)}K` : ''}
+              </span>
+            )}
+            {indexStatus === 'loading' && (
+              <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1.5">
+                <Database className="w-3 h-3 animate-spin" />
+                Loading Index...
+              </span>
+            )}
+            {indexStatus === 'ready' && (
+              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 flex items-center gap-1.5">
+                <Database className="w-3 h-3" />
+                Index Ready ({(indexCount / 1000).toFixed(0)}K entries)
+              </span>
+            )}
+            {indexStatus === 'not_found' && (
+              <span className="text-[10px] font-medium text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full border border-gray-500/20 flex items-center gap-1.5">
+                <Database className="w-3 h-3" />
+                No Index
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6 flex flex-col gap-6 w-full">
-        {/* Search Controls Card */}
+      <div className="flex-1 overflow-auto p-6 flex flex-col gap-6 w-full relative">
         <div className="bg-[#252526] border border-[#333] rounded-xl p-5 shadow-lg flex flex-col gap-5">
-          
-          {/* Query Input */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Target</label>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-400 hover:text-gray-200 transition-colors">
-                  <input 
-                     type="checkbox" 
-                     checked={useCache}
-                     onChange={e => setUseCache(e.target.checked)}
-                     className="accent-emerald-500 w-3 h-3"
-                  />
+                  <input type="checkbox" checked={useCache} onChange={e => setUseCache(e.target.checked)} className="accent-emerald-500 w-3 h-3" />
                   <span>Enable Cache</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-400 hover:text-gray-200 transition-colors">
-                  <input 
-                     type="checkbox" 
-                     checked={useRegex}
-                     onChange={e => setUseRegex(e.target.checked)}
-                     className="accent-emerald-500 w-3 h-3"
-                  />
+                  <input type="checkbox" checked={useRegex} onChange={e => setUseRegex(e.target.checked)} className="accent-emerald-500 w-3 h-3" />
                   <span>Use Regex (.*)</span>
                 </label>
               </div>
@@ -443,20 +517,13 @@ export default function FolderSearcher() {
                   disabled={!query.trim() || isSearching}
                   className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-[#333] disabled:text-gray-500 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20"
                 >
-                  {isSearching ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    <>Search</>
-                  )}
+                  {isSearching ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  {isSearching ? 'Searching...' : 'Search'}
                 </button>
                 <button
                   onClick={() => handleSearch(true)}
                   disabled={!query.trim() || isSearching}
                   className="bg-[#2d2d2d] hover:bg-[#3c3c3c] border border-[#444] text-gray-200 px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center disabled:opacity-50"
-                  title="Force Re-scan (Ignore Cache)"
                 >
                   <RotateCw className={`w-3.5 h-3.5 ${isSearching ? 'animate-spin' : ''}`} />
                 </button>
@@ -464,113 +531,55 @@ export default function FolderSearcher() {
             </div>
           </div>
 
-          {/* Root Selection */}
           <div className="flex flex-col gap-3 pt-2 border-t border-[#333]/50">
             <div className="flex items-center justify-between group/header cursor-pointer select-none" onClick={() => setIsOptionsCollapsed(!isOptionsCollapsed)}>
               <div className="flex items-center gap-2">
                 <div className="text-gray-500 group-hover/header:text-gray-300 transition-colors">
                   {isOptionsCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 group-hover/header:text-gray-400 transition-colors">
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                   <FolderOpen className="w-4 h-4 text-blue-400" /> {isOptionsCollapsed ? "Options" : "Target Directories"}
                 </label>
               </div>
               {!isOptionsCollapsed && (
                 <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-                  {rootDirs.length > 0 && !(rootDirs.length === 1 && rootDirs[0] === '') && (
-                    <button 
-                      onClick={handleClearDirs}
-                      className="text-[10px] font-bold text-red-400/70 hover:text-red-400 transition-colors uppercase tracking-wider"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => handleSelectRoot()}
-                    className="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
-                  >
+                  {rootDirs.length > 1 && <button onClick={handleClearDirs} className="text-[10px] font-bold text-red-400/70 hover:text-red-400 transition-colors uppercase tracking-wider">Clear All</button>}
+                  <button onClick={() => handleSelectRoot()} className="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
                     <Plus className="w-3 h-3" /> Bulk Add
                   </button>
                 </div>
               )}
             </div>
- 
             {!isOptionsCollapsed && (
-              <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2 animate-in slide-in-from-top-2 duration-200">
+              <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
                 {rootDirs.length === 0 ? (
-                  <div className="bg-[#1e1e1e]/50 border border-dashed border-[#333] rounded-lg p-4 flex items-center justify-center group hover:border-emerald-500/30 transition-colors cursor-pointer" onClick={() => handleSelectRoot()}>
-                    <p className="text-[11px] text-gray-500 italic">
-                      No folders selected. Defaulting to <span className="text-emerald-500/70 not-italic font-bold">SYSTEM (All Drives)</span> search. (Click to add)
-                    </p>
+                  <div className="bg-[#1e1e1e]/50 border border-dashed border-[#333] rounded-lg p-4 flex items-center justify-center" onClick={() => handleSelectRoot()}>
+                    <p className="text-[11px] text-gray-500 italic">No folders selected. Defaulting to SYSTEM search.</p>
                   </div>
-                ) : (
-                  <>
-                    {rootDirs.map((dir, i) => (
-                      <div key={i} className="flex gap-2 group/row items-center">
-                        <div className="flex-1 relative">
-                          <input 
-                            type="text"
-                            value={dir}
-                            onChange={(e) => handleUpdateDir(i, e.target.value)}
-                            placeholder="Project folder path..."
-                            className="w-full bg-[#1e1e1e] border border-[#333] group-hover/row:border-[#444] rounded-lg px-3 py-2 text-xs text-gray-300 focus:border-emerald-500/50 outline-none transition-all"
-                          />
-                          <button 
-                            onClick={() => handleSelectRoot(i)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-all"
-                            title="Browse Folder"
-                          >
-                            <FolderOpen className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <button 
-                          onClick={() => handleRemoveDir(i)}
-                          disabled={rootDirs.length <= 1}
-                          className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                          title={rootDirs.length <= 1 ? "Cannot remove the last row" : "Remove Folder"}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button 
-                      onClick={handleAddRow}
-                      className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#333] hover:border-emerald-500/30 hover:bg-emerald-500/5 rounded-lg text-gray-500 hover:text-emerald-400 transition-all text-[10px] font-bold uppercase tracking-wider mt-1"
-                    >
-                      <Plus className="w-3 h-3" /> Add Row
-                    </button>
-                  </>
-                )}
+                ) : rootDirs.map((dir, i) => (
+                  <div key={i} className="flex gap-2 group/row items-center">
+                    <div className="flex-1 relative">
+                      <input type="text" value={dir} onChange={(e) => handleUpdateDir(i, e.target.value)} placeholder="Project folder path..." className="w-full bg-[#1e1e1e] border border-[#333] group-hover/row:border-[#444] rounded-lg px-3 py-2 text-xs text-gray-300 focus:border-emerald-500/50 outline-none" />
+                      <button onClick={() => handleSelectRoot(i)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-all"><FolderOpen className="w-3.5 h-3.5" /></button>
+                    </div>
+                    <button onClick={() => handleRemoveDir(i)} disabled={rootDirs.length <= 1} className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all disabled:opacity-20"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                ))}
+                {!isOptionsCollapsed && rootDirs.length > 0 && <button onClick={handleAddRow} className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#333] hover:border-emerald-500/30 hover:bg-emerald-500/5 rounded-lg text-gray-500 hover:text-emerald-400 transition-all text-[10px] font-bold uppercase tracking-wider mt-1"><Plus className="w-3 h-3" /> Add Row</button>}
               </div>
             )}
           </div>
         </div>
 
-        {/* Results Area */}
         <div className="flex flex-col gap-3 flex-1 overflow-hidden animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Search Results
-              </h3>
-              <div className="flex items-center gap-2">
-                {isRevalidating && (
-                  <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1 animate-pulse">
-                    <RotateCw className="w-3 h-3 animate-spin"/> REFRESHING
-                  </span>
-                )}
-                {isCached && !isRevalidating && results.length > 0 && (
-                  <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1">
-                    <History className="w-3 h-3"/> CACHED
-                  </span>
-                )}
-                {results.length > 0 && (
-                  <span className="text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
-                    {results.length} {results.length >= 500 ? 'matches (Limit reached)' : 'matches found'}
-                  </span>
-                )}
-              </div>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Results</h3>
+            <div className="flex items-center gap-2">
+              {isRevalidating && <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1 animate-pulse"><RotateCw className="w-3 h-3 animate-spin"/> REFRESHING</span>}
+              {isCached && !isRevalidating && results.length > 0 && <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1"><History className="w-3 h-3"/> CACHED</span>}
+              {results.length > 0 && <span className="text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">{results.length} matches found</span>}
+            </div>
           </div>
-
           <div className="bg-[#252526] border border-[#333] rounded-xl flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 overflow-auto custom-scrollbar">
               {isSearching ? (
@@ -580,87 +589,65 @@ export default function FolderSearcher() {
                 </div>
               ) : errorMsg ? (
                 <div className="h-[300px] flex flex-col items-center justify-center text-red-400 gap-2 p-6 text-center">
-                    <AlertTriangle className="w-8 h-8 opacity-50 mb-2" />
-                    <p className="text-sm font-bold">Search Error</p>
-                    <p className="text-xs opacity-70 font-mono bg-red-950/40 p-2 rounded max-w-md break-words" title={errorMsg}>{errorMsg}</p>
+                  <AlertTriangle className="w-8 h-8 opacity-50 mb-2" />
+                  <p className="text-sm font-bold">Search Error</p>
+                  <p className="text-xs opacity-70 font-mono bg-red-950/40 p-2 rounded max-w-md break-words">{errorMsg}</p>
                 </div>
               ) : hasSearched && results.length === 0 ? (
                 <div className="h-[300px] flex flex-col items-center justify-center text-gray-500 gap-2">
-                    <Search className="w-8 h-8 opacity-20" />
-                    <p className="text-sm">No items matched your query.</p>
+                  <Search className="w-8 h-8 opacity-20" />
+                  <p className="text-sm">No items matched your query.</p>
                 </div>
               ) : !hasSearched ? (
                 <div className="h-[300px] flex flex-col items-center justify-center text-gray-600 gap-2">
-                    <FolderSearch className="w-10 h-10 opacity-10" />
-                    <p className="text-sm">Enter a query and click Search to begin.</p>
+                  <FolderSearch className="w-10 h-10 opacity-10" />
+                  <p className="text-sm">Enter a query and click Search to begin.</p>
                 </div>
               ) : (
                 <table className="w-full border-separate border-spacing-0" style={{ tableLayout: 'fixed' }}>
                   <colgroup>
+                    <col style={{ width: '40px' }} />
                     <col style={{ width: `${columnWidths[0]}px` }} />
                     <col />
                     <col style={{ width: `${columnWidths[2]}px` }} />
                   </colgroup>
                   <thead>
                     <tr className="bg-[#2d2d2d] text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                      <th className="sticky top-0 left-0 z-40 bg-[#2d2d2d] px-4 py-2.5 text-left border-r border-b border-[#333]/50 relative" style={{ width: `${columnWidths[0]}px` }}>
+                      <th className="sticky top-0 left-0 z-50 bg-[#2d2d2d] px-2 py-2.5 text-center border-b border-[#333]/50">
+                        <input type="checkbox" checked={results.length > 0 && selectedPaths.size === results.length} onChange={handleToggleSelectAll} className="accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" />
+                      </th>
+                      <th className="sticky top-0 z-40 bg-[#2d2d2d] px-4 py-2.5 text-left border-r border-b border-[#333]/50 relative">
                         Name
-                        <div
-                          onMouseDown={(e) => handleResizeStart(0, e)}
-                          className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize hover:bg-emerald-500/40 transition-colors z-50"
-                        />
+                        <div onMouseDown={(e) => handleResizeStart(0, e)} className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize hover:bg-emerald-500/40 transition-colors z-50" />
                       </th>
                       <th className="sticky top-0 z-30 bg-[#2d2d2d] px-4 py-2.5 text-left border-b border-[#333]/50 relative">
                         Base Path
-                        <div
-                          onMouseDown={(e) => handleResizeStart(2, e)}
-                          className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize hover:bg-emerald-500/40 transition-colors z-50"
-                        />
+                        <div onMouseDown={(e) => handleResizeStart(2, e)} className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize hover:bg-emerald-500/40 transition-colors z-50" />
                       </th>
-                      <th className="sticky top-0 z-30 bg-[#2d2d2d] px-4 py-2.5 text-left border-b border-[#333]/50" style={{ width: `${columnWidths[2]}px` }}>
-                        Modified
-                      </th>
+                      <th className="sticky top-0 z-30 bg-[#2d2d2d] px-4 py-2.5 text-left border-b border-[#333]/50" style={{ width: `${columnWidths[2]}px` }}>Modified</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#333]">
                     {results.map((item, idx) => (
-                      <tr key={idx} className="group hover:bg-[#2a2a2b] transition-colors text-sm">
-                        <td className="sticky left-0 z-20 bg-[#252526] group-hover:bg-[#2a2a2b] px-4 py-2.5 border-r border-[#333]/50 transition-colors overflow-hidden">
-                          <button 
-                            onDoubleClick={() => handleOpenPath(item.path)}
-                            className="flex items-center gap-2.5 w-full text-left overflow-hidden"
-                            title="Double-click to Open"
-                          >
-                            {item.is_dir ? (
-                              <FolderOpen className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-                            ) : (
-                              <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                            )}
-                            <span className="text-gray-200 font-medium truncate hover:text-blue-400 hover:underline transition-all">
-                              {item.name}
-                            </span>
+                      <tr key={idx} className={`group hover:bg-[#2a2a2b] transition-colors text-sm ${selectedPaths.has(item.path) ? 'bg-emerald-500/5' : ''}`}>
+                        <td className="px-2 py-2.5 border-b border-[#333]/30 text-center">
+                          <input type="checkbox" checked={selectedPaths.has(item.path)} onChange={() => handleToggleSelect(item.path)} className="accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" />
+                        </td>
+                        <td className="sticky left-0 z-20 bg-[#252526] group-hover:bg-[#2a2a2b] transition-colors border-r border-[#333]/50 overflow-hidden" style={{ backgroundColor: selectedPaths.has(item.path) ? '#242e2a' : undefined }}>
+                          <button onDoubleClick={() => handleOpenPath(item.path)} className="flex items-center gap-2.5 w-full text-left overflow-hidden">
+                            {item.is_dir ? <FolderOpen className="w-4 h-4 text-yellow-500 flex-shrink-0" /> : <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />}
+                            <span className="text-gray-200 font-medium truncate hover:text-blue-400 hover:underline transition-all">{item.name}</span>
                           </button>
                         </td>
                         <td className="px-4 py-2.5 border-b border-[#333]/30 overflow-hidden">
                           <div className="flex items-center gap-2 group/path">
-                            <span 
-                              className="text-gray-400 font-mono text-[12px] truncate cursor-pointer hover:text-emerald-400 transition-colors" 
-                              title="Click to Copy Path"
-                              onClick={() => copyToClipboard(item.path)}
-                            >
-                              {item.base_path}
-                            </span>
-                            <button
-                               onClick={() => copyToClipboard(item.path)}
-                               className="opacity-0 group-hover/path:opacity-100 transition-opacity p-0.5 flex-shrink-0"
-                            >
+                            <span className="text-gray-400 font-mono text-[12px] truncate cursor-pointer hover:text-emerald-400 transition-colors" title="Click to Copy Path" onClick={() => copyToClipboard(item.path)}>{item.base_path}</span>
+                            <button onClick={() => copyToClipboard(item.path)} className="opacity-0 group-hover/path:opacity-100 transition-opacity p-0.5 flex-shrink-0">
                                {copiedPath === item.path ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-gray-500" />}
                             </button>
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap border-b border-[#333]/30">
-                          {item.modified}
-                        </td>
+                        <td className="px-4 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap border-b border-[#333]/30">{item.modified}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -670,6 +657,20 @@ export default function FolderSearcher() {
           </div>
         </div>
       </div>
+
+      {selectedPaths.size > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-[#2d2d2d] border border-emerald-500/50 rounded-full px-6 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-2 pr-4 border-r border-[#444]">
+            <span className="bg-emerald-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full">{selectedPaths.size}</span>
+            <span className="text-xs font-medium text-gray-300">items selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={handleOpenInNoteAction} className="flex items-center gap-2 hover:bg-[#3c3c3c] px-3 py-1.5 rounded-lg text-xs font-bold text-blue-400 transition-all active:scale-95"><FileText className="w-4 h-4" />Open trong Note tool</button>
+            <button onClick={handleAddToRenamerAction} className="flex items-center gap-2 hover:bg-[#3c3c3c] px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-400 transition-all active:scale-95"><Replace className="w-4 h-4" />Add to Property Renamer</button>
+            <button onClick={() => setSelectedPaths(new Set())} className="ml-2 p-1.5 hover:bg-gray-700/50 rounded-full text-gray-500 transition-colors" title="Clear Selection"><Trash2 className="w-4 h-4 hover:text-red-400" /></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

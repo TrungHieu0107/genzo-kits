@@ -14,9 +14,13 @@
 | Note Editor Tab Reorder | PASS |
 | Global Layout Stability | PASS |
 | Production Bundle (MSI/EXE) | PASS |
+| Documentation Accuracy | PASS |
 
 **System Cache Manager (SQLite):**
-1. App startup → `start_background_index` called → `.scanning` flag → SQLite DB created with bulk inserts. PASS.
+1. Navigate to Folder Searcher → Status: No Index. PASS.
+2. Click "Scan System Now" → Status: Indexing... PASS.
+3. Search while indexing → Results appearing. PASS.
+4. Index complete → Status: Index Ready. PASS.
 2. Navigate to Folder Searcher → `get_index_status` checked → badge shows "Index Ready (XK entries)". PASS.
 3. Search without rootDirs → `search_index` queries SQLite directly → fast results. PASS.
 4. Search with rootDirs → `search_system` used → live backend search. PASS.
@@ -32,11 +36,11 @@
 3. Switch back to "UTF-8" → Corrupted characters return. PASS.
 4. Repeat for File 2 independently. PASS.
 
-**Note Editor URL Feature:**
-1. Click Globe icon → Prompt appears. PASS.
-2. Enter valid text URL (github readme) → Content loads in new tab. PASS.
-3. Extension detection → `.md` detected as markdown. PASS.
-4. Error handling → Invalid URL shows toast error. PASS.
+**Note Editor Open by Path:**
+1. Click Link icon → Prompt appears. PASS.
+2. Enter valid local path (e.g. `D:\note.txt`) → Content loads in new tab. PASS.
+3. Extension detection → Correct language assigned. PASS.
+4. Error handling → Invalid path shows toast error. PASS.
 
 **Note Editor Tab Reordering:**
 1. Click and hold tab name in sidebar. PASS.
@@ -57,4 +61,4 @@
 
 Done using Workflow 06.
 
-**Test Status**: PASS -- March 10, 2024 (Build installers added).
+**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).

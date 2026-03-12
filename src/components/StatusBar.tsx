@@ -39,7 +39,7 @@ export function StatusBar({
         <button 
           onClick={toggleWhitespaceRender}
           className={`px-1.5 flex items-center gap-1 hover:bg-white/20 transition rounded-sm ${renderWhitespace === 'all' ? 'bg-white/10' : ''}`}
-          title="Toggle Whitespace Rendering"
+          title="Show Whitespace"
         >
           <AlignLeft className="w-3 h-3" />
         </button>

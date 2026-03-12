@@ -195,10 +195,10 @@ export function PropertyRenamer() {
       <div className="h-[40px] bg-[#252526] border-b border-[#3C3C3D] flex items-center justify-between px-4 flex-shrink-0 text-xs">
         <div className="flex items-center gap-4">
           <span className="text-gray-300 font-bold tracking-wider uppercase flex items-center gap-2">
-            <Replace className="w-4 h-4 text-teal-400" /> Property Renamer
+            <Replace className="w-4 h-4 text-teal-400" /> Genzo Property Renamer
           </span>
           <span className="text-gray-500">
-            {files.length} files loaded · {scanResults.length} names found · {pendingCount} pending
+            {files.length} Files · {scanResults.length} Results · {pendingCount} Mappings
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export function PropertyRenamer() {
         {/* LEFT: File Panel */}
         <div className="w-[300px] flex-shrink-0 bg-[#252526] border-r border-[#3C3C3D] flex flex-col">
           <div className="px-3 py-2 flex items-center justify-between border-b border-[#3C3C3D]">
-            <span className="text-[11px] font-bold uppercase text-gray-400">Files</span>
+            <span className="text-[11px] font-bold uppercase text-gray-400">Target Files</span>
             <div className="flex items-center gap-1">
               <button onClick={handleAddFiles} className="p-1 hover:bg-[#3C3C3D] rounded" title="Add Files">
                 <FileUp className="w-3.5 h-3.5 text-blue-400" />
@@ -224,7 +224,7 @@ export function PropertyRenamer() {
               <button onClick={handleAddFolder} className="p-1 hover:bg-[#3C3C3D] rounded" title="Add Folder">
                 <FolderOpen className="w-3.5 h-3.5 text-yellow-400" />
               </button>
-              <button onClick={clearFilesAction} className="p-1 hover:bg-[#3C3C3D] rounded" title="Clear All">
+              <button onClick={clearFilesAction} className="p-1 hover:bg-[#3C3C3D] rounded" title="Clear List">
                 <Trash2 className="w-3.5 h-3.5 text-red-400" />
               </button>
             </div>
@@ -242,7 +242,7 @@ export function PropertyRenamer() {
             {files.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs gap-2 px-4 text-center">
                 <FileCode className="w-8 h-8 opacity-30" />
-                <span>Add .jsp, .java, .js files</span>
+                <span>Add source files to refactor</span>
               </div>
             ) : (
               files.map((file) => {
@@ -308,7 +308,7 @@ export function PropertyRenamer() {
               className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold py-2 rounded transition"
             >
               {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              {isScanning ? "Scanning..." : scanSourcePath ? "Scan Source File" : "Set Scan Source ◎"}
+              {isScanning ? "Scanning..." : scanSourcePath ? "Scan Source File" : "Select Scan Source"}
             </button>
           </div>
         </div>
@@ -321,7 +321,7 @@ export function PropertyRenamer() {
                 type="text"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder="Filter by old name..."
+                placeholder="Search by property name"
                 className="w-full bg-[#3C3C3D] text-gray-200 text-xs pl-7 pr-3 py-1.5 rounded outline-none border border-transparent focus:border-teal-500"
               />
             </div>
@@ -331,7 +331,7 @@ export function PropertyRenamer() {
               className="flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold px-4 py-1.5 rounded transition"
             >
               {isReplacing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Replace className="w-3.5 h-3.5" />}
-              Replace All
+              {isReplacing ? "Applying..." : "Apply Renames"}
             </button>
             <button
               onClick={handleUndo}
@@ -353,11 +353,11 @@ export function PropertyRenamer() {
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-[#2D2D2D] z-10">
                   <tr className="text-gray-400 uppercase tracking-wide">
-                    <th className="text-left px-4 py-2 font-semibold w-[30%]">Old Name</th>
-                    <th className="text-left px-4 py-2 font-semibold w-[30%]">New Name</th>
+                    <th className="text-left px-4 py-2 font-semibold w-[30%]">Original Name</th>
+                    <th className="text-left px-4 py-2 font-semibold w-[30%]">Rename To</th>
                     <th className="text-center px-4 py-2 font-semibold w-[15%]">Occurrences</th>
                     <th className="text-center px-4 py-2 font-semibold w-[10%]">Files</th>
-                    <th className="text-center px-4 py-2 font-semibold w-[15%]">Types</th>
+                    <th className="text-center px-4 py-2 font-semibold w-[15%]">Contexts</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -453,7 +453,7 @@ export function PropertyRenamer() {
                       </pre>
                       {hasMapping && (
                         <>
-                          <div className="text-[9px] text-gray-600 my-0.5 uppercase tracking-wider">→ after</div>
+                          <div className="text-[9px] text-gray-600 my-0.5 uppercase tracking-wider">→ Preview Replacement</div>
                           <pre className="text-[11px] font-mono bg-[#1a2e1a] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap break-all">
                             {afterLine.split(newName).map((part: string, idx: number, arr: string[]) => (
                               <span key={idx}>

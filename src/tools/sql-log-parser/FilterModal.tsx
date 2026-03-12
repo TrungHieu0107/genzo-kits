@@ -48,10 +48,10 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
         {/* Body */}
         <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Filter Target</label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Filter Field</label>
             <div className="flex gap-2">
               {[
-                { id: 'query', label: 'Query', icon: Database },
+                { id: 'query', label: 'SQL Query', icon: Database },
                 { id: 'dao', label: 'DAO Name', icon: Search },
                 { id: 'time', label: 'Timestamp', icon: Clock }
               ].map((t) => (
@@ -73,29 +73,29 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
 
           <div className="flex gap-3">
              <div className="flex flex-col gap-2 w-1/3">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Operator</label>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Condition</label>
                 <select
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as FilterOperator)}
                   className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-3 py-3 rounded-lg text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
                 >
-                  <option value="contains">Contains (in)</option>
-                  <option value="not_contains">Not contains (not in)</option>
-                  <option value="equals">Equals (==)</option>
-                  <option value="not_equals">Not equals (!=)</option>
-                  <option value="greater_than">Greater than (&gt;)</option>
-                  <option value="less_than">Less than (&lt;)</option>
+                  <option value="contains">Contains</option>
+                  <option value="not_contains">Does Not Contain</option>
+                  <option value="equals">Equals</option>
+                  <option value="not_equals">Does Not Equal</option>
+                  <option value="greater_than">Is Greater Than</option>
+                  <option value="less_than">Is Less Than</option>
                 </select>
              </div>
 
              <div className="flex flex-col gap-2 flex-1">
-               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Value</label>
+               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Term</label>
                <input
                  autoFocus
                  type="text"
                  value={value}
                  onChange={(e) => setValue(e.target.value)}
-                 placeholder={type === 'time' ? 'e.g. 21:44:08' : 'Search value...'}
+                 placeholder={type === 'time' ? 'e.g. 21:44:08' : 'Enter value to filter by'}
                  className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-4 py-3 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
                />
              </div>
@@ -115,7 +115,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
             disabled={!value.trim()}
             className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10"
           >
-            <Plus className="w-3.5 h-3.5" /> ADD FILTER
+            <Plus className="w-3.5 h-3.5" /> Add Filter
           </button>
         </div>
       </div>

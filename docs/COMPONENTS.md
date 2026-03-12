@@ -8,9 +8,9 @@ This document details the React component architecture of Genzo-Kit.
 **Path:** `src/App.tsx`
 **Type:** Layout / Main Entry
 **Props:** None
-**Responsibilities:** Manages tool switching, global shortcuts, standalone mode, and background indexing trigger.
+**Responsibilities:** Manages tool switching (Ctrl+Alt+C/N), global shortcuts (Ctrl+Shift+S), and standalone mode.
 **Uses:** `ToolSidebar`, `GlobalToast`, `TextComparator`, `NoteEditor`, `SqlLogParser`, `FolderSearcher`, `PropertyRenamer`, `Settings`.
-**Tauri calls:** `start_background_index()`, `register()`, `unregister()`.
+**Tauri calls:** `register()`, `unregister()`.
 
 ## `ToolSidebar`
 **Path:** `src/tools/tool-manager/ToolSidebar.tsx`
@@ -39,9 +39,9 @@ This document details the React component architecture of Genzo-Kit.
 **Path:** `src/tools/folder-searcher/FolderSearcher.tsx`
 **Type:** Page Component
 **Props:** None
-**Responsibilities:** Fast file/folder explorer with SQLite status monitoring.
+**Responsibilities:** Fast live file/folder explorer with multi-target support.
 **Uses:** `StatusBar`, `lucide-react`.
-**Tauri calls:** `search_index()`, `search_system()`, `get_index_status()`, `open_path()`.
+**Tauri calls:** `search_system()`, `search_files()`, `open_path()`.
 
 ## `PropertyRenamer`
 **Path:** `src/tools/property-renamer/PropertyRenamer.tsx`

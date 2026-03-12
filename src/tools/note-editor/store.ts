@@ -11,6 +11,37 @@ export interface EditorFile {
   isPinned?: boolean;
 }
 
+// Helper to determine Monaco language from filename
+export const getLanguageFromPath = (name: string): string => {
+  const ext = name.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'js':
+    case 'jsx': return 'javascript';
+    case 'ts':
+    case 'tsx': return 'typescript';
+    case 'json': return 'json';
+    case 'html': return 'html';
+    case 'css': return 'css';
+    case 'md': return 'markdown';
+    case 'rs': return 'rust';
+    case 'py': return 'python';
+    case 'java': return 'java';
+    case 'cpp':
+    case 'c':
+    case 'h': return 'cpp';
+    case 'xml': return 'xml';
+    case 'sql': return 'sql';
+    case 'sh':
+    case 'bat': return 'shell';
+    case 'yml':
+    case 'yaml': return 'yaml';
+    case 'toml': return 'toml';
+    case 'ini': return 'ini';
+    case 'txt': return 'plaintext';
+    default: return 'plaintext';
+  }
+};
+
 export interface NoteEditorSession {
   files: EditorFile[];
   activeFileId: string | null;
@@ -20,9 +51,11 @@ interface NoteEditorState {
   files: EditorFile[];
   activeFileId: string | null;
   openFolder: string | null;
+  isHydrated: boolean; 
   
   setOpenFolder: (path: string | null) => void;
   openFile: (file: Omit<EditorFile, 'isDirty'>) => void;
+  openFileByPath: (path: string, encoding?: string) => Promise<void>;
   createFile: () => void;
   closeFile: (id: string) => void;
   closeAll: () => void;
@@ -41,23 +74,52 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
   files: [],
   activeFileId: null,
   openFolder: null,
+  isHydrated: false,
 
   setOpenFolder: (path) => set({ openFolder: path }),
 
   openFile: (fileDef) => set((state) => {
-    // Check if already open
     const existingIndex = state.files.findIndex(f => f.path === fileDef.path);
     if (existingIndex !== -1) {
-      return { activeFileId: state.files[existingIndex].id };
+      return { activeFileId: state.files[existingIndex].id, isHydrated: true };
     }
     
-    // Add new
     const newFile: EditorFile = { ...fileDef, isDirty: false };
     return {
       files: [...state.files, newFile],
-      activeFileId: newFile.id
+      activeFileId: newFile.id,
+      isHydrated: true
     };
   }),
+
+  openFileByPath: async (path, encoding) => {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const name = path.split(/[/\\]/).pop() || path;
+      const targetEnc = encoding || "UTF-8";
+      
+      const response: any = await invoke('read_file_encoded', { 
+        path, 
+        encoding: targetEnc 
+      });
+
+      if (response.error) {
+        console.error("Error reading file:", response.error);
+        return;
+      }
+
+      useNoteEditorStore.getState().openFile({
+        id: path,
+        path: path,
+        name: name,
+        content: response.is_binary ? "Binary file or unsupported encoding." : (response.content || ""),
+        language: getLanguageFromPath(name),
+        encoding: targetEnc
+      });
+    } catch (err) {
+      console.error("Failed to open file by path:", err);
+    }
+  },
 
   createFile: () => set((state) => {
     const untitledCount = state.files.filter(f => f.name.startsWith("Untitled-")).length + 1;
@@ -74,7 +136,8 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
 
     return {
       files: [...state.files, newFile],
-      activeFileId: newId
+      activeFileId: newId,
+      isHydrated: true
     };
   }),
 
@@ -92,16 +155,13 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
     };
   }),
 
-  // Đóng toàn bộ tab (nếu bị dirty có thể cần xử lý lưu sau, tạm thời ta filter clean hoặc close all)
   closeAll: () => set((state) => {
-    // Chỉ giữ lại những files đã pin (tuỳ chọn) hoặc xoá sạch. Tạm thời xoá all = clear
     return {
-      files: state.files.filter(f => f.isPinned), // Optionally keep pinned
+      files: state.files.filter(f => f.isPinned),
       activeFileId: state.files.find(f => f.isPinned)?.id || null
     };
   }),
 
-  // Đóng tất cả tab KHÁC tab hiện tại
   closeOther: (id) => set((state) => {
     const targetFile = state.files.find(f => f.id === id);
     const pinnedFiles = state.files.filter(f => f.isPinned && f.id !== id);
@@ -127,8 +187,6 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
     )
   })),
 
-  // Cập nhật ngôn ngữ syntax highlighting cho file
-  // Update the syntax highlighting language for a file
   updateLanguage: (id, newLanguage) => set((state) => ({
     files: state.files.map(f =>
       f.id === id ? { ...f, language: newLanguage } : f
@@ -158,6 +216,7 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
 
   hydrateSession: (session) => set({
     files: session.files || [],
-    activeFileId: session.activeFileId || null
+    activeFileId: session.activeFileId || null,
+    isHydrated: true
   }),
 }));

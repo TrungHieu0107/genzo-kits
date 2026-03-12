@@ -1,27 +1,21 @@
 # Current Code
 
-## lib.rs — Rust Backend (SQLite System Cache Manager)
-**Dependency**: `rusqlite = { version = "0.31", features = ["bundled"] }`
-
+## lib.rs — Rust Backend
 **Commands:**
-- `start_background_index`: Spawns background thread scanning all drives. Writes to `system_index.db` using SQLite with WAL mode, bulk transactions (commit every 10K), and `synchronous = OFF` for max write speed. Creates `idx_name` index on `name` column. Uses `.scanning` flag file.
-- `search_index`: Queries SQLite DB directly on disk. Uses SQL `LIKE` for pattern matching + Rust regex for regex mode. Returns `Vec<SearchResultItem>` with computed `base_path`. Zero RAM usage.
-- `get_index_status`: Returns scanning/ready/not_found status with COUNT query.
+- `search_system`: Live BFS scan of target directories. Requires at least one root path.
+- `search_files`: High-performance parallel traversal with fuzzy matching and ranked results.
 - `fetch_url_content`: Uses `reqwest` to fetch string content from a given URL. Timeout 30s.
-
-**Structs:** `IndexStatus` (status, count). Removed `IndexEntry` (no longer needed).
+- `read_file_encoded`: Read file with specific encoding and binary detection.
+- `save_file_encoded`: Write file with specific encoding.
 
 ## App.tsx
-- Calls `invoke('start_background_index')` on mount to trigger background indexing.
+- Main container for sidebar and tool routing. Handles global shortcuts.
 
-## FolderSearcher.tsx (Refactored for SQLite)
-**Removed:** `IndexEntry` interface, `systemIndex` ref, `filterFromIndex` function. No RAM loading.
-**Simplified mount effect:** Only checks `get_index_status` and listens for `index-complete`/`index-progress` events.
-**New `performIndexSearch`:** Calls `invoke('search_index', ...)` to query SQLite directly.
+## FolderSearcher.tsx (Modern Live-Scan)
+**Features**: BFS recursive search, multi-folder targets, cache support.
 **`handleSearch` flow:**
-1. Cache → show immediately + revalidate (using `search_index` or `search_system`).
-2. Fast path → if no rootDirs + index ready → `search_index`.
-3. Fallback → `search_system` (live scan).
+1. Cache → show immediately + revalidate via `search_system`.
+2. Direct Search → `search_system` (live scan).
 
 ## Test Results — March 09, 2026: PASS ✅
 
@@ -97,4 +91,69 @@
 - **Property Renamer Integration**: Added "Add to Property Renamer" action which injects paths into `propertyRenamerStore` and switches tools.
 - **State Management**: Migrated `activeToolId` to a global `appStore` to facilitate cross-tool navigation.
 
-**Test Status**: PASS -- March 11, 2026 (Searcher multi-tool integration completed).
+
+### FEAT-26: Remove Automatic System Scan Logic (March 12, 2026)
+- Fully decommissioned the legacy SQLite-based background indexing.
+- Removed `start_background_index`, `search_index`, and `get_index_status` commands from Rust backend.
+- Cleaned up `FolderSearcher.tsx` UI: removed "Scan System Now" button and indexing status badges.
+- Transitioned to a focused "Live Search" model requiring specific target directories.
+
+**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).
+
+---
+
+## [NEW] FEAT-27: Parallel Filesystem Search
+
+### Backend Implementation
+- **File**: `src-tauri/src/search.rs`
+- **Command**: `search_files`
+- **Logic**:
+    - Uses `ignore` crate for parallel multi-threaded traversal.
+    - Uses `fuzzy-matcher` (Skim V2) for ranking results by name match.
+    - Skips system folders (`$Recycle.Bin`, `WinSxS`, etc.) to prevent hangs.
+    - Returns `SearchResult` struct with absolute path, name, is_dir, score, size, and ISO 8601 modified date.
+
+### Usage
+```typescript
+import { invoke } from "@tauri-apps/api/core";
+
+const results = await invoke("search_files", {
+  root: "C:\\",
+  query: "config",
+  maxResults: 200,
+  includeHidden: false
+});
+```
+
+### Constraints Met
+- No admin rights required.
+- Cancellable (Tauri command life-cycle).
+- Ranked by score.
+- Parallel traversal (Rayon-powered).
+### BUG-FIX-04: Shortcut Conflicts Resolved (March 12, 2026)
+- **Problem**: `Ctrl+C` and `Ctrl+N` were registered as global shortcuts, blocking system-wide copy and new-file actions.
+- **Fix**: Removed them from Tauri global-shortcut registration.
+- **New Shortcuts**: Added local window-level listeners for `Ctrl+Alt+C` (Comparator) and `Ctrl+Alt+N` (Note Editor).
+- **Result**: Native `Ctrl+C` and `Ctrl+N` work as expected; tool switching remains fast via `Ctrl+Alt` modifiers.
+### BUG-FIX-05: Note Editor Integration & "Black Screen" Fix (March 12, 2026)
+- **Problem**: 
+    1. Opening files from `FolderSearcher` overwrote the store with an old session.
+    2. `FolderSearcher` incorrectly handled `read_file_encoded` response (expected string, got object), causing a crash (black screen) in Monaco Editor.
+- **Fix**: 
+    1. Added `isHydrated` flag to `note-editor/store.ts` to skip redundant disk-restore.
+    2. Centralized file opening in `openFileByPath` action within the store to handle `SafeFileResponse` and language detection correctly.
+- **Result**: "Open in Note tool" works flawlessly for multiple files; crash resolved.
+ 
++ ### FEAT-28: UI Label Audit & Professional Branding (March 12, 2026)
++ - **Audit**: Reviewed all user-facing labels in `FolderSearcher`, `NoteEditor`, `SqlLogParser`, `PropertyRenamer`, `TextComparator`, `Settings`, and `StatusBar`.
++ - **Renaming**: Applied 60+ renames to ensure professional English, Title Case consistency, and branding rules.
++ - **Branding**: Renamed "System File & Folder Searcher" to **Genzo Folder Searcher** and "Text Comparator" to **Genzo Text Comparator**.
++ - **UX Polish**: Improved tooltips, button labels (e.g., "Add folders" instead of "Bulk Add"), and table headers for better clarity.
++ - **Consistency**: Standardized filter operators (Contains, Equals, etc.) and modal titles.
++ - **Result**: Application feels significantly more professional and cohesive.
+ 
++ ### FEAT-30: Search Results Column Sort (March 12, 2026)
++ - **Feature**: Added interactive sorting to the results table in `FolderSearcher.tsx`.
++ - **Scope**: Name (Alphabetical), Base Path (Alphabetical), Last Modified (Chronological).
++ - **UI**: Added `SortIcon` component and toggle handlers to table headers.
++ - **Logic**: Implemented client-side sorting using `useMemo` and `useState` for sort configuration.

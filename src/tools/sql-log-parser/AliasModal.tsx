@@ -50,14 +50,14 @@ export function AliasModal({ isOpen, onClose, initialValue, onSave }: AliasModal
         {/* Body */}
         <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Alias Name</label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Display Name (Alias)</label>
             <div className="relative group">
               <input
                 autoFocus
                 type="text"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="e.g. Prod Logs, Main Server"
+                placeholder="Example: Production Logs, Backend Server"
                 className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-4 py-3 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
               />
             </div>
@@ -77,7 +77,7 @@ export function AliasModal({ isOpen, onClose, initialValue, onSave }: AliasModal
             onClick={handleSave}
             className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10"
           >
-            <Save className="w-3.5 h-3.5" /> SAVE ALIAS
+            <Save className="w-3.5 h-3.5" /> Save Alias
           </button>
         </div>
       </div>

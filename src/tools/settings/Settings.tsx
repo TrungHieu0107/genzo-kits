@@ -76,7 +76,7 @@ export function Settings() {
           <div className="space-y-10 animate-fade-in">
             <section>
               <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                  <Monitor className="w-5 h-5" /> General Editor Appearance
+                  <Monitor className="w-5 h-5" /> Editor Appearance
               </h2>
               <div className="grid grid-cols-2 gap-8 bg-[#252526] p-8 rounded-xl border border-[#2d2d2d]">
                 <div className="space-y-2">
@@ -122,7 +122,7 @@ export function Settings() {
                     </select>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Render Whitespace</label>
+                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Show Whitespace</label>
                     <select 
                         value={renderWhitespace}
                         onChange={(e) => {
@@ -179,13 +179,13 @@ export function Settings() {
           <div className="space-y-10 animate-fade-in">
              <section>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <ArrowRightLeft className="w-5 h-5" /> Text Comparator Preferences
+                    <ArrowRightLeft className="w-5 h-5" /> Text Comparator Settings
                 </h2>
                 <div className="space-y-6 bg-[#252526] p-8 rounded-xl border border-[#2d2d2d]">
                     <div className="flex items-center justify-between p-4 bg-[#1e1e1e] rounded border border-[#3d3d3d] hover:border-blue-500/50 transition">
                         <div>
-                            <div className="text-sm font-bold text-white">Include Whitespace</div>
-                            <div className="text-xs text-gray-500">Enable trailing and indentation diffing by default.</div>
+                            <div className="text-sm font-bold text-white">Highlight Whitespace Diffs</div>
+                            <div className="text-xs text-gray-500">Detect differences in trailing spaces and indentation.</div>
                         </div>
                         <input 
                           type="checkbox" 
@@ -221,7 +221,7 @@ export function Settings() {
           <div className="space-y-10 animate-fade-in">
              <section>
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <FileEdit className="w-5 h-5" /> Note Editor Defaults
+                    <FileEdit className="w-5 h-5" /> Note Editor Settings
                 </h2>
                 <div className="bg-[#252526] p-8 rounded-xl border border-[#2d2d2d] space-y-6">
                     <div className="space-y-2">

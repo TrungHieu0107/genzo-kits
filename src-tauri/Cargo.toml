@@ -22,3 +22,7 @@ regex = "1"
 rusqlite = { version = "0.31", features = ["bundled", "functions"] }
 directories = "6.0"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
+rayon = "1.10"
+walkdir = "2.5"
+ignore = "0.4"
+fuzzy-matcher = "0.3"

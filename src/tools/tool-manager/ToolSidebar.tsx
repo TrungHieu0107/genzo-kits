@@ -67,7 +67,7 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
 
       {/* Tools List */}
       <div className={`flex-1 overflow-y-auto ${isCollapsed ? "p-2" : "p-3"} flex flex-col gap-1 hide-scrollbar`}>
-        {!isCollapsed && <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2 whitespace-nowrap">Installed Tools</div>}
+        {!isCollapsed && <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2 whitespace-nowrap">Available Tools</div>}
         {tools.filter(t => t.id !== 'settings').map((tool) => {
           const isActive = tool.id === activeToolId;
           const Icon = tool.icon;
@@ -148,7 +148,7 @@ export function ToolSidebar({ activeToolId, onSelectTool, isCollapsed, onToggleC
               }}
             >
               <ExternalLink className="w-4 h-4" />
-              Open in new window
+              Open in New Window
             </button>
           </div>
         </>

@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
 
-**Test Status**: PASS -- March 11, 2026 (Searcher multi-tool integration completed).
+**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).
 
 ---
 
@@ -11,10 +11,11 @@
 ### Đặc điểm chính
 - 🚀 **Khởi động nhanh** (dưới 0.6 giây), RAM dưới 60 MB
 - 🎨 **Dark theme** mặc định, giao diện IDE chuyên nghiệp
+- 🚀 **Genzo Folder Searcher**: Real-time, multi-threaded filesystem traversal with fuzzy matching.
 - 🧩 **Kiến trúc modular** — mỗi tool là một module độc lập
 - 💾 **Offline-first** — không cần internet, mọi dữ liệu lưu local
 - 🪟 **Multi-window** — mỗi tool có thể mở trong cửa sổ riêng
-- ⌨️ **Keyboard shortcuts** — Ctrl+Shift+S mở Settings (hoạt động cả trong bản build .exe)
+- ⌨️ **Keyboard shortcuts** — Ctrl+Shift+S (Settings), Ctrl+Alt+N (Note Editor), Ctrl+Alt+C (Comparator).
 
 ---
 
@@ -35,14 +36,11 @@
 | **PrismJS** | 1.30 | Syntax highlighting (dùng trong SqlLogParser) |
 | **clsx / tailwind-merge** | — | Class name utilities |
 
-### Backend (Rust)
-| Crate | Phiên bản | Mục đích |
-|:---|:---|:---|
 | **tauri** | 2.0 | Desktop framework, IPC, window management |
-| **rusqlite** | 0.31 (bundled) | SQLite database cho System Cache Manager |
 | **serde / serde_json** | 1.x | Serialization |
 | **encoding_rs** | 0.8 | Multi-encoding file read/write (UTF-8, Shift_JIS, Windows-1252, UTF-16LE) |
-| **regex** | 1.x | Pattern matching cho search |
+| **regex / rayon / ignore** | — | High-speed search, parallel traversal, git-aware scanning |
+| **fuzzy-matcher** | 0.3 | Ranked scoring (Skim V2) |
 | **directories** | 6.0 | OS-specific directory paths |
 | **reqwest** | 0.12 | URL fetching (dùng để mở file từ URL trong Note Editor) |
 
@@ -90,7 +88,7 @@ genzo-kit/
 │       │   ├── SqlFormatterModal.tsx # SQL formatter dialog
 │       │   └── index.ts          # Export
 │       ├── folder-searcher/      # Tool 4
-│       │   └── FolderSearcher.tsx # System file/folder search with SQLite index
+│       │   └── FolderSearcher.tsx # Modern live-scan file/folder searcher
 │       └── settings/             # Tool 5
 │           ├── Settings.tsx      # Multi-section settings UI
 │           └── store.ts          # Zustand store (general, tool-specific, persist via localStorage)
@@ -118,7 +116,6 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
              useEffect on mount:
              1. loadConfig() from tauri-plugin-store
              2. Check ?window=X for standalone mode
-             3. invoke('start_background_index') — SQLite indexing
              4. Register Ctrl+Shift+S global shortcut
 ```
 
@@ -225,20 +222,18 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 
 ---
 
-### 5.4 System File & Folder Searcher (`folder-searcher/`)
-**Mô tả**: Tìm kiếm file/folder trên toàn hệ thống với SQLite index.
+### 5.4 Genzo Folder Searcher (`folder-searcher/`)
+**Mô tả**: Tìm kiếm file/folder nhanh gọn bằng cách scan trực tiếp các thư mục đích (Genzo Folder Searcher).
 
 | Tính năng | Mô tả |
 |:---|:---|
-| **SQLite System Index** | Background scan toàn bộ drives → lưu vào `system_index.db` (WAL mode, indexed `name` column) |
-| **Zero-RAM Search** | Query SQLite trực tiếp trên disk qua `search_index` command |
-| **Live Scan Fallback** | Khi chỉ định rootDirs cụ thể → dùng `search_system` (BFS real-time scan) |
-| **Stale-While-Revalidate** | Hiện kết quả cache ngay → refresh background |
+| **Live Scan Focused** | Scan real-time các thư mục được chỉ định sử dụng BFS (Breadth-First Search) |
+| **Recursive Strategy** | Tự động quét sâu vào các thư mục con với giới hạn 500 kết quả |
 | **Resizable Columns** | Kéo resize cột Name, Base Path, Modified |
 | **Full-Width Layout** | Sử dụng toàn bộ chiều rộng |
 | **Collapsible Options** | Thu gọn Target Directories thành "Options" |
-| **Multi-folder Targets** | Row-based UI, min 1 row, browse/type/delete |
-| **Index Status Badge** | Header hiển thị trạng thái: Indexing.../Loading/Ready (XK entries)/No Index |
+| **Multi-folder Targets** | Row-based UI, hỗ trợ nhiều đường dẫn quét cùng lúc |
+| **Smart Labels** | Hiển thị chế độ "Live Search Mode" trong Header |
 | **Settings Persistence** | rootDirs, query, mode, useRegex, useCache, isOptionsCollapsed — lưu qua `tauri-plugin-store` |
 | **Search Modes** | All / File only / Folder only |
 | **Pattern Support** | Plain text, glob wildcards (*, ?), regex |
@@ -249,14 +244,13 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | **Double-click Open** | Mở file/folder bằng ứng dụng mặc định |
 | **Click-to-Copy** | Copy đường dẫn vào clipboard |
 
-**Files**: `FolderSearcher.tsx` (676 lines)
+**Files**: `FolderSearcher.tsx` (610 lines) — Branding updated to "Genzo Folder Searcher".
 
 **Search Flow**:
 ```
 User types → handleSearch()
   ├── Cache hit? → Show cached results + revalidate in background
-  ├── No rootDirs + Index ready? → invoke('search_index') → SQLite query
-  └── Has rootDirs OR no index → invoke('search_system') → Live BFS scan
+  └── invoke('search_system') → Live BFS scan on selected targets
 ```
 
 ---
@@ -288,28 +282,22 @@ File: `src-tauri/src/lib.rs` (625 lines, 12 commands)
 | `save_file_encoded` | Ghi file với encoding tùy chọn |
 | `save_note_session` | Lưu session Note Editor ra `note_session.json` |
 | `load_note_session` | Load session Note Editor từ disk |
-| `search_system` | Live BFS scan file system (có giới hạn 500 results) |
+| `search_system` | Live BFS scan file system (cần chỉ định roots, giới hạn 500 results) |
 | `open_path` | Mở file/folder bằng ứng dụng mặc định (Windows: `explorer`, Mac: `open`, Linux: `xdg-open`) |
-| `start_background_index` | Scan toàn bộ drives → ghi vào SQLite DB (WAL, bulk transactions, emit progress events) |
-| `search_index` | Query SQLite DB trực tiếp (LIKE + regex filter, zero RAM) |
-| `get_index_status` | Kiểm tra trạng thái index (scanning/ready/not_found) |
 | `fetch_url_content` | Fetch nội dung text từ web URL |
+| `build_regex` | Centralized regex building with glob-to-regex auto-conversion |
 
 ### Helper Functions
 | Function | Mô tả |
 |:---|:---|
 | `format_system_time` | Convert UNIX timestamp → readable datetime string |
 | `glob_to_regex` | Convert glob pattern (*, ?) → regex |
-| `get_windows_drives` | Enumerate all Windows drives (A-Z) |
-| `get_index_db_path` | Resolve path to `system_index.db` |
-| `get_scanning_flag_path` | Resolve path to `.scanning` flag file |
 
 ### Structs
 | Struct | Fields |
 |:---|:---|
 | `SafeFileResponse` | content, is_binary, error |
 | `SearchResultItem` | path, name, base_path, modified, is_dir |
-| `IndexStatus` | status, count |
 
 ---
 
@@ -336,8 +324,7 @@ File: `src-tauri/src/lib.rs` (625 lines, 12 commands)
 | Editor config | `tauri-plugin-store` | `editor_config.json` |
 | Note Editor session | Rust IPC → file | `note_session.json` |
 | Folder Searcher settings | `tauri-plugin-store` (LazyStore) | `folder_searcher.json` |
-| System file index | Rust → SQLite | `system_index.db` |
-| Scanning flag | Rust → flag file | `.scanning` |
+| Property Renamer state | Zustand | `propertyRenamerStore` |
 
 ---
 

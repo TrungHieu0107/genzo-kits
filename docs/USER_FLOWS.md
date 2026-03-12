@@ -36,21 +36,34 @@ This document traces common workflows in Genzo-Kit from the UI trigger to the ba
 
 ---
 
-## 🔍 Fast System Search Flow
+## 🔍 Live Folder Search Flow
 **Actor:** User
-**Trigger:** Clicking "Scan System Now" or typing in the search bar.
+**Trigger:** Typing in the search bar.
 **Steps:**
 1. User navigates to Folder Searcher.
-2. User clicks "Scan System Now" to initiate or update the index.
-3. UI calls `start_background_index()`.
-4. User enters query in `FolderSearcher.tsx`.
-5. If index is ready, UI calls `search_index(query, mode, use_regex)`.
-6. Backend queries SQLite `system_index.db`.
-7. Results are mapped and displayed in a virtualized list.
-8. User clicks "Open Folder" -> `open_path(path)` is called.
-**Outcome:** User finds files/folders instantly across the whole system after manual indexing.
+2. User selects or types target directories (e.g., `D:\projects`).
+3. User enters query.
+4. UI calls `search_system(roots, query, mode, use_regex)`.
+5. Backend performs live BFS scan on selected paths.
+6. Results are mapped and displayed in a virtualized list.
+7. User clicks "Open Folder" -> `open_path(path)` is called.
+**Outcome:** User finds files/folders in real-time within targeted areas. Supports opening selected files in Note Editor without session overwrite (BUG-FIX-05).
 **Components involved:** `FolderSearcher`, `StatusBar`
-**Tauri commands:** `start_background_index()`, `search_index()`, `get_index_status()`, `open_path()`
+**Tauri commands:** `search_system()`, `open_path()`
+
+---
+
+## ⚡ Fast Parallel Search Flow
+**Actor:** User/Developer
+**Trigger:** Calling the `search_files` command.
+**Steps:**
+1. User provides root and search query.
+2. Backend spawns parallel visitors using `ignore` crate.
+3. System folders and gitignored files are skipped according to configuration.
+4. Entries are scored in parallel using `SkimMatcherV2`.
+5. Results are ranked by score and returned with metadata (ISO 8601 modified, size).
+**Outcome:** User finds files across large disks in seconds with precise ranking.
+**Tauri commands:** `search_files()`
 
 ---
 
@@ -68,3 +81,19 @@ This document traces common workflows in Genzo-Kit from the UI trigger to the ba
 **Outcome:** Properties are renamed consistently across multiple legacy files.
 **Components involved:** `PropertyRenamer`
 **Tauri commands:** `scan_files()`, `replace_in_files()`, `undo_last_replace()`
+
+---
+
+## ⌨️ Shortcut Handling Flow (BUG-FIX-04)
+**Actor:** User
+**Trigger:** Pressing keyboard shortcuts.
+**Steps:**
+1. App-level `useEffect` hook listens to global and local keyboard events.
+2. `Ctrl+Shift+S` (Global): Tauri plugin intercepts and calls `setActiveTool('settings')`.
+3. `Ctrl+Alt+N` (Local): Window-level listener calls `setActiveTool('note-editor')`.
+4. `Ctrl+Alt+C` (Local): Window-level listener calls `setActiveTool('text-comparator')`.
+5. Standard `Ctrl+C` / `Ctrl+N`: Ignored by app-level listeners, allowing native browser/OS behavior.
+**Outcome:** Tool switching remains accessible while preserving standard application shortcuts.
+**Tauri commands:** `register()`, `unregister()` (global-shortcut plugin).
+
+---

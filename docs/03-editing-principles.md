@@ -6,4 +6,4 @@
 - **UI Constraints**: TailwindCSS, dark mode, synchronized tables.
 - **Executable**: `genzo-kit.exe`.
 
-**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).
+**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).

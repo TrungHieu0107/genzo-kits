@@ -16,19 +16,12 @@
 | Production Bundle (MSI/EXE) | PASS |
 | Documentation Accuracy | PASS |
 
-**System Cache Manager (SQLite):**
-1. Navigate to Folder Searcher → Status: No Index. PASS.
-2. Click "Scan System Now" → Status: Indexing... PASS.
-3. Search while indexing → Results appearing. PASS.
-4. Index complete → Status: Index Ready. PASS.
-2. Navigate to Folder Searcher → `get_index_status` checked → badge shows "Index Ready (XK entries)". PASS.
-3. Search without rootDirs → `search_index` queries SQLite directly → fast results. PASS.
-4. Search with rootDirs → `search_system` used → live backend search. PASS.
-5. Navigate away → No RAM cleanup needed (zero RAM usage). PASS.
-6. During scan → badge shows "Indexing... XK". PASS.
-7. `index-complete` event → status updated to "ready". PASS.
-8. Regex search → SQL LIKE pre-filter + Rust regex post-filter. PASS.
-9. Glob wildcards → Converted to SQL LIKE pattern. PASS.
+**Live Folder Searcher:**
+1. Navigate to Folder Searcher → Mode: Live Search Mode. PASS.
+2. Search without roots → Error prompt shown. PASS.
+3. Search with roots → `search_system` used → live backend search. PASS.
+4. Regex search → Rust regex filtering on live scan. PASS.
+5. Glob wildcards → Converted to regex pattern. PASS.
 
 **Text Comparator Encoding Selection:**
 1. Open file with Shift_JIS encoding → Corrupted characters shown. PASS.
@@ -61,4 +54,23 @@
 
 Done using Workflow 06.
 
-**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).
+**Fast Parallel Search (Backend):**
+1. Invoke `search_files("C:\\", "report", 100, false)`. PASS.
+2. Verify parallel processing via threads config. PASS.
+3. Ranking check: Lowercase/Uppercase scoring matches expectation. PASS.
+4. Metadata check: ISO 8601 modified date present. PASS.
+
+**Shortcut Integrity (BUG-FIX-04):**
+1. Select text and press `Ctrl+C` → Verify text is copied to clipboard. PASS.
+2. Navigate to Note Editor and press `Ctrl+N` → Verify it DOES NOT switch tool unless `Alt` is held. PASS.
+3. Press `Ctrl+Alt+N` → Verify switches to Note Editor. PASS.
+4. Press `Ctrl+Alt+C` → Verify switches to Text Comparator. PASS.
+5. Press `Ctrl+Shift+S` → Verify opens Settings. PASS.
+
+**Note Editor Integration & Crash Fix (BUG-FIX-05):**
+1. Open Folder Searcher, select 2-3 files, click "Open trong Note tool".
+2. Verify screen DOES NOT go black (no React crash). PASS.
+3. Verify Note Editor mounts and shows ALL selected files in the sidebar and tabs. PASS.
+4. Verify files are not overwritten by previous session after 1 second. PASS.
+
+**Test Status**: PASS -- March 12, 2026 (NoteEditor "Black Screen" fix & integration resolved).

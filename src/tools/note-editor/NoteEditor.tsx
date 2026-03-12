@@ -7,44 +7,13 @@ import {
   FileJson, FileType, ChevronLeft, ChevronRight, FolderOpen, Save,
   Terminal, Database, Globe, FileText, Pin, PinOff, Link as LinkIcon
 } from "lucide-react";
-import { useNoteEditorStore, EditorFile } from "./store";
+import { useNoteEditorStore, EditorFile, getLanguageFromPath } from "./store";
 import { useTextCompareStore } from "../text-comparator/store";
 import { useSettingsStore } from "../settings/store";
 import { useToastStore } from "../../components/toastStore";
 import { StatusBar } from "../../components/StatusBar";
 import { useEditorConfig } from "../../components/useEditorConfig";
 import { useConfigStore } from "../../components/configStore";
-
-// Helper to determine Monaco language from filename
-const getLanguageFromPath = (name: string): string => {
-  const ext = name.split('.').pop()?.toLowerCase();
-  switch (ext) {
-    case 'js':
-    case 'jsx': return 'javascript';
-    case 'ts':
-    case 'tsx': return 'typescript';
-    case 'json': return 'json';
-    case 'html': return 'html';
-    case 'css': return 'css';
-    case 'md': return 'markdown';
-    case 'rs': return 'rust';
-    case 'py': return 'python';
-    case 'java': return 'java';
-    case 'cpp':
-    case 'c':
-    case 'h': return 'cpp';
-    case 'xml': return 'xml';
-    case 'sql': return 'sql';
-    case 'sh':
-    case 'bat': return 'shell';
-    case 'yml':
-    case 'yaml': return 'yaml';
-    case 'toml': return 'toml';
-    case 'ini': return 'ini';
-    case 'txt': return 'plaintext';
-    default: return 'plaintext';
-  }
-};
 
 // Helper for file icons based on language mode
 const getFileIcon = (language: string) => {
@@ -92,7 +61,7 @@ interface SafeFileResponse {
 export function NoteEditor() {
   const { 
     files, activeFileId, 
-    openFile, createFile, closeFile, closeAll, closeOther,
+    openFile, openFileByPath, createFile, closeFile, closeAll, closeOther,
     updateContent, updateEncoding, updateLanguage, setActiveFile, markClean,
     togglePin, reorderFiles, hydrateSession
   } = useNoteEditorStore();
@@ -132,8 +101,15 @@ export function NoteEditor() {
   const [isRestoring, setIsRestoring] = useState(true);
   const isFirstMount = useRef(true);
 
+  const { isHydrated } = useNoteEditorStore();
+
   // Restore session from Rust backend
   useEffect(() => {
+    if (isHydrated) {
+      setIsRestoring(false);
+      return;
+    }
+
     const loadSession = async () => {
       try {
         const sessionStr: string = await invoke('load_note_session');
@@ -148,7 +124,7 @@ export function NoteEditor() {
       }
     };
     loadSession();
-  }, [hydrateSession]);
+  }, [hydrateSession, isHydrated]);
 
   // Debounce save session to Rust backend
   useEffect(() => {
@@ -215,28 +191,8 @@ export function NoteEditor() {
     try {
       const selected = await open({ multiple: false });
       if (typeof selected === 'string') {
-        const name = selected.split(/[/\\]/).pop() || selected;
-        const existing = files.find(f => f.path === selected);
-        if (existing) { setActiveFile(existing.id); return; }
-
         const defaultEnc = noteSettings.defaultEncoding;
-        const response: SafeFileResponse = await invoke('read_file_encoded', { 
-          path: selected, 
-          encoding: defaultEnc 
-        });
-        
-        if (response.error) { console.error("Error reading file:", response.error); return; }
-        if (response.is_binary) {
-          openFile({
-            id: selected, path: selected, name, 
-            content: "Binary file or unsupported encoding.", language: "plaintext", encoding: defaultEnc
-          });
-        } else {
-          openFile({
-            id: selected, path: selected, name, content: response.content || "",
-            language: getLanguageFromPath(name), encoding: defaultEnc
-          });
-        }
+        await openFileByPath(selected, defaultEnc);
       }
     } catch (err) { console.error("Failed to open file dialog:", err); }
   };
@@ -246,33 +202,8 @@ export function NoteEditor() {
     if (!path || path.trim() === "") return;
 
     try {
-      const name = path.split(/[/\\]/).pop() || path;
-      const existing = files.find(f => f.path === path);
-      if (existing) { setActiveFile(existing.id); return; }
-
       const defaultEnc = noteSettings.defaultEncoding;
-      const response: SafeFileResponse = await invoke('read_file_encoded', { 
-        path, 
-        encoding: defaultEnc 
-      });
-      
-      if (response.error) {
-        console.error("Error reading path:", response.error);
-        showToast(`Failed to open path: ${response.error}`, "error");
-        return;
-      }
-
-      if (response.is_binary) {
-        openFile({
-          id: path, path, name, 
-          content: "Binary file or unsupported encoding.", language: "plaintext", encoding: defaultEnc
-        });
-      } else {
-        openFile({
-          id: path, path, name, content: response.content || "",
-          language: getLanguageFromPath(name), encoding: defaultEnc
-        });
-      }
+      await openFileByPath(path, defaultEnc);
       showToast("File opened by path!", "success");
     } catch (err) {
       console.error("Failed to open path:", err);
@@ -327,7 +258,7 @@ export function NoteEditor() {
       run: () => { if (activeFileRef.current) closeFile(activeFileRef.current.id); }
     });
     editor.addAction({
-      id: "set-compare-first", label: "Set as First to Compare",
+      id: "set-compare-first", label: "Set as Left Comparison File",
       keybindings: [monacoInstance.KeyMod.Alt | monacoInstance.KeyCode.Digit1],
       run: () => {
         const text = editor.getValue();
@@ -336,7 +267,7 @@ export function NoteEditor() {
       }
     });
     editor.addAction({
-      id: "set-compare-second", label: "Set as Second to Compare",
+      id: "set-compare-second", label: "Set as Right Comparison File",
       keybindings: [monacoInstance.KeyMod.Alt | monacoInstance.KeyCode.Digit2],
       run: () => {
         const text = editor.getValue();
@@ -396,7 +327,7 @@ export function NoteEditor() {
 
   const isBinaryTab = activeFile?.content === "Binary file or unsupported encoding.";
 
-  if (isRestoring) return <div className="flex w-full h-full bg-[#1E1E1E] items-center justify-center text-gray-500">Restoring...</div>;
+  if (isRestoring) return <div className="flex w-full h-full bg-[#1E1E1E] items-center justify-center text-gray-500">Restoring Session...</div>;
 
   return (
     <div className="flex w-full h-full bg-[#1E1E1E] text-[#CCCCCC] font-sans overflow-hidden">
@@ -543,7 +474,7 @@ export function NoteEditor() {
             }} 
             className="flex items-center gap-2 w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-blue-600 hover:text-white transition-colors"
           >
-            <X className="w-3.5 h-3.5 text-orange-400" /> Close Others
+            <X className="w-3.5 h-3.5 text-orange-400" /> Close Other Tabs
           </button>
 
           <button 

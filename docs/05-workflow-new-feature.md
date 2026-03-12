@@ -11,4 +11,4 @@
 
 Reply: "Added using Workflow 05".
 
-**Test Status**: PASS -- March 11, 2026 (Manual indexing refactor completed).xing refactor completed).
+**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).

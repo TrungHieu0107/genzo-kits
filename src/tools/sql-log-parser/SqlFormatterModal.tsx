@@ -71,7 +71,7 @@ export function SqlFormatterModal({ sql, isOpen, onClose }: SqlFormatterModalPro
           </div>
           <div className="flex items-center gap-1">
             <div className="flex items-center gap-2 border-r border-[#3C3C3D] pr-3 mr-1">
-              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-tight">Format:</span>
+              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-tight">SQL Dialect:</span>
               <select 
                 value={dialect}
                 onChange={(e) => setDialect(e.target.value)}

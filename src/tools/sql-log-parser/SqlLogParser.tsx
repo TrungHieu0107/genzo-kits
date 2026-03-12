@@ -227,7 +227,7 @@ export default function SqlLogParser() {
                   <span>Library</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={clear} title="Clear Library" className="hover:text-red-400 transition-colors">
+                  <button onClick={clear} title="Clear List" className="hover:text-red-400 transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <button 
@@ -296,10 +296,10 @@ export default function SqlLogParser() {
 
                 {files.length === 0 && (
                   <div className="p-8 flex flex-col items-center justify-center text-center opacity-30 h-full">
-                    <FolderOpen className="w-12 h-12 mb-4" />
-                    <p className="text-sm font-medium">Empty Library</p>
-                    <p className="text-xs mt-2 italic px-4">Open a .log file using the toolbar to analyze its DAO sessions.</p>
-                  </div>
+                  <FolderOpen className="w-12 h-12 mb-4" />
+                  <p className="text-sm font-medium">No Logs Loaded</p>
+                  <p className="text-xs mt-2 italic px-4">Open a .log file to analyze database sessions.</p>
+                </div>
                 )}
               </div>
             </>
@@ -334,7 +334,7 @@ export default function SqlLogParser() {
                 className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors shadow-sm ${activeFile ? 'bg-[#444] hover:bg-[#555] text-gray-200' : 'bg-[#333] text-gray-600 cursor-not-allowed'} ${isReloading ? 'opacity-70' : ''}`}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${activeFile ? 'text-green-400' : 'text-gray-600'} ${isReloading ? 'animate-spin' : ''}`} /> 
-                {isReloading ? 'Reloading...' : 'Reload Results'}
+                {isReloading ? 'Reloading...' : 'Refresh Logs'}
               </button>
 
               <div className="flex items-center gap-2 border-l border-[#444] pl-3 ml-1">
@@ -367,7 +367,7 @@ export default function SqlLogParser() {
                 title="Toggle Time Sort Order"
               >
                 <Clock className={`w-3.5 h-3.5 ${activeFile ? 'text-purple-400' : 'text-gray-600'}`} />
-                {sortOrder === 'asc' ? 'Time: Asc' : 'Time: Desc'}
+                {sortOrder === 'asc' ? 'Time: Oldest First' : 'Time: Newest First'}
               </button>
             </div>
             
@@ -412,10 +412,10 @@ export default function SqlLogParser() {
             {activeFile ? (
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 bg-[#252526] border-b border-[#3C3C3D] flex text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  <div className="w-[160px] px-4 py-2 border-r border-[#3C3C3D] flex items-center gap-1.5"><Clock className="w-3 h-3"/> Time</div>
+                  <div className="w-[160px] px-4 py-2 border-r border-[#3C3C3D] flex items-center gap-1.5"><Clock className="w-3 h-3"/> Timestamp</div>
                   <div className="w-[200px] px-4 py-2 border-r border-[#3C3C3D] flex items-center gap-1.5"><FileText className="w-3 h-3"/> DAO</div>
                   <div className="flex-1 px-4 py-2 flex items-center gap-1.5"><Database className="w-3 h-3"/> Reconstructed SQL Query</div>
-                  <div className="w-[60px] px-4 py-2 text-center select-none">Action</div>
+                  <div className="w-[60px] px-4 py-2 text-center select-none">Actions</div>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto hide-scrollbar bg-[#1a1a1a]">
@@ -455,7 +455,7 @@ export default function SqlLogParser() {
               <div className="flex-1 flex flex-col items-center justify-center p-10 opacity-30 select-none">
                 <Database className="w-20 h-20 mb-6 text-gray-400" />
                 <div className="h-px w-24 bg-gray-500 mb-6"></div>
-                <p className="text-lg font-light tracking-tight italic">Select a log file from the library to view reconstructed SQL</p>
+                <p className="text-lg font-light tracking-tight italic">Select a log file to view formatted SQL queries</p>
               </div>
             )}
           </div>

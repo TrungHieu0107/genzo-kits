@@ -244,10 +244,10 @@ export function TextComparator() {
            >
              {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
            </select>
-           <button onClick={() => loadFile('left')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Load File 1">
-             <FileUp className="w-4 h-4 text-blue-400" /> FILE 1
+           <button onClick={() => loadFile('left')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Open Left File">
+             <FileUp className="w-4 h-4 text-blue-400" /> Open Left
            </button>
-           <button onClick={() => pasteClipboard('left')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition" title="Paste 1">
+           <button onClick={() => pasteClipboard('left')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition" title="Paste to Left">
              <ClipboardPaste className="w-4 h-4 text-green-400" />
            </button>
         </div>
@@ -255,7 +255,7 @@ export function TextComparator() {
         <div className="flex items-center gap-6">
           <span className="text-gray-300 font-bold tracking-wider text-sm flex items-center gap-2 uppercase">
             <ArrowRightLeft className="w-4 h-4 text-purple-400" />
-            Text Comparator
+            Genzo Text Comparator
           </span>
           <div className="w-[1px] h-6 bg-[#3C3C3D]"></div>
 
@@ -266,20 +266,20 @@ export function TextComparator() {
              title="Toggle Row Highlighting"
           >
              {settings.showRowHighlight ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4 text-gray-400" />}
-             <Rows className="w-4 h-4" /> Row
+             <Rows className="w-4 h-4" /> Row Highlighting
           </button>
           
           <button onClick={clearAll} className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded flex items-center gap-2 text-xs font-bold transition" title="Clear All">
-             <Trash2 className="w-4 h-4" /> CLEAR
+             <Trash2 className="w-4 h-4" /> Clear All
           </button>
         </div>
 
         <div className="flex items-center gap-2">
-           <button onClick={() => pasteClipboard('right')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition" title="Paste 2">
+           <button onClick={() => pasteClipboard('right')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition" title="Paste to Right">
              <ClipboardPaste className="w-4 h-4 text-green-400" />
            </button>
-           <button onClick={() => loadFile('right')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Load File 2">
-             FILE 2 <FileUp className="w-4 h-4 text-orange-400" />
+           <button onClick={() => loadFile('right')} className="p-1.5 hover:bg-[#3C3C3D] text-gray-300 rounded transition flex items-center gap-2 text-xs font-semibold" title="Open Right File">
+             Open Right <FileUp className="w-4 h-4 text-orange-400" />
            </button>
            <select 
              value={rightEncoding} 

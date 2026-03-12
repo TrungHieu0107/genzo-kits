@@ -34,35 +34,46 @@ function App() {
     const registerTauriShortcut = async () => {
       try {
         const { register, unregister } = await import('@tauri-apps/plugin-global-shortcut');
+        
+        // CHỈ dùng Global Shortcut cho Settings (Ctrl+Shift+S)
+        // ONLY use Global Shortcut for Settings (Ctrl+Shift+S)
         await register('Ctrl+Shift+S', () => {
           setActiveTool('settings');
         });
-        await register('Ctrl+N', () => {
-          setActiveTool('note-editor');
-        });
-        await register('Ctrl+C', () => {
-          setActiveTool('text-comparator');
-        });
+
         cleanupTauri = () => {
           unregister('Ctrl+Shift+S').catch(() => {});
-          unregister('Ctrl+N').catch(() => {});
-          unregister('Ctrl+C').catch(() => {});
         };
       } catch {
-        // Fallback: nếu không có Tauri (dev browser), dùng keydown listener
-        // Fallback: if Tauri is not available (dev browser), use keydown listener
         console.log('[Genzo] Tauri global-shortcut not available, using browser fallback');
       }
     };
     registerTauriShortcut();
 
-    // Browser fallback (cho dev mode khi chạy trên browser thuần)
-    // Browser fallback (for dev mode when running in plain browser)
+    // Browser fallback & Local Shortcuts (Xử lý switch tool tại window level)
+    // Browser fallback & Local Shortcuts (Handle tool switching at window level)
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Shift+S: Settings (Local fallback)
       if (e.ctrlKey && e.shiftKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
         e.preventDefault();
         e.stopPropagation();
         setActiveTool("settings");
+      }
+      
+      // Ctrl+Alt+N: Switch to Note Editor (Không chặn Ctrl+N mặc định)
+      // Ctrl+Alt+N: Switch to Note Editor (Does not block default Ctrl+N)
+      if (e.ctrlKey && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveTool("note-editor");
+      }
+
+      // Ctrl+Alt+C: Switch to Text Comparator (Không chặn Ctrl+C mặc định)
+      // Ctrl+Alt+C: Switch to Text Comparator (Does not block default Ctrl+C)
+      if (e.ctrlKey && e.altKey && (e.code === 'KeyC' || e.key.toLowerCase() === 'c')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveTool("text-comparator");
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown, true);

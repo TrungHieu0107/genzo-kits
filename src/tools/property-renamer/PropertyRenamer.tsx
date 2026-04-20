@@ -1,10 +1,11 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   FolderOpen, FileUp, Trash2, Search, Replace, Undo2, Eye, EyeOff,
   Check, X, AlertTriangle, Loader2, FileCode, ScanSearch
 } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { usePropertyRenamerStore } from "./store";
 import { ScanResult, ScanOccurrence } from "./store";
 
@@ -70,6 +71,18 @@ export function PropertyRenamer() {
     scanResults.find(r => r.old_name === selectedName)?.occurrences || [],
     [scanResults, selectedName]
   );
+
+  // Virtualization setup
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: filteredResults.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 41,
+    overscan: 10,
+  });
+
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const totalHeight = rowVirtualizer.getTotalSize();
 
   // ===== File Management =====
   const handleAddFiles = useCallback(async () => {
@@ -343,70 +356,87 @@ export function PropertyRenamer() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto">
+          <div ref={parentRef} className="flex-1 overflow-auto relative custom-scrollbar">
             {scanResults.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs gap-2">
                 <Search className="w-10 h-10 opacity-20" />
                 <span>Scan files to find renameable properties</span>
               </div>
             ) : (
-              <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-[#2D2D2D] z-10">
-                  <tr className="text-gray-400 uppercase tracking-wide">
-                    <th className="text-left px-4 py-2 font-semibold w-[30%]">Original Name</th>
-                    <th className="text-left px-4 py-2 font-semibold w-[30%]">Rename To</th>
-                    <th className="text-center px-4 py-2 font-semibold w-[15%]">Occurrences</th>
-                    <th className="text-center px-4 py-2 font-semibold w-[10%]">Files</th>
-                    <th className="text-center px-4 py-2 font-semibold w-[15%]">Contexts</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredResults.map((result) => (
-                    <tr
-                      key={result.old_name}
-                      className={`border-b border-[#3C3C3D] hover:bg-[#2A2D2E] ${selectedName === result.old_name ? "bg-[#37373D]" : ""}`}
-                    >
-                      <td className="px-4 py-2">
-                        <button
-                          onClick={() => { setSelectedName(result.old_name); setShowPreview(true); }}
-                          className="text-teal-400 hover:underline font-mono text-left"
-                        >
-                          {result.old_name}
-                        </button>
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="text"
-                          value={mappings[result.old_name] || ""}
-                          onChange={(e) => updateMapping(result.old_name, e.target.value)}
-                          placeholder="Enter new name..."
-                          className="w-full bg-[#3C3C3D] text-gray-200 font-mono px-2 py-1 rounded outline-none border border-transparent focus:border-teal-500 text-xs"
-                        />
-                      </td>
-                      <td className="text-center px-4 py-2">
-                        <button
-                          onClick={() => { setSelectedName(result.old_name); setShowPreview(true); }}
-                          className="text-blue-400 hover:underline"
-                        >
-                          {result.occurrences.length}
-                        </button>
-                      </td>
-                      <td className="text-center px-4 py-2 text-gray-400">
-                        {uniqueFileCount(result.occurrences)}
-                      </td>
-                      <td className="text-center px-4 py-2">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {[...new Set(result.occurrences.map(o => o.match_type))].map(t => (
-                            <span key={t} className="bg-[#3C3C3D] text-gray-400 px-1.5 py-0.5 rounded text-[10px]">
-                              {matchTypeLabel(t)}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
+              <div style={{ height: `${totalHeight}px`, width: '100%', position: 'relative' }}>
+                <table className="w-full text-xs border-separate border-spacing-0" style={{ tableLayout: 'fixed' }}>
+                  <thead className="sticky top-0 bg-[#2D2D2D] z-10 shadow-sm">
+                    <tr className="text-gray-400 uppercase tracking-wide">
+                      <th className="text-left px-4 py-2 font-semibold w-[30%] border-b border-[#3C3C3D]">Original Name</th>
+                      <th className="text-left px-4 py-2 font-semibold w-[30%] border-b border-[#3C3C3D]">Rename To</th>
+                      <th className="text-center px-4 py-2 font-semibold w-[15%] border-b border-[#3C3C3D]">Occurrences</th>
+                      <th className="text-center px-4 py-2 font-semibold w-[10%] border-b border-[#3C3C3D]">Files</th>
+                      <th className="text-center px-4 py-2 font-semibold w-[15%] border-b border-[#3C3C3D]">Contexts</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {virtualItems.length > 0 && virtualItems[0].start > 0 && (
+                      <tr style={{ height: `${virtualItems[0].start}px` }}>
+                        <td colSpan={5} />
+                      </tr>
+                    )}
+                    {virtualItems.map((virtualRow) => {
+                      const result = filteredResults[virtualRow.index];
+                      if (!result) return null;
+                      return (
+                        <tr
+                          key={virtualRow.key}
+                          className={`border-b border-[#3C3C3D] hover:bg-[#2A2D2E] transition-colors ${selectedName === result.old_name ? "bg-[#37373D]" : ""}`}
+                          style={{ height: `${virtualRow.size}px` }}
+                        >
+                          <td className="px-4 py-2 truncate">
+                            <button
+                              onClick={() => { setSelectedName(result.old_name); setShowPreview(true); }}
+                              className="text-teal-400 hover:underline font-mono text-left truncate w-full"
+                            >
+                              {result.old_name}
+                            </button>
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              value={mappings[result.old_name] || ""}
+                              onChange={(e) => updateMapping(result.old_name, e.target.value)}
+                              placeholder="Enter new name..."
+                              className="w-full bg-[#3C3C3D] text-gray-200 font-mono px-2 py-1 rounded outline-none border border-transparent focus:border-teal-500 text-xs"
+                            />
+                          </td>
+                          <td className="text-center px-4 py-2">
+                            <button
+                              onClick={() => { setSelectedName(result.old_name); setShowPreview(true); }}
+                              className="text-blue-400 hover:underline"
+                            >
+                              {result.occurrences.length}
+                            </button>
+                          </td>
+                          <td className="text-center px-4 py-2 text-gray-400">
+                            {uniqueFileCount(result.occurrences)}
+                          </td>
+                          <td className="text-center px-4 py-2">
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {[...new Set(result.occurrences.map(o => o.match_type))].map(t => (
+                                <span key={t} className="bg-[#3C3C3D] text-gray-400 px-1.5 py-0.5 rounded text-[10px]">
+                                  {matchTypeLabel(t)}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {virtualItems.length > 0 && totalHeight - virtualItems[virtualItems.length - 1].end > 0 && (
+                      <tr style={{ height: `${totalHeight - virtualItems[virtualItems.length - 1].end}px` }}>
+                        <td colSpan={5} />
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
@@ -421,7 +451,7 @@ export function PropertyRenamer() {
                 <X className="w-3.5 h-3.5 text-gray-400" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
               {selectedOccurrences.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-500 text-xs text-center px-4">
                   Click a name in the table to preview occurrences

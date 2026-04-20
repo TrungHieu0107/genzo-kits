@@ -20,4 +20,13 @@
 **Searcher Indexing**: Manual trigger for system-wide indexing; removes background overhead on startup.
 **Property Renamer**: Batch rename properties across JSP, Java, and JS files with scan, map, replace, and undo.
 
-**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).
+**Performance Overhaul (2026)**:
+1. **Rust-Powered Parsing**: SQL Log extraction offloaded to Rust backend using parallel regex engines.
+2. **Parallel Filesystem Search**: Multi-threaded traversal via `ignore` crate for near-instant folder searching.
+3. **Frontend Code-Splitting**: Dynamic `lazy()` imports for tools to ensure fast initial load times.
+4. **OOM Protection**: Strict file size limits and efficient buffer management in Rust.
+5. **Render Optimization**: `@tanstack/react-virtual` for large lists (Folder Searcher, Property Renamer).
+6. **Memory Safety**: Centralized Monaco model disposal via `useMonacoManager` to prevent RAM accumulation.
+7. **Modular Backend**: Logic extracted from `lib.rs` into specialized modules for stability and clarity.
+
+**Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).

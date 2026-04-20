@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { load } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
-import { DaoSession, parseSqlLogs } from './parser';
+import { DaoSession, parseSqlLogsAsync } from './parser';
 
 export interface LogFile {
   path: string;
@@ -27,11 +27,11 @@ interface SqlLogStore {
   activeSessionIndex: number | null;
   filters: SqlFilter[];
   
-  addFile: (path: string, name: string, content: string, encoding: string) => void;
+  addFile: (path: string, name: string, content: string, encoding: string) => Promise<void>;
   removeFile: (index: number) => void;
   selectFile: (index: number | null) => void;
   selectSession: (index: number | null) => void;
-  updateFileContent: (index: number, content: string, encoding: string) => void;
+  updateFileContent: (index: number, content: string, encoding: string) => Promise<void>;
   setFileAlias: (index: number, alias: string | undefined) => void;
   loadFiles: () => Promise<void>;
   saveFiles: () => Promise<void>;
@@ -48,8 +48,8 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
   activeSessionIndex: null,
   filters: [],
 
-  addFile: (path, name, content, encoding) => {
-    const sessions = parseSqlLogs(content);
+  addFile: async (path, name, content, encoding) => {
+    const sessions = await parseSqlLogsAsync(content);
     set((state) => {
       const existingIndex = state.files.findIndex(f => f.path === path);
       if (existingIndex !== -1) {
@@ -104,8 +104,8 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
 
   selectSession: (index) => set({ activeSessionIndex: index }),
 
-  updateFileContent: (index, content, encoding) => {
-    const sessions = parseSqlLogs(content);
+  updateFileContent: async (index, content, encoding) => {
+    const sessions = await parseSqlLogsAsync(content);
     set((state) => {
       const updatedFiles = state.files.map((f, i) => 
         i === index ? { ...f, content, encoding, sessions } : f
@@ -144,7 +144,7 @@ export const useSqlLogStore = create<SqlLogStore>((set, get) => ({
               alias: meta.alias,
               encoding: meta.encoding,
               content: response.content,
-              sessions: parseSqlLogs(response.content)
+              sessions: await parseSqlLogsAsync(response.content)
             });
           }
         } catch (e) {

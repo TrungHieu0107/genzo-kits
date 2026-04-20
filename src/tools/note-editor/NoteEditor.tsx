@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { open, save } from "@tauri-apps/plugin-dialog";
 import Editor from "@monaco-editor/react";
 import {
   FileCode, X, Plus, File,
@@ -14,6 +13,8 @@ import { useToastStore } from "../../components/toastStore";
 import { StatusBar } from "../../components/StatusBar";
 import { useEditorConfig } from "../../components/useEditorConfig";
 import { useConfigStore } from "../../components/configStore";
+import { useMonacoManager } from "../../hooks/useMonacoManager";
+import { useFileSystem } from "../../hooks/useFileSystem";
 
 // Helper for file icons based on language mode
 const getFileIcon = (language: string) => {
@@ -69,10 +70,25 @@ export function NoteEditor() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ id: string, x: number, y: number } | null>(null);
 
+  const { disposeModel } = useMonacoManager();
+  const { selectFiles, saveFile } = useFileSystem();
+
+  // Track closed files to dispose their models
+  const prevFilesRef = useRef<EditorFile[]>([]);
+  useEffect(() => {
+    const closedFiles = prevFilesRef.current.filter(prev => !files.find(curr => curr.id === prev.id));
+    closedFiles.forEach(file => {
+      disposeModel(file.id);
+    });
+    prevFilesRef.current = files;
+  }, [files, disposeModel]);
+
   useEffect(() => {
     const handleGlobalClick = () => setContextMenu(null);
     window.addEventListener('click', handleGlobalClick);
-    return () => window.removeEventListener('click', handleGlobalClick);
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+    };
   }, []);
 
   const handleContextMenu = (e: React.MouseEvent, id: string) => {
@@ -161,35 +177,10 @@ export function NoteEditor() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); createFile(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); if (activeFileId) closeFile(activeFileId); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'o') { e.preventDefault(); handleOpenFile(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (activeFile) handleSaveFile(activeFile); }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') { 
-        e.preventDefault(); 
-        if (activeFile && activeFile.path) {
-          import('@tauri-apps/plugin-clipboard-manager').then(({ writeText }) => {
-            writeText(activeFile.path as string).then(() => {
-              showToast("Path copied to clipboard!", "success");
-            }).catch(err => {
-              console.error("Failed to copy path:", err);
-              showToast("Failed to copy path", "error");
-            });
-          });
-        } else if (activeFile) {
-          showToast("File not saved yet.", "info");
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeFileId, activeFile]);
 
   const handleOpenFile = async () => {
     try {
-      const selected = await open({ multiple: false });
+      const selected = await selectFiles({ multiple: false });
       if (typeof selected === 'string') {
         const defaultEnc = noteSettings.defaultEncoding;
         await openFileByPath(selected, defaultEnc);
@@ -231,7 +222,7 @@ export function NoteEditor() {
         await invoke('save_file_encoded', { path: file.path, content: file.content, encoding: file.encoding });
         markClean(file.id);
       } else {
-        const savePath = await save({ title: "Save File As", defaultPath: file.name });
+        const savePath = await saveFile({ title: "Save File As", defaultPath: file.name });
         if (typeof savePath === 'string') {
           await invoke('save_file_encoded', { path: savePath, content: file.content, encoding: file.encoding });
           markClean(file.id);
@@ -245,6 +236,32 @@ export function NoteEditor() {
       }
     } catch (err) { console.error(err); }
   };
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); createFile(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); if (activeFileId) closeFile(activeFileId); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') { e.preventDefault(); handleOpenFile(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (activeFile) handleSaveFile(activeFile); }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') { 
+        e.preventDefault(); 
+        if (activeFile && activeFile.path) {
+          import('@tauri-apps/plugin-clipboard-manager').then(({ writeText }) => {
+            writeText(activeFile.path as string).then(() => {
+              showToast("Path copied to clipboard!", "success");
+            }).catch(err => {
+              console.error("Failed to copy path:", err);
+              showToast("Failed to copy path", "error");
+            });
+          });
+        } else if (activeFile) {
+          showToast("File not saved yet.", "info");
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFileId, activeFile, createFile, handleOpenFile, handleSaveFile, openFileByPath, showToast]);
 
   const handleEditorDidMount = (editor: any, monacoInstance: any) => {
     editor.addAction({
@@ -359,55 +376,106 @@ export function NoteEditor() {
             </div>
 
             <div className="flex flex-col pb-2 w-full gap-[2px]">
-              {displayFiles.map((file, index) => (
-                <div 
-                  key={file.id} 
-                  draggable={!isSidebarCollapsed}
-                  onDragStart={(e) => {
-                    if (isSidebarCollapsed) return;
-                    setDraggedIndex(index);
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (draggedIndex === null || draggedIndex === index) return;
-                    
-                    // Find actual indices in the 'files' array
-                    const sourceFile = displayFiles[draggedIndex];
-                    const targetFile = displayFiles[index];
-                    
-                    const oldFilesIndex = files.findIndex(f => f.id === sourceFile.id);
-                    const newFilesIndex = files.findIndex(f => f.id === targetFile.id);
-                    
-                    if (oldFilesIndex !== -1 && newFilesIndex !== -1) {
-                      reorderFiles(oldFilesIndex, newFilesIndex);
-                    }
-                    setDraggedIndex(null);
-                  }}
-                  onDragEnd={() => setDraggedIndex(null)}
-                  onClick={() => setActiveFile(file.id)} 
-                  onContextMenu={(e) => handleContextMenu(e, file.id)}
-                  className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"} ${draggedIndex === index ? "opacity-50" : ""}`}
-                >
-                  <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
-                    {getFileIcon(file.language)}
-                    {isSidebarCollapsed && file.isDirty && <div className="absolute top-0 -right-2 w-1.5 h-1.5 rounded-full bg-white"></div>}
-                    {isSidebarCollapsed && file.isPinned && <Pin className="absolute -top-1 -right-2 w-2.5 h-2.5 text-blue-400 rotate-45" />}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <>
-                      {file.isPinned && <Pin className="w-3 h-3 text-blue-400 rotate-45 mr-1" />}
-                      <span className="truncate flex-1">{file.name}</span>
-                      <button onClick={(e) => { e.stopPropagation(); closeFile(file.id); }} className="opacity-0 group-hover:opacity-100 hover:bg-[#4C4C4C] rounded-sm p-0.5"><X className="w-3 h-3" /></button>
-                      {file.isDirty && <div className="w-1.5 h-1.5 rounded-full bg-white group-hover:hidden ml-1"></div>}
-                    </>
-                  )}
+              {/* Pinned Files - Sticky Section */}
+              {pinnedFiles.length > 0 && (
+                <div className="sticky top-0 z-10 bg-[#252526] border-b border-[#1E1E1E] mb-1">
+                  {pinnedFiles.map((file) => {
+                    const index = displayFiles.findIndex(f => f.id === file.id);
+                    return (
+                      <div 
+                        key={file.id} 
+                        draggable={!isSidebarCollapsed}
+                        onDragStart={(e) => {
+                          if (isSidebarCollapsed) return;
+                          setDraggedIndex(index);
+                          e.dataTransfer.effectAllowed = "move";
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (draggedIndex === null || draggedIndex === index) return;
+                          const sourceFile = displayFiles[draggedIndex];
+                          const oldFilesIndex = files.findIndex(f => f.id === sourceFile.id);
+                          const newFilesIndex = files.findIndex(f => f.id === file.id);
+                          if (oldFilesIndex !== -1 && newFilesIndex !== -1) {
+                            reorderFiles(oldFilesIndex, newFilesIndex);
+                          }
+                          setDraggedIndex(null);
+                        }}
+                        onDragEnd={() => setDraggedIndex(null)}
+                        onClick={() => setActiveFile(file.id)} 
+                        onContextMenu={(e) => handleContextMenu(e, file.id)}
+                        className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"} ${draggedIndex === index ? "opacity-50" : ""}`}
+                      >
+                        <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
+                          {getFileIcon(file.language)}
+                          {isSidebarCollapsed && file.isDirty && <div className="absolute top-0 -right-2 w-1.5 h-1.5 rounded-full bg-white"></div>}
+                          {isSidebarCollapsed && file.isPinned && <Pin className="absolute -top-1 -right-2 w-2.5 h-2.5 text-blue-400 rotate-45" />}
+                        </div>
+                        {!isSidebarCollapsed && (
+                          <>
+                            {file.isPinned && <Pin className="w-3 h-3 text-blue-400 rotate-45 mr-1" />}
+                            <span className="truncate flex-1 font-semibold">{file.name}</span>
+                            <button onClick={(e) => { e.stopPropagation(); closeFile(file.id); }} className="opacity-0 group-hover:opacity-100 hover:bg-[#4C4C4C] rounded-sm p-0.5"><X className="w-3 h-3" /></button>
+                            {file.isDirty && <div className="w-1.5 h-1.5 rounded-full bg-white group-hover:hidden ml-1"></div>}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
+
+              {/* Unpinned Files - Normal Section */}
+              {unpinnedFiles.map((file) => {
+                const index = displayFiles.findIndex(f => f.id === file.id);
+                return (
+                  <div 
+                    key={file.id} 
+                    draggable={!isSidebarCollapsed}
+                    onDragStart={(e) => {
+                      if (isSidebarCollapsed) return;
+                      setDraggedIndex(index);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedIndex === null || draggedIndex === index) return;
+                      const sourceFile = displayFiles[draggedIndex];
+                      const oldFilesIndex = files.findIndex(f => f.id === sourceFile.id);
+                      const newFilesIndex = files.findIndex(f => f.id === file.id);
+                      if (oldFilesIndex !== -1 && newFilesIndex !== -1) {
+                        reorderFiles(oldFilesIndex, newFilesIndex);
+                      }
+                      setDraggedIndex(null);
+                    }}
+                    onDragEnd={() => setDraggedIndex(null)}
+                    onClick={() => setActiveFile(file.id)} 
+                    onContextMenu={(e) => handleContextMenu(e, file.id)}
+                    className={`group flex items-center cursor-pointer text-[13px] ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"} ${activeFileId === file.id ? "bg-[#37373D] text-white" : "text-gray-400 hover:bg-[#2A2D2E]"} ${draggedIndex === index ? "opacity-50" : ""}`}
+                  >
+                    <div className={`flex-shrink-0 ${isSidebarCollapsed ? "relative" : "mr-2"}`}>
+                      {getFileIcon(file.language)}
+                      {isSidebarCollapsed && file.isDirty && <div className="absolute top-0 -right-2 w-1.5 h-1.5 rounded-full bg-white"></div>}
+                      {isSidebarCollapsed && file.isPinned && <Pin className="absolute -top-1 -right-2 w-2.5 h-2.5 text-blue-400 rotate-45" />}
+                    </div>
+                    {!isSidebarCollapsed && (
+                      <>
+                        <span className="truncate flex-1">{file.name}</span>
+                        <button onClick={(e) => { e.stopPropagation(); closeFile(file.id); }} className="opacity-0 group-hover:opacity-100 hover:bg-[#4C4C4C] rounded-sm p-0.5"><X className="w-3 h-3" /></button>
+                        {file.isDirty && <div className="w-1.5 h-1.5 rounded-full bg-white group-hover:hidden ml-1"></div>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -415,7 +483,7 @@ export function NoteEditor() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 bg-[#1E1E1E]">
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-0">
           {files.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full opacity-20"><Plus className="w-12 h-12 mb-4" /> No files open</div>
           ) : isBinaryTab ? (
@@ -424,6 +492,7 @@ export function NoteEditor() {
             <Editor
               height="100%"
               theme={config.theme}
+              path={activeFile.id}
               language={activeFile.language}
               value={activeFile.content}
               onChange={(v) => updateContent(activeFile.id, v || "")}

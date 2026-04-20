@@ -1,10 +1,12 @@
-import { TextComparator } from "./text-comparator/TextComparator";
-import { NoteEditor } from "./note-editor/NoteEditor";
-import { Settings } from "./settings/Settings";
-import { SqlLogParser } from "./sql-log-parser";
-import FolderSearcher from "./folder-searcher/FolderSearcher";
-import { PropertyRenamer } from "./property-renamer";
+import { lazy } from "react";
 import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch, Replace } from "lucide-react";
+
+const TextComparator = lazy(() => import("./text-comparator/TextComparator").then(m => ({ default: m.TextComparator })));
+const NoteEditor = lazy(() => import("./note-editor/NoteEditor").then(m => ({ default: m.NoteEditor })));
+const Settings = lazy(() => import("./settings/Settings").then(m => ({ default: m.Settings })));
+const SqlLogParser = lazy(() => import("./sql-log-parser").then(m => ({ default: m.SqlLogParser })));
+const FolderSearcher = lazy(() => import("./folder-searcher/FolderSearcher"));
+const PropertyRenamer = lazy(() => import("./property-renamer").then(m => ({ default: m.PropertyRenamer })));
 
 export interface ToolDefinition {
   id: string;

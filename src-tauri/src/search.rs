@@ -2,7 +2,6 @@ use serde::Serialize;
 use ignore::{WalkBuilder, WalkState};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
-use std::sync::{Arc, Mutex};
 use std::path::Path;
 use std::time::UNIX_EPOCH;
 
@@ -63,9 +62,8 @@ pub async fn search_files(
         return Err(format!("Root path does not exist: {}", root));
     }
 
-    let results = Arc::new(Mutex::new(Vec::new()));
+    let (tx, rx) = std::sync::mpsc::channel();
     let query_clone = query.clone();
-    let results_clone = results.clone();
 
     let walker = WalkBuilder::new(root)
         .hidden(!include_hidden)
@@ -75,7 +73,7 @@ pub async fn search_files(
 
     walker.run(|| {
         let query = query_clone.clone();
-        let results = results_clone.clone();
+        let tx = tx.clone();
         let matcher = SkimMatcherV2::default();
 
         Box::new(move |entry: Result<ignore::DirEntry, ignore::Error>| {
@@ -86,7 +84,6 @@ pub async fn search_files(
 
             let path = entry.path();
             
-            // Skip folders that commonly cause hangs/errors
             if let Some(path_str) = path.to_str() {
                 let s = path_str.to_lowercase();
                 if s.contains("$recycle.bin") || 
@@ -113,16 +110,20 @@ pub async fn search_files(
                     modified,
                 };
 
-                let mut results = results.lock().unwrap();
-                results.push(result);
+                let _ = tx.send(result);
             }
 
             WalkState::Continue
         })
     });
 
-    let res_lock = Arc::try_unwrap(results).map_err(|_| "Failed to unwrap results".to_string())?;
-    let mut final_results = res_lock.into_inner().map_err(|_| "Failed to lock results".to_string())?;
+    // Drop the original sender so the receiver can finish
+    drop(tx);
+
+    let mut final_results = Vec::new();
+    while let Ok(res) = rx.recv() {
+        final_results.push(res);
+    }
     
     final_results.sort_by(|a, b| b.score.cmp(&a.score));
     

@@ -1,3 +1,5 @@
+import { invoke } from '@tauri-apps/api/core';
+
 export interface LogEntry {
   rawLog: string;
   type: 'sql' | 'info' | 'other';
@@ -6,7 +8,7 @@ export interface LogEntry {
   paramsString?: string;
   reconstructedSql?: string;
   timestamp?: string;
-  logIndex: number; // Global index for stable sorting
+  logIndex: number;
 }
 
 export interface DaoSession {
@@ -15,7 +17,17 @@ export interface DaoSession {
   logs: LogEntry[];
 }
 
+export async function parseSqlLogsAsync(logContent: string): Promise<DaoSession[]> {
+  try {
+    return await invoke<DaoSession[]>('parse_sql_logs_rust', { logContent });
+  } catch (error) {
+    console.error('Rust SQL Parsing failed, falling back to JS:', error);
+    return parseSqlLogs(logContent);
+  }
+}
+
 export function parseSqlLogs(logContent: string): DaoSession[] {
+  // ... (keeping existing logic as fallback for now)
   const sessions: DaoSession[] = [];
   const threadStacks: Record<string, DaoSession[]> = {}; // threadName -> array of DaoSession (stack)
 

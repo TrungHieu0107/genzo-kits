@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { ToolSidebar } from "./tools/tool-manager/ToolSidebar";
 import { tools } from "./tools/index";
 import { GlobalToast } from "./components/GlobalToast";
@@ -97,7 +97,9 @@ function App() {
     return (
       <div className="flex w-full h-screen bg-[#1e1e1e] text-gray-200 overflow-hidden font-sans">
         <div className="flex-1 h-screen overflow-hidden relative">
-           <ToolComponent />
+           <Suspense fallback={<div className="h-full w-full flex items-center justify-center bg-[#1e1e1e] text-gray-500">Loading Tool...</div>}>
+             <ToolComponent />
+           </Suspense>
         </div>
         <GlobalToast />
       </div>
@@ -113,7 +115,9 @@ function App() {
         onToggleCollapse={() => setSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className="flex-1 h-screen overflow-hidden relative">
-         <ActiveComponent />
+         <Suspense fallback={<div className="h-full w-full flex items-center justify-center bg-[#1e1e1e] text-gray-500">Loading Tool...</div>}>
+           <ActiveComponent />
+         </Suspense>
       </div>
       
       <GlobalToast />

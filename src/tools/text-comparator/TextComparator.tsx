@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { DiffEditor, DiffOnMount, loader } from "@monaco-editor/react";
 import { FileUp, ClipboardPaste, ArrowRightLeft, Trash2, CheckSquare, Square, Rows } from "lucide-react";
@@ -9,6 +7,8 @@ import { useSettingsStore } from "../settings/store";
 import { StatusBar } from "../../components/StatusBar";
 import { useEditorConfig } from "../../components/useEditorConfig";
 import { useConfigStore } from "../../components/configStore";
+import { useMonacoManager } from "../../hooks/useMonacoManager";
+import { useFileSystem } from "../../hooks/useFileSystem";
 
 const ENCODING_OPTIONS = [
   "UTF-8", "UTF-16", "UTF-16LE", "UTF-16BE", "Shift_JIS", "EUC-JP", "ISO-8859-1", 
@@ -37,6 +37,15 @@ export function TextComparator() {
   const settings = toolSettings['text-comparator'];
 
   const { getCommonOptions, config } = useEditorConfig();
+  const { disposeAllModels } = useMonacoManager();
+  const { readFile, selectFiles } = useFileSystem();
+
+  // Cleanup models on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      disposeAllModels();
+    };
+  }, [disposeAllModels]);
 
   // Local state for active language in Diff mode
   const [activeLanguage, setActiveLanguage] = useState("plaintext");
@@ -46,6 +55,7 @@ export function TextComparator() {
   const rightRef = useRef(rightText);
   const editorRef = useRef<any>(null);
   const isInternalChange = useRef(false);
+  const debounceRef = useRef<{ left?: any, right?: any }>({});
 
   // Manual sync for external updates
   useEffect(() => {
@@ -68,76 +78,69 @@ export function TextComparator() {
   // Define custom theme for granular diff highlighting
   useEffect(() => {
     loader.init().then(monaco => {
-        monaco.editor.defineTheme('genzo-diff-theme', {
-            base: 'vs-dark',
-            inherit: true,
-            rules: [],
-            colors: {
-                'diffEditor.insertedLineBackground': settings.showRowHighlight ? '#2ea04320' : '#00000000',
-                'diffEditor.removedLineBackground': settings.showRowHighlight ? '#f8514920' : '#00000000',
-                'diffEditor.insertedTextBackground': '#2ea04360',
-                'diffEditor.removedTextBackground': '#f8514960',
-            }
-        });
+        // Define themes once
+        const defineGenzoTheme = (showHighlight: boolean) => {
+            const themeName = showHighlight ? 'genzo-diff-theme-highlight' : 'genzo-diff-theme-no-highlight';
+            monaco.editor.defineTheme(themeName, {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [],
+                colors: {
+                    'diffEditor.insertedLineBackground': showHighlight ? '#2ea04320' : '#00000000',
+                    'diffEditor.removedLineBackground': showHighlight ? '#f8514920' : '#00000000',
+                    'diffEditor.insertedTextBackground': '#2ea04360',
+                    'diffEditor.removedTextBackground': '#f8514960',
+                }
+            });
+            return themeName;
+        };
+
+        const themeName = defineGenzoTheme(settings.showRowHighlight);
+        monaco.editor.setTheme(themeName);
     });
   }, [settings.showRowHighlight]);
 
   const loadFile = async (side: 'left' | 'right') => {
     try {
-      const selected = await open({ multiple: false });
+      const selected = await selectFiles({ multiple: false });
       if (typeof selected === 'string') {
         const encoding = side === 'left' ? leftEncoding : rightEncoding;
-        const response: any = await invoke('read_file_encoded', { 
-            path: selected, 
-            encoding: encoding 
-        });
-        
-        if (response.error) {
-            console.error("Error reading file:", response.error);
-            return;
-        }
-        
-        const text = response.is_binary ? "Binary file or unsupported encoding." : (response.content || "");
-        
+        const content = await readFile(selected, encoding);
         if (side === 'left') {
-            setLeftPath(selected);
-            setLeftText(text);
+          setLeftPath(selected);
+          setLeftText(content || "");
         } else {
-            setRightPath(selected);
-            setRightText(text);
+          setRightPath(selected);
+          setRightText(content || "");
         }
       }
     } catch (err) {
-      console.error("Failed to read file", err);
+      console.error("Failed to load file:", err);
     }
   };
 
   const handleEncodingChange = async (side: 'left' | 'right', newEncoding: string) => {
-      if (side === 'left') {
-          setLeftEncoding(newEncoding);
-          if (leftPath) {
-              try {
-                  const response: any = await invoke('read_file_encoded', { path: leftPath, encoding: newEncoding });
-                  if (!response.error && !response.is_binary) {
-                      setLeftText(response.content || "");
-                  }
-              } catch (e) {
-                  console.error(e);
-              }
-          }
-      } else {
-          setRightEncoding(newEncoding);
-          if (rightPath) {
-              try {
-                  const response: any = await invoke('read_file_encoded', { path: rightPath, encoding: newEncoding });
-                  if (!response.error && !response.is_binary) {
-                      setRightText(response.content || "");
-                  }
-              } catch (e) {
-                  console.error(e);
-              }
-          }
+    if (side === 'left') {
+      setLeftEncoding(newEncoding);
+      if (leftPath) {
+        try {
+          const content = await readFile(leftPath, newEncoding);
+          setLeftText(content || "");
+        } catch (e) {
+          console.error(e);
+        }
       }
+    } else {
+      setRightEncoding(newEncoding);
+      if (rightPath) {
+        try {
+          const content = await readFile(rightPath, newEncoding);
+          setRightText(content || "");
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
   };
 
 
@@ -166,7 +169,12 @@ export function TextComparator() {
       if (value !== leftRef.current) {
         isInternalChange.current = true;
         leftRef.current = value;
-        setLeftText(value);
+        
+        // Debounce store update to avoid high-frequency re-renders (PERF-008)
+        clearTimeout(debounceRef.current.left);
+        debounceRef.current.left = setTimeout(() => {
+            setLeftText(value);
+        }, 150);
       }
     });
 
@@ -175,7 +183,12 @@ export function TextComparator() {
       if (value !== rightRef.current) {
         isInternalChange.current = true;
         rightRef.current = value;
-        setRightText(value);
+
+        // Debounce store update to avoid high-frequency re-renders (PERF-008)
+        clearTimeout(debounceRef.current.right);
+        debounceRef.current.right = setTimeout(() => {
+            setRightText(value);
+        }, 150);
       }
     });
 
@@ -298,7 +311,7 @@ export function TextComparator() {
         <DiffEditor
           height="100%"
           onMount={handleEditorDidMount}
-          theme="genzo-diff-theme"
+          theme={settings.showRowHighlight ? 'genzo-diff-theme-highlight' : 'genzo-diff-theme-no-highlight'}
           language={activeLanguage}
           options={getCommonOptions({
             diffAlgorithm: 'advanced',

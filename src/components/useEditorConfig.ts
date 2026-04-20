@@ -12,7 +12,7 @@ export function useEditorConfig() {
       fontSize: config.fontSize,
       wordWrap: config.wordWrap,
       minimap: { enabled: true, scale: 0.75, renderCharacters: false },
-      scrollBeyondLastLine: false,
+      scrollBeyondLastLine: true,
       automaticLayout: true,
       lineHeight: 22,
       ...overrides

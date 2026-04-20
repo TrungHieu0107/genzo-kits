@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
-
-**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).
+**Version**: 1.1.0
+**Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).
 
 ---
 
@@ -11,7 +11,8 @@
 ### Đặc điểm chính
 - 🚀 **Khởi động nhanh** (dưới 0.6 giây), RAM dưới 60 MB
 - 🎨 **Dark theme** mặc định, giao diện IDE chuyên nghiệp
-- 🚀 **Genzo Folder Searcher**: Real-time, multi-threaded filesystem traversal with fuzzy matching.
+- 🚀 **Genzo Folder Searcher**: High-performance parallel filesystem traversal using Rust `ignore` crate (Virtualized).
+- ⚡ **Optimized Performance**: `@tanstack/react-virtual` for large datasets, centralized memory management.
 - 🧩 **Kiến trúc modular** — mỗi tool là một module độc lập
 - 💾 **Offline-first** — không cần internet, mọi dữ liệu lưu local
 - 🪟 **Multi-window** — mỗi tool có thể mở trong cửa sổ riêng
@@ -97,7 +98,9 @@ genzo-kit/
 │   ├── tauri.conf.json           # Tauri config (window 1200×800, identifier com.genzokit.dev)
 │   ├── src/
 │   │   ├── main.rs               # Entry point (calls lib::run)
-│   │   └── lib.rs                # All Tauri commands (650 lines, 13 commands)
+│   │   ├── lib.rs                # All Tauri commands (800+ lines)
+│   │   ├── search.rs             # Optimized parallel search module
+│   │   └── sql_parser.rs         # High-performance SQL log parsing (Rust + Rayon)
 │   ├── capabilities/             # Tauri v2 permission capabilities
 │   └── icons/                    # App icons
 ├── docs/                         # Documentation (8 files)
@@ -215,10 +218,11 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 
 **Files**: `SqlLogParser.tsx` (482 lines), `parser.ts` (215 lines), `store.ts` (6021 bytes), `FilterModal.tsx`, `AliasModal.tsx`, `SqlFormatterModal.tsx`, `index.ts`
 
-**Parser Engine (`parser.ts`)**:
-- First pass: Parse log entries bằng regex, nhóm vào DAO sessions theo thread
-- Second pass: Reconstruct SQL — map SQL template (prepare) → execute parameters → full query
-- Output: `DaoSession[]` chứa `LogEntry[]` với `reconstructedSql`
+**Parser Engine (Optimized)**:
+- **Rust Backend (`sql_parser.rs`)**: Thực hiện parsing bằng Regex trong Rust, song song hóa bằng `rayon`. Loại bỏ UI freeze hoàn toàn (Fix PERF-001/003).
+- **SQL Reconstruction**: Tái dựng SQL query hoàn chỉnh trực tiếp từ backend, giảm tải cho frontend.
+- **Async Workflow**: Frontend (`parser.ts`) gọi async command, đảm bảo UI luôn phản hồi.
+- **Output**: `DaoSession[]` chứa `LogEntry[]` với `reconstructedSql`.
 
 ---
 
@@ -278,14 +282,16 @@ File: `src-tauri/src/lib.rs` (625 lines, 12 commands)
 | Command | Mô tả |
 |:---|:---|
 | `greet` | Hello world test command |
-| `read_file_encoded` | Đọc file với encoding tùy chọn (UTF-8, Shift_JIS, v.v.), phát hiện binary |
+| `read_file_encoded` | Đọc file với encoding tùy chọn, giới hạn 20MB để tránh OOM (Fix PERF-002) |
 | `save_file_encoded` | Ghi file với encoding tùy chọn |
 | `save_note_session` | Lưu session Note Editor ra `note_session.json` |
 | `load_note_session` | Load session Note Editor từ disk |
-| `search_system` | Live BFS scan file system (cần chỉ định roots, giới hạn 500 results) |
-| `open_path` | Mở file/folder bằng ứng dụng mặc định (Windows: `explorer`, Mac: `open`, Linux: `xdg-open`) |
+| `search_system` | Parallel filesystem scan using `ignore` crate (Fix PERF-007) |
+| `open_path` | Mở file/folder bằng ứng dụng mặc định |
 | `fetch_url_content` | Fetch nội dung text từ web URL |
 | `build_regex` | Centralized regex building with glob-to-regex auto-conversion |
+| `parse_sql_logs_rust`| **[NEW]** High-speed SQL parsing via Rust + Rayon (Fix PERF-001) |
+| `scan_files` | **[OPTIMIZED]** Parallel property scanning using Rayon (Fix PERF-006) |
 
 ### Helper Functions
 | Function | Mô tả |

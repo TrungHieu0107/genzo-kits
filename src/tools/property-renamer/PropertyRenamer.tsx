@@ -5,7 +5,7 @@ import {
   FolderOpen, FileUp, Trash2, Search, Replace, Undo2, Eye, EyeOff,
   Check, X, AlertTriangle, Loader2, FileCode, ScanSearch
 } from "lucide-react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, VirtualItem } from "@tanstack/react-virtual";
 import { usePropertyRenamerStore } from "./store";
 import { ScanResult, ScanOccurrence } from "./store";
 
@@ -380,7 +380,7 @@ export function PropertyRenamer() {
                         <td colSpan={5} />
                       </tr>
                     )}
-                    {virtualItems.map((virtualRow) => {
+                    {virtualItems.map((virtualRow: VirtualItem) => {
                       const result = filteredResults[virtualRow.index];
                       if (!result) return null;
                       return (

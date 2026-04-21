@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { LazyStore } from '@tauri-apps/plugin-store';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 
 // Stores
 import { useAppStore } from '../../store/appStore';
@@ -546,7 +546,7 @@ export default function FolderSearcher() {
                           <td colSpan={4} />
                         </tr>
                       )}
-                      {virtualItems.map((virtualRow) => {
+                      {virtualItems.map((virtualRow: VirtualItem) => {
                         const item = sortedResults[virtualRow.index];
                         if (!item) return null;
                         return (

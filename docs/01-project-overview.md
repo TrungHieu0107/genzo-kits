@@ -13,7 +13,8 @@
 - 🎨 **Dark theme** mặc định, giao diện IDE chuyên nghiệp
 - 🚀 **Genzo Folder Searcher**: High-performance parallel filesystem traversal using Rust `ignore` crate (Virtualized).
 - ⚡ **Optimized Performance**: `@tanstack/react-virtual` for large datasets, centralized memory management.
-- 🧩 **Kiến trúc modular** — mỗi tool là một module độc lập
+- ✨ **Premium UI/UX**: Framer Motion animations, glassmorphism design, and professional-grade interactions.
+- 🧩 **Kiến trúc modular** — mỗi tool là một module độc lập (High-level components & custom hooks).
 - 💾 **Offline-first** — không cần internet, mọi dữ liệu lưu local
 - 🪟 **Multi-window** — mỗi tool có thể mở trong cửa sổ riêng
 - ⌨️ **Keyboard shortcuts** — Ctrl+Shift+S (Settings), Ctrl+Alt+N (Note Editor), Ctrl+Alt+C (Comparator).
@@ -36,6 +37,7 @@
 | **diff** | 5.2 | Text diff engine |
 | **PrismJS** | 1.30 | Syntax highlighting (dùng trong SqlLogParser) |
 | **clsx / tailwind-merge** | — | Class name utilities |
+| **framer-motion** | 11.x | Professional animations & transitions |
 
 | **tauri** | 2.0 | Desktop framework, IPC, window management |
 | **serde / serde_json** | 1.x | Serialization |
@@ -78,18 +80,38 @@ genzo-kit/
 │       │   ├── TextComparator.tsx # Monaco DiffEditor wrapper
 │       │   └── store.ts          # Zustand store cho comparator state
 │       ├── note-editor/          # Tool 2
-│       │   ├── NoteEditor.tsx    # Multi-tab code editor
-│       │   └── store.ts          # Zustand store (files, tabs, session)
-│       ├── sql-log-parser/       # Tool 3
-│       │   ├── SqlLogParser.tsx  # Main UI component
-│       │   ├── parser.ts         # Log parsing engine (DAO session extraction + SQL reconstruction)
+│       │   ├── NoteEditor.tsx    # High-level orchestrator
+│       │   ├── store.ts          # Zustand store (files, tabs, session)
+│       │   ├── utils.ts          # Icon & language utilities
+│       │   ├── hooks/            # Logic abstraction
+│       │   │   ├── useNoteEditorSession.ts
+│       │   │   └── useNoteEditorCommands.ts
+│       │   └── components/       # UI Components
+│       │       ├── Sidebar.tsx
+│       │       ├── FileItem.tsx
+│       │       └── EditorView.tsx
+│       ├── sql-log-parser/       # Tool 3 (Modular Refactored)
+│       │   ├── SqlLogParser.tsx  # High-level orchestrator
 │       │   ├── store.ts          # Zustand store (sessions, filters, aliases)
-│       │   ├── FilterModal.tsx   # Advanced filter dialog
-│       │   ├── AliasModal.tsx    # ID alias management dialog
-│       │   ├── SqlFormatterModal.tsx # SQL formatter dialog
+│       │   ├── hooks/            # Logic abstraction
+│       │   │   └── useSqlLogParser.ts
+│       │   ├── components/       # UI Components
+│       │   │   ├── LogSidebar.tsx
+│       │   │   ├── LogToolbar.tsx
+│       │   │   └── LogQueryList.tsx
+│       │   ├── FilterModal.tsx   # Legacy/Shared Dialog
+│       │   ├── AliasModal.tsx    # Legacy/Shared Dialog
+│       │   ├── SqlFormatterModal.tsx # Legacy/Shared Dialog
 │       │   └── index.ts          # Export
 │       ├── folder-searcher/      # Tool 4
-│       │   └── FolderSearcher.tsx # Modern live-scan file/folder searcher
+│       │   ├── FolderSearcher.tsx # High-level orchestrator
+│       │   ├── hooks/            # Logic abstraction
+│       │   │   └── useFolderSearch.ts
+│       │   └── components/       # UI Components
+│       │       ├── SearchHeader.tsx
+│       │       ├── SearchOptions.tsx
+│       │       ├── ResultsTable.tsx
+│       │       └── ActionBar.tsx
 │       └── settings/             # Tool 5
 │           ├── Settings.tsx      # Multi-section settings UI
 │           └── store.ts          # Zustand store (general, tool-specific, persist via localStorage)
@@ -170,7 +192,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Encoding support | Independent per-pane (UTF-8, Shift_JIS, v.v.) |
 | StatusBar | Hiển thị file name, language, encoding |
 
-**Files**: `TextComparator.tsx` (248 lines), `store.ts` (496 bytes)
+**Files**: `TextComparator.tsx`, `hooks/useTextComparator.ts`, `components/ComparatorHeader.tsx`, `store.ts`
 
 ---
 
@@ -216,7 +238,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Copy to clipboard | Click-to-copy SQL queries |
 | Syntax highlighting | PrismJS cho SQL syntax |
 
-**Files**: `SqlLogParser.tsx` (482 lines), `parser.ts` (215 lines), `store.ts` (6021 bytes), `FilterModal.tsx`, `AliasModal.tsx`, `SqlFormatterModal.tsx`, `index.ts`
+**Files**: `SqlLogParser.tsx`, `hooks/useSqlLogParser.ts`, `components/LogSidebar.tsx`, `components/LogToolbar.tsx`, `components/LogQueryList.tsx`, `store.ts`, `FilterModal.tsx`, `AliasModal.tsx`, `SqlFormatterModal.tsx`, `index.ts`
 
 **Parser Engine (Optimized)**:
 - **Rust Backend (`sql_parser.rs`)**: Thực hiện parsing bằng Regex trong Rust, song song hóa bằng `rayon`. Loại bỏ UI freeze hoàn toàn (Fix PERF-001/003).
@@ -248,7 +270,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | **Double-click Open** | Mở file/folder bằng ứng dụng mặc định |
 | **Click-to-Copy** | Copy đường dẫn vào clipboard |
 
-**Files**: `FolderSearcher.tsx` (610 lines) — Branding updated to "Genzo Folder Searcher".
+**Files**: `FolderSearcher.tsx`, `hooks/useFolderSearch.ts`, `components/SearchHeader.tsx`, `components/SearchOptions.tsx`, `components/ResultsTable.tsx`, `components/ActionBar.tsx`.
 
 **Search Flow**:
 ```
@@ -257,9 +279,26 @@ User types → handleSearch()
   └── invoke('search_system') → Live BFS scan on selected targets
 ```
 
+### 5.5 Property Renamer (`property-renamer/`)
+**Mô tả**: Công cụ refactor tên thuộc tính (JSP property, Java getter/setter) hàng loạt trong project.
+
+| Tính năng | Mô tả |
+|:---|:---|
+| Parallel Scan | Quét hàng loạt file bằng Rust Rayon |
+| Smart Mapping | Tự động detect JSP property và map sang Java methods |
+| Preview Panel | Xem trước thay đổi trước khi apply |
+| Multi-selection | Chọn file đích để refactor |
+| Undo support | Hoàn tác thay đổi cuối cùng |
+| Virtualized Table | Hỗ trợ hàng ngàn property names không lag |
+| Premium UI | Glassmorphism, floating alerts, side-by-side preview |
+
+**Files**: `PropertyRenamer.tsx`, `hooks/usePropertyRenamer.ts`, `components/RenamerSidebar.tsx`, `components/RenamerToolbar.tsx`, `components/RenamerMainTable.tsx`, `components/RenamerPreviewPanel.tsx`, `store.ts`
+
+**Store**: Zustand + `zustand/persist` middleware → persisted to `localStorage` key `genzo-settings-storage`
+
 ---
 
-### 5.5 Settings (`settings/`)
+### 5.6 Settings (`settings/`)
 **Mô tả**: Trang cấu hình đa mục cho toàn bộ ứng dụng.
 
 | Section | Cấu hình |

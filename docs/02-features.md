@@ -14,19 +14,20 @@
 8. **Settings Persistence**: All filters and target directories saved to disk.
 
 **Text Comparator**: Monaco DiffEditor, bi-directional editing, independent per-pane encoding selection, and Zustand interop.
-**Note Editor**: Multi-tab, session auto-save, dynamic encodings, open by path, drag-and-drop reorder.
+**Note Editor**: Multi-tab VS Code style editor with modular architecture, session auto-save, dynamic encodings, premium animations (Framer Motion), glassmorphism sidebar, and custom command pallet.
 **Installer Support**: MSI and NSIS (EXE) setup generation enabled.
 **Documentation Suite**: Generated FEATURES.md, USER_FLOWS.md, ARCHITECTURE.md, and COMPONENTS.md.
 **Searcher Indexing**: Manual trigger for system-wide indexing; removes background overhead on startup.
 **Property Renamer**: Batch rename properties across JSP, Java, and JS files with scan, map, replace, and undo.
 
-**Performance Overhaul (2026)**:
-1. **Rust-Powered Parsing**: SQL Log extraction offloaded to Rust backend using parallel regex engines.
-2. **Parallel Filesystem Search**: Multi-threaded traversal via `ignore` crate for near-instant folder searching.
+**Performance & Architecture Overhaul (2026)**:
+1. **Rust-Powered Parsing**: SQL Log extraction and filesystem traversal offloaded to Rust backend.
+2. **Parallel Processing**: Multi-threaded traversal via `ignore` crate and `rayon` for near-instant operations.
 3. **Frontend Code-Splitting**: Dynamic `lazy()` imports for tools to ensure fast initial load times.
-4. **OOM Protection**: Strict file size limits and efficient buffer management in Rust.
-5. **Render Optimization**: `@tanstack/react-virtual` for large lists (Folder Searcher, Property Renamer).
-6. **Memory Safety**: Centralized Monaco model disposal via `useMonacoManager` to prevent RAM accumulation.
-7. **Modular Backend**: Logic extracted from `lib.rs` into specialized modules for stability and clarity.
+4. **OOM Protection & Memory Safety**: Strict file limits and centralized Monaco model disposal.
+5. **Universal Virtualization**: Performance-grade rendering standard applied to all tools via `@tanstack/react-virtual`.
+6. **Modular Hook Architecture**: Business logic extracted into specialized hooks (e.g. `useFolderSearch`).
+7. **Decomposed Components**: Monolithic UIs split into focused, reusable components.
+8. **Premium UI Standard**: Unified aesthetic with Glassmorphism and Framer Motion fluid animations.
 
 **Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).

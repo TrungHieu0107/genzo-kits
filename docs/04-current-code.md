@@ -220,3 +220,12 @@ const results = await invoke("search_files", {
 - **Stability**: Fixed a race condition where the Status Bar would disappear after fast tool switching.
 
 **Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).
+
+### BUG-FIX-09: Build & Dependency Stabilization (April 21, 2026)
+- **Problem**: Build failing due to missing @tanstack/react-virtual in node_modules and implicit any types for virtual row mapping in FolderSearcher and PropertyRenamer.
+- **Fix**: 
+  - Ran npm install to ensure all dependencies in package.json are present.
+  - Added explicit VirtualItem type from @tanstack/react-virtual to virtual row map functions.
+- **Result**: Frontend build (tsc && vite build) and Rust backend check now pass 100%.
+
+**Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).

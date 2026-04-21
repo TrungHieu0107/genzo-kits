@@ -9,4 +9,4 @@
 - **File I/O**: MUST use `useFileSystem` for all file/dialog interactions.
 - **Executable**: `genzo-kit.exe`.
 
-**Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).
+**Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).

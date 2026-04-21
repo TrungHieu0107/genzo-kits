@@ -29,4 +29,4 @@
 6. **Memory Safety**: Centralized Monaco model disposal via `useMonacoManager` to prevent RAM accumulation.
 7. **Modular Backend**: Logic extracted from `lib.rs` into specialized modules for stability and clarity.
 
-**Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).
+**Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).

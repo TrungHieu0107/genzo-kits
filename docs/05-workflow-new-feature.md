@@ -4,7 +4,7 @@
 
 **Steps**:
 1. **Analyze & Plan** — Confirm feature name, folder, ensure isolation.
-2. **Create Modular Structure** — Use template. Register in `index.ts`.
+2. **Create Modular Structure** — Extract logic to hooks, split UI into small components. Apply glassmorphism & premium animations. Register in `index.ts`.
 3. **Documentation Update** — Update all 8 docs files.
 4. **Isolation & Full Test** — Build, test, verify ALL tools work.
 5. **Commit** — `feat: add [tool-name]`

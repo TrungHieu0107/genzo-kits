@@ -5,6 +5,7 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 ## 1. Project Structure & Modularity (Never Break)
 - Project root folder must always be exactly `genzo-kit`.
 - All tools MUST be placed in `src/tools/[kebab-case-tool-name]` (e.g. `text-comparator`, `json-formatter`).
+- **Modular Architecture**: Extract business logic into specialized `hooks/` and split monolithic UIs into focused `components/` within each tool directory.
 - Never modify any existing tool folder when adding a new feature.
 - Use dynamic imports only for adding new tools to the sidebar/navigation.
 - The app must remain fully functional even if one tool is removed.
@@ -27,16 +28,18 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - Always reply with: "Done using Workflow XX" at the end of your response.
 
 ## 4. Technology & Performance Rules
-- Must use Tauri v2 (Rust backend + React + TypeScript + TailwindCSS + shadcn/ui).
+- Must use Tauri v2 (Rust backend + React + TypeScript + TailwindCSS + shadcn/ui + Framer Motion).
 - No Electron, no Python, no heavy frameworks.
 - Final executable must be named exactly `genzo-kit.exe`.
 - Keep RAM usage under 60 MB and startup time under 0.6 seconds.
 - Use native WebView2 on Windows.
 - Minimize Rust dependencies; only add when absolutely necessary.
+- **Universal Virtualization**: Use `@tanstack/react-virtual` for all high-volume lists.
 
 ## 5. UI/UX Rules (Must Match Screenshot)
 - Text Comparator must look EXACTLY like the provided screenshot.
 - Dark theme only.
+- **Premium Aesthetics**: Use Glassmorphism, backdrop blurs, and Framer Motion for fluid animations.
 - All text inputs support any format (Java, JSON, logs, etc.).
 - All new tools must maintain the same professional IDE-like look.
 
@@ -44,7 +47,7 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - Use TypeScript strictly (no any types).
 - Add clear English + Vietnamese comments for every complex logic.
 - Error handling must be user-friendly (no console.log in production).
-- All code must be clean, readable, and follow React best practices.
+- All code must be clean, readable, and follow React best practices (SOLID).
 - Never use deprecated Tauri APIs.
 
 ## 7. Testing & Safety Rules

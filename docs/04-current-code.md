@@ -1,6 +1,6 @@
 # Current Code
 
-## lib.rs â€” Rust Backend
+## lib.rs — Rust Backend
 **Commands:**
 - `search_system`: Live BFS scan of target directories. Requires at least one root path.
 - `search_files`: High-performance parallel traversal with fuzzy matching and ranked results.
@@ -14,10 +14,10 @@
 ## FolderSearcher.tsx (Modern Live-Scan)
 **Features**: BFS recursive search, multi-folder targets, cache support.
 **`handleSearch` flow:**
-1. Cache â†’ show immediately + revalidate via `search_system`.
-2. Direct Search â†’ `search_system` (live scan).
+1. Cache → show immediately + revalidate via `search_system`.
+2. Direct Search → `search_system` (live scan).
 
-## Test Results â€” March 09, 2026: PASS âœ…
+## Test Results — March 09, 2026: PASS ✅
 
 ## Feature Log
 
@@ -46,7 +46,7 @@
 
 ### FEAT-18: Property Renamer Tool (March 09, 2026)
 - **Backend**: `collect_files`, `scan_files`, `replace_in_files`, `undo_last_replace` commands in `lib.rs`.
-- **Frontend**: `PropertyRenamer.tsx` â€” 3-column layout (File list | Mapping table | Preview panel).
+- **Frontend**: `PropertyRenamer.tsx` — 3-column layout (File list | Mapping table | Preview panel).
 - **Registration**: Added to `src/tools/index.ts` with `Replace` icon.
 
 ### FEAT-19: Note Editor URL Support (March 10, 2026)
@@ -83,14 +83,12 @@
 - **UI**: Added "Scan System Now" button to `FolderSearcher.tsx` header.
 - **Workflow**: Indexing only starts when explicitly requested by clicking the button.
 
-
 ### FEAT-25: Searcher Multi-Tool Integration (March 11, 2026)
 - **Feature**: Added multi-selection checkboxes to `FolderSearcher.tsx` results.
 - **Action Bar**: Implemented a floating action bar that appears when items are selected.
 - **Note Editor Integration**: Added "Open in Note tool" action which reads file content via `read_file_encoded` and opens as tabs.
 - **Property Renamer Integration**: Added "Add to Property Renamer" action which injects paths into `propertyRenamerStore` and switches tools.
 - **State Management**: Migrated `activeToolId` to a global `appStore` to facilitate cross-tool navigation.
-
 
 ### FEAT-26: Remove Automatic System Scan Logic (March 12, 2026)
 - Fully decommissioned the legacy SQLite-based background indexing.
@@ -130,11 +128,13 @@ const results = await invoke("search_files", {
 - Cancellable (Tauri command life-cycle).
 - Ranked by score.
 - Parallel traversal (Rayon-powered).
+
 ### BUG-FIX-04: Shortcut Conflicts Resolved (March 12, 2026)
 - **Problem**: `Ctrl+C` and `Ctrl+N` were registered as global shortcuts, blocking system-wide copy and new-file actions.
 - **Fix**: Removed them from Tauri global-shortcut registration.
 - **New Shortcuts**: Added local window-level listeners for `Ctrl+Alt+C` (Comparator) and `Ctrl+Alt+N` (Note Editor).
 - **Result**: Native `Ctrl+C` and `Ctrl+N` work as expected; tool switching remains fast via `Ctrl+Alt` modifiers.
+
 ### BUG-FIX-05: Note Editor Integration & "Black Screen" Fix (March 12, 2026)
 - **Problem**: 
     1. Opening files from `FolderSearcher` overwrote the store with an old session.
@@ -143,20 +143,20 @@ const results = await invoke("search_files", {
     1. Added `isHydrated` flag to `note-editor/store.ts` to skip redundant disk-restore.
     2. Centralized file opening in `openFileByPath` action within the store to handle `SafeFileResponse` and language detection correctly.
 - **Result**: "Open in Note tool" works flawlessly for multiple files; crash resolved.
- 
-+ ### FEAT-28: UI Label Audit & Professional Branding (March 12, 2026)
-+ - **Audit**: Reviewed all user-facing labels in `FolderSearcher`, `NoteEditor`, `SqlLogParser`, `PropertyRenamer`, `TextComparator`, `Settings`, and `StatusBar`.
-+ - **Renaming**: Applied 60+ renames to ensure professional English, Title Case consistency, and branding rules.
-+ - **Branding**: Renamed "System File & Folder Searcher" to **Genzo Folder Searcher** and "Text Comparator" to **Genzo Text Comparator**.
-+ - **UX Polish**: Improved tooltips, button labels (e.g., "Add folders" instead of "Bulk Add"), and table headers for better clarity.
-+ - **Consistency**: Standardized filter operators (Contains, Equals, etc.) and modal titles.
-+ - **Result**: Application feels significantly more professional and cohesive.
- 
-+ ### FEAT-30: Search Results Column Sort (March 12, 2026)
-+ - **Feature**: Added interactive sorting to the results table in `FolderSearcher.tsx`.
-+ - **Scope**: Name (Alphabetical), Base Path (Alphabetical), Last Modified (Chronological).
-+ - **UI**: Added `SortIcon` component and toggle handlers to table headers.
-+ - **Logic**: Implemented client-side sorting using `useMemo` and `useState` for sort configuration.
+
+### FEAT-28: UI Label Audit & Professional Branding (March 12, 2026)
+- **Audit**: Reviewed all user-facing labels in `FolderSearcher`, `NoteEditor`, `SqlLogParser`, `PropertyRenamer`, `TextComparator`, `Settings`, and `StatusBar`.
+- **Renaming**: Applied 60+ renames to ensure professional English, Title Case consistency, and branding rules.
+- **Branding**: Renamed "System File & Folder Searcher" to **Genzo Folder Searcher** and "Text Comparator" to **Genzo Text Comparator**.
+- **UX Polish**: Improved tooltips, button labels (e.g., "Add folders" instead of "Bulk Add"), and table headers for better clarity.
+- **Consistency**: Standardized filter operators (Contains, Equals, etc.) and modal titles.
+- **Result**: Application feels significantly more professional and cohesive.
+
+### FEAT-30: Search Results Column Sort (March 12, 2026)
+- **Feature**: Added interactive sorting to the results table in `FolderSearcher.tsx`.
+- **Scope**: Name (Alphabetical), Base Path (Alphabetical), Last Modified (Chronological).
+- **UI**: Added `SortIcon` component and toggle handlers to table headers.
+- **Logic**: Implemented client-side sorting using `useMemo` and `useState` for sort configuration.
 
 ### PERF-OVERHAUL-2026: Major Performance Overhaul (April 20, 2026)
 **Goal**: Resolve critical bottlenecks (P0/P1) identified in the Performance Audit.
@@ -185,7 +185,7 @@ const results = await invoke("search_files", {
 - **Text Comparator**: Debounced text updates from Monaco Editor to the Zustand store (150ms).
 - **Theme Optimization**: Pre-defined Monaco themes once to avoid expensive re-definitions when toggling row highlights.
 
-**Status**: ALL Critical (P0) and High (P1) performance issues resolved. Build status: PASS âœ….
+**Status**: ALL Critical (P0) and High (P1) performance issues resolved. Build status: PASS ✅.
 
 ### BUG-FIX-06: Parallel Search Build Error (April 20, 2026)
 - **Problem**: Incorrect implementation of multi-root handling in `ignore::WalkBuilder` caused a compilation error.
@@ -230,6 +230,43 @@ const results = await invoke("search_files", {
 
 **Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).
 
+### ARCH-REFACTOR-2026: NoteEditor Premium Modular Refactor (April 21, 2026)
+**Goal**: Elevate NoteEditor to a professional-grade tool with modular architecture and high-end UI/UX.
+
+#### 1. Modular Architecture (SOLID)
+- **Component Splitting**: Monolithic NoteEditor.tsx (600+ lines) broken into Sidebar, FileItem, and EditorView.
+- **Logic Abstraction**: 
+  - useNoteEditorSession: Manages Rust-backend session persistence.
+  - useNoteEditorCommands: Centralized keyboard shortcut registry.
+- **Utility Extraction**: Moved icon and language detection logic to utils.ts.
+
+#### 2. UI/UX & Aesthetics
+- **Framer Motion**: Integrated for smooth entry/exit animations, list reordering, and indicator transitions.
+- **Glassmorphism**: Applied backdrop-blur-xl and bg-[#0F0F10]/80 to the sidebar for a premium, modern feel.
+- **Custom Prompts**: Replaced legacy window.prompt with a custom-designed, animated inline input component.
+- **Micro-animations**: Added active indicators and smooth hover states for all interactive elements.
+
+#### 3. Reliability
+- **Clean Code**: Standardized naming conventions and removed hardcoded style strings.
+- **State Integrity**: Improved cleanup logic for Monaco models and session hydration.
+
+**Status**: NoteEditor refactor complete. Performance and aesthetics significantly enhanced.
+
+### ARCH-REFACTOR-2026: FolderSearcher & Suite-wide Premium Modular Refactor (April 21, 2026)
+- **Architectural Shift**: Migrated all monolithic tool components (`FolderSearcher`, `SqlLogParser`, `TextComparator`, `PropertyRenamer`) to a modular architecture.
+- **Hook Abstraction**: Extracted business logic, IPC orchestration, and state management into specialized custom hooks (e.g., `useFolderSearch`, `useSqlLogParser`).
+- **Component Decomposition**: Split UI into focused sub-components organized in `components/` folders within each tool directory.
+- **Premium UI Standard**: Unified the suite with glassmorphism, Framer Motion animations, and virtualized list performance.
+- **Performance Integrity**: Maintained high-performance Rust backend integration while enhancing frontend responsiveness via efficient React patterns.
+- **Clean Code**: Extracted complex sub-UI (target directories management) into its own component.
+
+#### 2. UI/UX & Aesthetics
+- **Framer Motion**: Integrated for smooth collapse/expand of target directories and floating action bar entry.
+
+#### 3. Reliability
+- **State Consistency**: Centralized search logic in a hook ensures state integrity across sub-components.
+- **Performance**: Retained react-virtual virtualization for high-performance result rendering.
+
 ### FEAT-31: Genzo XML Filter Tool (April 23, 2026)
 - **Backend Implementation**: Created `xml_filter` module with `parser.rs` and `filter.rs` in `src-tauri/src/`.
 - **Parsing Engine**: Uses `quick-xml` for high-performance SAX-style parsing and `encoding_rs` for Shift_JIS support.
@@ -251,4 +288,3 @@ const results = await invoke("search_files", {
 - **Result**: Match expansion in Table View works without runtime errors.
 
 **Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).
-

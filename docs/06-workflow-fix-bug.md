@@ -2,13 +2,13 @@
 
 **Goal**: Fix any bug without introducing new ones.
 
-**Steps**:
-1. **Reproduce** — Confirm the bug.
-2. **Analyze** — Find root cause.
-3. **Fix** — Apply fix.
-4. **Test** — Verify fix AND check for regressions.
-5. **Documentation** — Update all 8 docs files.
-6. **Commit** — `fix: [bug-description]`
+**Steps:**
+1. **Identify Root Cause** — Trace to a single tool. Confirm the bug with clear reproduction steps.
+2. **Analyze** — Analyze the code to find the exact root cause (e.g. incorrect property access, state race condition).
+3. **Isolate & Refactor** — Fix only inside `src/tools/[tool]`. If needed, refactor to modular architecture (extract hooks, split components). Ensure UI remains premium.
+4. **Documentation Update** — Update ALL 8 docs files to reflect the fix and update Test Status.
+5. **Testing** — Verify fix, ensure other features intact. Check for regressions in related tools.
+6. **Commit** — `fix: [tool-name] - [short description]` (e.g. `fix: xml-filter - resolve expansion type error`).
 
 Reply: "Fixed using Workflow 06".
 

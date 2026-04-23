@@ -26,3 +26,7 @@ rayon = "1.10"
 walkdir = "2.5"
 ignore = "0.4"
 fuzzy-matcher = "0.3"
+quick-xml = { version = "0.36", features = ["serialize"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+

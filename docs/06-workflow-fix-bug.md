@@ -1,14 +1,15 @@
 # Genzo-Kit Workflow: Fix Bug
 
-**Goal:** Fix a bug without breaking any working feature.
+**Goal**: Fix any bug without introducing new ones.
 
-**Steps:**
-1. **Identify Root Cause** — Trace to a single tool.
-2. **Isolate Changes** — Fix only inside `src/tools/[tool]`.
-3. **Documentation Update** — Touch all 8 docs files.
-4. **Testing** — Verify fix, ensure other features intact.
-5. **Commit** — `fix: [tool-name] - [short description]`
+**Steps**:
+1. **Reproduce** — Confirm the bug.
+2. **Analyze** — Find root cause.
+3. **Fix** — Apply fix.
+4. **Test** — Verify fix AND check for regressions.
+5. **Documentation** — Update all 8 docs files.
+6. **Commit** — `fix: [bug-description]`
 
-Reply: "Done using Workflow 06".
+Reply: "Fixed using Workflow 06".
 
-**Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).
+**Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).

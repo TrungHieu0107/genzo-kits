@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='Shift_JIS'?>
+<BatchConfig>
+    <!-- JOB2200_TestBatchInsertUser -->
+  <Batch id="AUTB999992-1300" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch><!-- JOB2200_TestBatchInsertUser -->
+  <Batch id="AUTB999992-1200" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch>
+  <!-- JOB2200_TestBatchInsertUser -->
+  <Batch id="AUTB999992-1300" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch>
+    <!-- <Batch id="AUTB999992-1400" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch> -->
+</BatchConfig>
+

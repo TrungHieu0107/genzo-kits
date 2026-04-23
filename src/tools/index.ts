@@ -1,5 +1,6 @@
 import { lazy } from "react";
-import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch, Replace } from "lucide-react";
+import { ArrowRightLeft, FileEdit, Settings as SettingsIcon, Database, FolderSearch, Replace, LayoutList } from "lucide-react";
+
 
 const TextComparator = lazy(() => import("./text-comparator/TextComparator").then(m => ({ default: m.TextComparator })));
 const NoteEditor = lazy(() => import("./note-editor/NoteEditor").then(m => ({ default: m.NoteEditor })));
@@ -7,6 +8,7 @@ const Settings = lazy(() => import("./settings/Settings").then(m => ({ default: 
 const SqlLogParser = lazy(() => import("./sql-log-parser").then(m => ({ default: m.SqlLogParser })));
 const FolderSearcher = lazy(() => import("./folder-searcher/FolderSearcher"));
 const PropertyRenamer = lazy(() => import("./property-renamer").then(m => ({ default: m.PropertyRenamer })));
+const XmlFilter = lazy(() => import("./xml-filter").then(m => ({ default: m.XmlFilterTool })));
 
 export interface ToolDefinition {
   id: string;
@@ -39,6 +41,13 @@ export const tools: ToolDefinition[] = [
     component: SqlLogParser
   },
   {
+    id: "xml-filter",
+    name: "XML Filter",
+    description: "Filter and visualize large XML files with Shift_JIS support and tree navigation.",
+    icon: LayoutList,
+    component: XmlFilter
+  },
+  {
     id: "folder-searcher",
     name: "Folder Searcher",
     description: "Search system directories quickly without freezing the UI.",
@@ -60,3 +69,4 @@ export const tools: ToolDefinition[] = [
     component: Settings
   }
 ];
+

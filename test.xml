@@ -1,0 +1,394 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<BatchConfig>
+
+  <!-- ===== GROUP A: ORDER PROCESSING ===== -->
+
+  <!-- JOB1001_ImportOrder -->
+  <Batch id="AUTB000001-1000" name="JOB1001_ImportOrder"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1001_ImportOrder"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1001_ImportOrderInputBean">
+    <Parameter name="jobId">JOB1001</Parameter>
+    <Parameter name="shimeTm">00:00</Parameter>
+    <Parameter name="targetDate">TODAY</Parameter>
+    <Parameter name="shopCode">SHOP001</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000001-1100" name="JOB1001_ImportOrder"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1001_ImportOrder"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1001_ImportOrderInputBean">
+    <Parameter name="jobId">JOB1001</Parameter>
+    <Parameter name="shimeTm">06:00</Parameter>
+    <Parameter name="targetDate">TODAY</Parameter>
+    <Parameter name="shopCode">SHOP002</Parameter>
+  </Batch>
+
+  <!-- JOB1002_ExportOrder -->
+  <Batch id="AUTB000002-1000" name="JOB1002_ExportOrder"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1002_ExportOrder"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1002_ExportOrderInputBean">
+    <Parameter name="jobId">JOB1002</Parameter>
+    <Parameter name="shimeTm">01:00</Parameter>
+    <Parameter name="outputPath">/output/orders/</Parameter>
+    <Parameter name="filePrefix">ORD_</Parameter>
+    <Parameter name="encoding">Shift_JIS</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000002-1100" name="JOB1002_ExportOrder"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1002_ExportOrder"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1002_ExportOrderInputBean">
+    <Parameter name="jobId">JOB1002</Parameter>
+    <Parameter name="shimeTm">13:00</Parameter>
+    <Parameter name="outputPath">/output/orders/afternoon/</Parameter>
+    <Parameter name="filePrefix">ORD_PM_</Parameter>
+    <Parameter name="encoding">UTF-8</Parameter>
+  </Batch>
+
+  <!-- JOB1003_CancelOrder — disabled -->
+  <!-- <Batch id="AUTB000003-1000" name="JOB1003_CancelOrder"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1003_CancelOrder"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1003_CancelOrderInputBean">
+    <Parameter name="jobId">JOB1003</Parameter>
+    <Parameter name="shimeTm">02:00</Parameter>
+  </Batch> -->
+
+  <!-- JOB1004_UpdateOrderStatus -->
+  <Batch id="AUTB000004-1000" name="JOB1004_UpdateOrderStatus"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1004_UpdateOrderStatus"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1004_UpdateOrderStatusInputBean">
+    <Parameter name="jobId">JOB1004</Parameter>
+    <Parameter name="shimeTm">02:30</Parameter>
+    <Parameter name="statusFrom">10</Parameter>
+    <Parameter name="statusTo">20</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000004-1100" name="JOB1004_UpdateOrderStatus"
+    class="jp.co.vinculumjapan.mdware.order.batch.impl.JOB1004_UpdateOrderStatus"
+    beanclass="jp.co.vinculumjapan.mdware.order.batch.input.JOB1004_UpdateOrderStatusInputBean">
+    <Parameter name="jobId">JOB1004</Parameter>
+    <Parameter name="shimeTm">14:30</Parameter>
+    <Parameter name="statusFrom">20</Parameter>
+    <Parameter name="statusTo">30</Parameter>
+  </Batch>
+
+  <!-- ===== GROUP B: INVENTORY ===== -->
+
+  <!-- JOB2001_StockSync -->
+  <Batch id="AUTB000010-1000" name="JOB2001_StockSync"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2001_StockSync"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2001_StockSyncInputBean">
+    <Parameter name="jobId">JOB2001</Parameter>
+    <Parameter name="shimeTm">03:00</Parameter>
+    <Parameter name="warehouseCode">WH001</Parameter>
+    <Parameter name="syncMode">FULL</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000010-1100" name="JOB2001_StockSync"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2001_StockSync"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2001_StockSyncInputBean">
+    <Parameter name="jobId">JOB2001</Parameter>
+    <Parameter name="shimeTm">15:00</Parameter>
+    <Parameter name="warehouseCode">WH002</Parameter>
+    <Parameter name="syncMode">DIFF</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000010-1200" name="JOB2001_StockSync"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2001_StockSync"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2001_StockSyncInputBean">
+    <Parameter name="jobId">JOB2001</Parameter>
+    <Parameter name="shimeTm">21:00</Parameter>
+    <Parameter name="warehouseCode">WH003</Parameter>
+    <Parameter name="syncMode">DIFF</Parameter>
+  </Batch>
+
+  <!-- JOB2002_StockAdjust -->
+  <Batch id="AUTB000011-1000" name="JOB2002_StockAdjust"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2002_StockAdjust"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2002_StockAdjustInputBean">
+    <Parameter name="jobId">JOB2002</Parameter>
+    <Parameter name="shimeTm">04:00</Parameter>
+    <Parameter name="adjustType">MANUAL</Parameter>
+    <Parameter name="approvalRequired">true</Parameter>
+  </Batch>
+
+  <!-- JOB2003_LowStockAlert — disabled -->
+  <!-- <Batch id="AUTB000012-1000" name="JOB2003_LowStockAlert"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2003_LowStockAlert"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2003_LowStockAlertInputBean">
+    <Parameter name="jobId">JOB2003</Parameter>
+    <Parameter name="shimeTm">07:00</Parameter>
+    <Parameter name="threshold">10</Parameter>
+    <Parameter name="notifyEmail">alert@example.com</Parameter>
+  </Batch> -->
+
+  <!-- JOB2004_InventoryReport -->
+  <Batch id="AUTB000013-1000" name="JOB2004_InventoryReport"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2004_InventoryReport"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2004_InventoryReportInputBean">
+    <Parameter name="jobId">JOB2004</Parameter>
+    <Parameter name="shimeTm">05:00</Parameter>
+    <Parameter name="reportType">DAILY</Parameter>
+    <Parameter name="outputFormat">CSV</Parameter>
+    <Parameter name="outputPath">/report/inventory/</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000013-1100" name="JOB2004_InventoryReport"
+    class="jp.co.vinculumjapan.mdware.inventory.batch.impl.JOB2004_InventoryReport"
+    beanclass="jp.co.vinculumjapan.mdware.inventory.batch.input.JOB2004_InventoryReportInputBean">
+    <Parameter name="jobId">JOB2004</Parameter>
+    <Parameter name="shimeTm">05:00</Parameter>
+    <Parameter name="reportType">WEEKLY</Parameter>
+    <Parameter name="outputFormat">EXCEL</Parameter>
+    <Parameter name="outputPath">/report/inventory/weekly/</Parameter>
+  </Batch>
+
+  <!-- ===== GROUP C: SHIPPING ===== -->
+
+  <!-- JOB3001_ShipmentExport -->
+  <Batch id="AUTB000020-1000" name="JOB3001_ShipmentExport"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3001_ShipmentExport"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3001_ShipmentExportInputBean">
+    <Parameter name="jobId">JOB3001</Parameter>
+    <Parameter name="shimeTm">06:00</Parameter>
+    <Parameter name="carrier">YAMATO</Parameter>
+    <Parameter name="outputPath">/output/shipment/yamato/</Parameter>
+    <Parameter name="encoding">Shift_JIS</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000020-1100" name="JOB3001_ShipmentExport"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3001_ShipmentExport"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3001_ShipmentExportInputBean">
+    <Parameter name="jobId">JOB3001</Parameter>
+    <Parameter name="shimeTm">06:00</Parameter>
+    <Parameter name="carrier">SAGAWA</Parameter>
+    <Parameter name="outputPath">/output/shipment/sagawa/</Parameter>
+    <Parameter name="encoding">Shift_JIS</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000020-1200" name="JOB3001_ShipmentExport"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3001_ShipmentExport"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3001_ShipmentExportInputBean">
+    <Parameter name="jobId">JOB3001</Parameter>
+    <Parameter name="shimeTm">06:00</Parameter>
+    <Parameter name="carrier">JAPANPOST</Parameter>
+    <Parameter name="outputPath">/output/shipment/japanpost/</Parameter>
+    <Parameter name="encoding">UTF-8</Parameter>
+  </Batch>
+
+  <!-- JOB3002_ShipmentImportResult -->
+  <Batch id="AUTB000021-1000" name="JOB3002_ShipmentImportResult"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3002_ShipmentImportResult"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3002_ShipmentImportResultInputBean">
+    <Parameter name="jobId">JOB3002</Parameter>
+    <Parameter name="shimeTm">18:00</Parameter>
+    <Parameter name="carrier">YAMATO</Parameter>
+    <Parameter name="inputPath">/input/shipment/yamato/result/</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000021-1100" name="JOB3002_ShipmentImportResult"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3002_ShipmentImportResult"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3002_ShipmentImportResultInputBean">
+    <Parameter name="jobId">JOB3002</Parameter>
+    <Parameter name="shimeTm">18:30</Parameter>
+    <Parameter name="carrier">SAGAWA</Parameter>
+    <Parameter name="inputPath">/input/shipment/sagawa/result/</Parameter>
+  </Batch>
+
+  <!-- JOB3003_TrackingUpdate — disabled -->
+  <!-- <Batch id="AUTB000022-1000" name="JOB3003_TrackingUpdate"
+    class="jp.co.vinculumjapan.mdware.shipping.batch.impl.JOB3003_TrackingUpdate"
+    beanclass="jp.co.vinculumjapan.mdware.shipping.batch.input.JOB3003_TrackingUpdateInputBean">
+    <Parameter name="jobId">JOB3003</Parameter>
+    <Parameter name="shimeTm">20:00</Parameter>
+    <Parameter name="apiEndpoint">https://tracking.yamato.co.jp/api</Parameter>
+    <Parameter name="apiKey">DUMMY_KEY</Parameter>
+  </Batch> -->
+
+  <!-- ===== GROUP D: MASTER DATA ===== -->
+
+  <!-- JOB4001_ItemMasterSync -->
+  <Batch id="AUTB000030-1000" name="JOB4001_ItemMasterSync"
+    class="jp.co.vinculumjapan.mdware.master.batch.impl.JOB4001_ItemMasterSync"
+    beanclass="jp.co.vinculumjapan.mdware.master.batch.input.JOB4001_ItemMasterSyncInputBean">
+    <Parameter name="jobId">JOB4001</Parameter>
+    <Parameter name="shimeTm">23:00</Parameter>
+    <Parameter name="syncMode">FULL</Parameter>
+    <Parameter name="sourceSystem">ERP</Parameter>
+    <Parameter name="targetSystem">OMS</Parameter>
+  </Batch>
+
+  <!-- JOB4002_SupplierMasterSync -->
+  <Batch id="AUTB000031-1000" name="JOB4002_SupplierMasterSync"
+    class="jp.co.vinculumjapan.mdware.master.batch.impl.JOB4002_SupplierMasterSync"
+    beanclass="jp.co.vinculumjapan.mdware.master.batch.input.JOB4002_SupplierMasterSyncInputBean">
+    <Parameter name="jobId">JOB4002</Parameter>
+    <Parameter name="shimeTm">23:30</Parameter>
+    <Parameter name="syncMode">DIFF</Parameter>
+    <Parameter name="sourceSystem">ERP</Parameter>
+  </Batch>
+
+  <!-- JOB4003_PriceMasterUpdate -->
+  <Batch id="AUTB000032-1000" name="JOB4003_PriceMasterUpdate"
+    class="jp.co.vinculumjapan.mdware.master.batch.impl.JOB4003_PriceMasterUpdate"
+    beanclass="jp.co.vinculumjapan.mdware.master.batch.input.JOB4003_PriceMasterUpdateInputBean">
+    <Parameter name="jobId">JOB4003</Parameter>
+    <Parameter name="shimeTm">22:00</Parameter>
+    <Parameter name="priceType">RETAIL</Parameter>
+    <Parameter name="currency">JPY</Parameter>
+    <Parameter name="roundingMode">FLOOR</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000032-1100" name="JOB4003_PriceMasterUpdate"
+    class="jp.co.vinculumjapan.mdware.master.batch.impl.JOB4003_PriceMasterUpdate"
+    beanclass="jp.co.vinculumjapan.mdware.master.batch.input.JOB4003_PriceMasterUpdateInputBean">
+    <Parameter name="jobId">JOB4003</Parameter>
+    <Parameter name="shimeTm">22:00</Parameter>
+    <Parameter name="priceType">WHOLESALE</Parameter>
+    <Parameter name="currency">JPY</Parameter>
+    <Parameter name="roundingMode">CEIL</Parameter>
+  </Batch>
+
+  <!-- JOB4004_CategoryMasterSync — disabled -->
+  <!-- <Batch id="AUTB000033-1000" name="JOB4004_CategoryMasterSync"
+    class="jp.co.vinculumjapan.mdware.master.batch.impl.JOB4004_CategoryMasterSync"
+    beanclass="jp.co.vinculumjapan.mdware.master.batch.input.JOB4004_CategoryMasterSyncInputBean">
+    <Parameter name="jobId">JOB4004</Parameter>
+    <Parameter name="shimeTm">22:30</Parameter>
+    <Parameter name="depth">3</Parameter>
+  </Batch> -->
+
+  <!-- ===== GROUP E: REPORTING ===== -->
+
+  <!-- JOB5001_DailySalesReport -->
+  <Batch id="AUTB000040-1000" name="JOB5001_DailySalesReport"
+    class="jp.co.vinculumjapan.mdware.report.batch.impl.JOB5001_DailySalesReport"
+    beanclass="jp.co.vinculumjapan.mdware.report.batch.input.JOB5001_DailySalesReportInputBean">
+    <Parameter name="jobId">JOB5001</Parameter>
+    <Parameter name="shimeTm">07:00</Parameter>
+    <Parameter name="reportDate">YESTERDAY</Parameter>
+    <Parameter name="outputFormat">CSV</Parameter>
+    <Parameter name="outputPath">/report/sales/daily/</Parameter>
+    <Parameter name="notifyEmail">sales-report@example.com</Parameter>
+  </Batch>
+
+  <!-- JOB5002_MonthlySalesReport -->
+  <Batch id="AUTB000041-1000" name="JOB5002_MonthlySalesReport"
+    class="jp.co.vinculumjapan.mdware.report.batch.impl.JOB5002_MonthlySalesReport"
+    beanclass="jp.co.vinculumjapan.mdware.report.batch.input.JOB5002_MonthlySalesReportInputBean">
+    <Parameter name="jobId">JOB5002</Parameter>
+    <Parameter name="shimeTm">07:00</Parameter>
+    <Parameter name="reportMonth">LAST_MONTH</Parameter>
+    <Parameter name="outputFormat">EXCEL</Parameter>
+    <Parameter name="outputPath">/report/sales/monthly/</Parameter>
+    <Parameter name="notifyEmail">management@example.com</Parameter>
+  </Batch>
+
+  <!-- JOB5003_ReturnReport -->
+  <Batch id="AUTB000042-1000" name="JOB5003_ReturnReport"
+    class="jp.co.vinculumjapan.mdware.report.batch.impl.JOB5003_ReturnReport"
+    beanclass="jp.co.vinculumjapan.mdware.report.batch.input.JOB5003_ReturnReportInputBean">
+    <Parameter name="jobId">JOB5003</Parameter>
+    <Parameter name="shimeTm">08:00</Parameter>
+    <Parameter name="reportDate">YESTERDAY</Parameter>
+    <Parameter name="outputFormat">CSV</Parameter>
+    <Parameter name="threshold">5</Parameter>
+  </Batch>
+
+  <!-- JOB5004_ShippingDelayReport — disabled -->
+  <!-- <Batch id="AUTB000043-1000" name="JOB5004_ShippingDelayReport"
+    class="jp.co.vinculumjapan.mdware.report.batch.impl.JOB5004_ShippingDelayReport"
+    beanclass="jp.co.vinculumjapan.mdware.report.batch.input.JOB5004_ShippingDelayReportInputBean">
+    <Parameter name="jobId">JOB5004</Parameter>
+    <Parameter name="shimeTm">09:00</Parameter>
+    <Parameter name="delayDays">3</Parameter>
+    <Parameter name="notifyEmail">ops@example.com</Parameter>
+  </Batch> -->
+
+  <!-- ===== GROUP F: MAINTENANCE ===== -->
+
+  <!-- JOB9001_PurgeOldLogs -->
+  <Batch id="AUTB000090-1000" name="JOB9001_PurgeOldLogs"
+    class="jp.co.vinculumjapan.mdware.maintenance.batch.impl.JOB9001_PurgeOldLogs"
+    beanclass="jp.co.vinculumjapan.mdware.maintenance.batch.input.JOB9001_PurgeOldLogsInputBean">
+    <Parameter name="jobId">JOB9001</Parameter>
+    <Parameter name="shimeTm">01:00</Parameter>
+    <Parameter name="retentionDays">90</Parameter>
+    <Parameter name="targetTable">batch_log</Parameter>
+    <Parameter name="dryRun">false</Parameter>
+  </Batch>
+
+  <Batch id="AUTB000090-1100" name="JOB9001_PurgeOldLogs"
+    class="jp.co.vinculumjapan.mdware.maintenance.batch.impl.JOB9001_PurgeOldLogs"
+    beanclass="jp.co.vinculumjapan.mdware.maintenance.batch.input.JOB9001_PurgeOldLogsInputBean">
+    <Parameter name="jobId">JOB9001</Parameter>
+    <Parameter name="shimeTm">01:00</Parameter>
+    <Parameter name="retentionDays">30</Parameter>
+    <Parameter name="targetTable">error_log</Parameter>
+    <Parameter name="dryRun">false</Parameter>
+  </Batch>
+
+  <!-- JOB9002_TempFileCleanup -->
+  <Batch id="AUTB000091-1000" name="JOB9002_TempFileCleanup"
+    class="jp.co.vinculumjapan.mdware.maintenance.batch.impl.JOB9002_TempFileCleanup"
+    beanclass="jp.co.vinculumjapan.mdware.maintenance.batch.input.JOB9002_TempFileCleanupInputBean">
+    <Parameter name="jobId">JOB9002</Parameter>
+    <Parameter name="shimeTm">02:00</Parameter>
+    <Parameter name="targetPath">/tmp/batch/</Parameter>
+    <Parameter name="olderThanDays">7</Parameter>
+    <Parameter name="dryRun">false</Parameter>
+  </Batch>
+
+  <!-- JOB9003_DBReindex — disabled -->
+  <!-- <Batch id="AUTB000092-1000" name="JOB9003_DBReindex"
+    class="jp.co.vinculumjapan.mdware.maintenance.batch.impl.JOB9003_DBReindex"
+    beanclass="jp.co.vinculumjapan.mdware.maintenance.batch.input.JOB9003_DBReindexInputBean">
+    <Parameter name="jobId">JOB9003</Parameter>
+    <Parameter name="shimeTm">03:00</Parameter>
+    <Parameter name="targetSchema">mdw_order</Parameter>
+    <Parameter name="mode">REBUILD</Parameter>
+  </Batch> -->
+
+  <!-- JOB9004_HealthCheck -->
+  <Batch id="AUTB000093-1000" name="JOB9004_HealthCheck"
+    class="jp.co.vinculumjapan.mdware.maintenance.batch.impl.JOB9004_HealthCheck"
+    beanclass="jp.co.vinculumjapan.mdware.maintenance.batch.input.JOB9004_HealthCheckInputBean">
+    <Parameter name="jobId">JOB9004</Parameter>
+    <Parameter name="shimeTm">*/30 * * * *</Parameter>
+    <Parameter name="checkTarget">DB,REDIS,SFTP</Parameter>
+    <Parameter name="alertOnFailure">true</Parameter>
+    <Parameter name="notifyEmail">infra@example.com</Parameter>
+  </Batch>
+
+  <!-- ===== GROUP G: TEST / DEV (duplicate id case) ===== -->
+
+  <!-- intentional duplicate id để test conflict detection -->
+  <Batch id="AUTB999992-1300" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch>
+
+  <Batch id="AUTB999992-1200" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId223">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch>
+
+  <!-- duplicate id = AUTB999992-1300 -->
+  <Batch id="AUTB999992-1300" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch>
+
+  <!-- disabled test batch -->
+  <!-- <Batch id="AUTB999992-1400" name="JOB2200_TestBatchInsertUser"
+    class="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.impl.JOB2200_TestBatchInsertUser"
+    beanclass="jp.co.vinculumjapan.mdware.ordercommon.dao.batch.input.JOB2200_TestBatchInsertUserInputBean">
+    <Parameter name="jobId">JOB2200</Parameter>
+    <Parameter name="shimeTm">JOB2200</Parameter>
+  </Batch> -->
+
+</BatchConfig>

@@ -1,6 +1,8 @@
 pub mod search;
 pub mod sql_parser;
 pub mod modules;
+pub mod xml_filter;
+
 
 use modules::base::*;
 use modules::file_system::*;
@@ -30,8 +32,11 @@ pub fn run() {
             replace_in_files,
             undo_last_replace,
             fetch_url_content,
-            sql_parser::parse_sql_logs_rust
+            sql_parser::parse_sql_logs_rust,
+            xml_filter::parse_xml_file,
+            xml_filter::filter_xml_nodes
         ])
+
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useXmlFilterStore } from '../store';
 import { FilteredResult } from '../types';
 import { ChevronDown, ChevronRight, Tag, Hash } from 'lucide-react';
@@ -10,14 +10,14 @@ export const TreeView: React.FC = () => {
 
   if (filteredResults.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-600 italic text-[11px] select-none">
+      <div className="h-full flex items-center justify-center text-gray-600 italic text-[0.85rem] select-none">
         {isFiltering ? "No matches found." : "No XML data loaded."}
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-auto h-full p-4 font-mono text-[11px] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+    <div className="flex-1 overflow-auto h-full p-4 font-mono text-[0.85rem] scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
       <div className="space-y-0.5">
         {filteredResults.map(result => (
           <TreeNode 
@@ -71,7 +71,7 @@ const TreeNode: React.FC<{ result: FilteredResult; depth: number; isFiltering: b
         </span>
 
         {displayId && (
-          <span className="text-[10px] text-gray-500 font-mono flex items-center gap-1 bg-[#1a1a1a] px-1.5 py-0.5 rounded border border-gray-800/50 shadow-sm">
+          <span className="text-[0.77rem] text-gray-500 font-mono flex items-center gap-1 bg-[#1a1a1a] px-1.5 py-0.5 rounded border border-gray-800/50 shadow-sm">
              <Hash className="w-2.5 h-2.5 text-gray-700" />
              <span className="text-blue-400/60 font-bold">{displayId}</span>
           </span>
@@ -79,7 +79,7 @@ const TreeNode: React.FC<{ result: FilteredResult; depth: number; isFiltering: b
 
         <div className="flex gap-2 overflow-hidden opacity-30 group-hover:opacity-100 transition-opacity">
           {node.attributes.filter(a => a.name.toLowerCase() !== 'name' && a.name.toLowerCase() !== 'id').map((attr, i) => (
-            <span key={i} className="text-[9px] text-gray-600 truncate bg-gray-900/50 px-1 rounded">
+            <span key={i} className="text-[0.7rem] text-gray-600 truncate bg-gray-900/50 px-1 rounded">
                <span className="text-gray-500">{attr.name}=</span>
                <span className="text-gray-400">"{attr.value}"</span>
             </span>
@@ -87,7 +87,7 @@ const TreeNode: React.FC<{ result: FilteredResult; depth: number; isFiltering: b
         </div>
 
         {node.text && (
-          <span className="text-[10px] text-gray-600 italic truncate max-w-sm ml-2 border-l border-gray-800 pl-2">
+          <span className="text-[0.77rem] text-gray-600 italic truncate max-w-sm ml-2 border-l border-gray-800 pl-2">
             {node.text}
           </span>
         )}

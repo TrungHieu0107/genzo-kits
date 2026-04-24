@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Pin } from "lucide-react";
 import { EditorFile } from "../store";
@@ -36,7 +36,7 @@ export const FileItem: React.FC<FileItemProps> = ({
       onClick={() => onSelect(file.id)}
       onContextMenu={(e) => onContextMenu(e, file.id)}
       className={`
-        group flex items-center cursor-pointer text-[13px] relative
+        group flex items-center cursor-pointer text-[1rem] relative
         transition-all duration-200 ease-out
         ${isSidebarCollapsed ? "justify-center py-2.5" : "px-4 py-1.5"}
         ${isActive ? "bg-blue-600/20 text-blue-100 border-l-2 border-blue-500" : "text-gray-400 hover:bg-white/5 hover:text-gray-200"}

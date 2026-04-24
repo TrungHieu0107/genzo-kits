@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useXmlFilterStore } from '../store';
 import { Info, Clipboard, Check } from 'lucide-react';
 import { buildCsvString } from '../utils/exportCsv';
@@ -42,7 +42,7 @@ export const ResultSummary: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-gray-800 text-[10px] text-gray-400 select-none shadow-sm">
+    <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-gray-800 text-[0.77rem] text-gray-400 select-none shadow-sm">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5">
           <Info className="w-3 h-3 text-blue-400/70" />

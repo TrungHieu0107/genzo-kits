@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   FileUp, FolderOpen, Trash2, X, FileCode, ScanSearch, Loader2, Search 
 } from "lucide-react";
 
@@ -39,7 +39,7 @@ export function RenamerSidebar({
   return (
     <div className="w-[320px] flex-shrink-0 bg-[#252526]/80 backdrop-blur-xl border-r border-[#3C3C3D] flex flex-col shadow-xl">
       <div className="px-4 py-3 flex items-center justify-between border-b border-[#3C3C3D]/50 bg-[#2d2d2d]/30">
-        <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Target Library</span>
+        <span className="text-[0.85rem] font-black uppercase text-gray-400 tracking-widest">Target Library</span>
         <div className="flex items-center gap-1.5">
           <button onClick={onAddFiles} className="p-1.5 hover:bg-[#3C3C3D] rounded-lg transition" title="Add Files">
             <FileUp className="w-4 h-4 text-blue-400" />
@@ -54,7 +54,7 @@ export function RenamerSidebar({
       </div>
 
       {files.length > 0 && (
-        <div className="px-4 py-2 flex items-center justify-between text-[10px] text-gray-500 bg-[#1e1e1e]/30 border-b border-[#3C3C3D]/50">
+        <div className="px-4 py-2 flex items-center justify-between text-[0.77rem] text-gray-500 bg-[#1e1e1e]/30 border-b border-[#3C3C3D]/50">
           <div className="flex gap-3">
             <button onClick={() => onToggleAll(true)} className="hover:text-blue-400 font-bold uppercase transition-colors">Select All</button>
             <button onClick={() => onToggleAll(false)} className="hover:text-gray-300 font-bold uppercase transition-colors">None</button>
@@ -75,7 +75,7 @@ export function RenamerSidebar({
             return (
               <div
                 key={file.path}
-                className={`flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#2A2D2E] text-[12px] group transition-all mb-1 border border-transparent ${
+                className={`flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#2A2D2E] text-[0.92rem] group transition-all mb-1 border border-transparent ${
                   isScanSource ? "bg-blue-600/10 border-blue-500/30 shadow-lg shadow-blue-500/5" : ""
                 }`}
               >
@@ -102,7 +102,7 @@ export function RenamerSidebar({
                 <select
                   value={file.encoding}
                   onChange={(e) => onUpdateEncoding(file.path, e.target.value)}
-                  className="bg-[#1e1e1e] text-[9px] font-bold text-gray-500 border border-[#3C3C3D] rounded px-1 py-0.5 outline-none cursor-pointer hover:border-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="bg-[#1e1e1e] text-[0.7rem] font-bold text-gray-500 border border-[#3C3C3D] rounded px-1 py-0.5 outline-none cursor-pointer hover:border-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
                 </select>
@@ -120,7 +120,7 @@ export function RenamerSidebar({
 
       <div className="p-4 border-t border-[#3C3C3D] bg-[#2d2d2d]/30">
         {scanSourcePath && (
-          <div className="text-[10px] font-bold text-blue-400 mb-2 truncate bg-blue-500/10 px-2 py-1 rounded flex items-center gap-2">
+          <div className="text-[0.77rem] font-bold text-blue-400 mb-2 truncate bg-blue-500/10 px-2 py-1 rounded flex items-center gap-2">
             <ScanSearch className="w-3 h-3" />
             Source: {scanSourcePath.split(/[/\\]/).pop()}
           </div>

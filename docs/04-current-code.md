@@ -1,6 +1,6 @@
 # Current Code
 
-## lib.rs — Rust Backend
+## lib.rs  ERust Backend
 **Commands:**
 - `search_system`: Live BFS scan of target directories. Requires at least one root path.
 - `search_files`: High-performance parallel traversal with fuzzy matching and ranked results.
@@ -14,11 +14,10 @@
 ## FolderSearcher.tsx (Modern Live-Scan)
 **Features**: BFS recursive search, multi-folder targets, cache support.
 **`handleSearch` flow:**
-1. Cache → show immediately + revalidate via `search_system`.
-2. Direct Search → `search_system` (live scan).
+1. Cache ↁEshow immediately + revalidate via `search_system`.
+2. Direct Search ↁE`search_system` (live scan).
 
-## Test Results — March 09, 2026: PASS ✅
-
+## Test Results  EMarch 09, 2026: PASS ✁E
 ## Feature Log
 
 ### FEAT-15: Refactor System Cache to SQLite
@@ -46,7 +45,7 @@
 
 ### FEAT-18: Property Renamer Tool (March 09, 2026)
 - **Backend**: `collect_files`, `scan_files`, `replace_in_files`, `undo_last_replace` commands in `lib.rs`.
-- **Frontend**: `PropertyRenamer.tsx` — 3-column layout (File list | Mapping table | Preview panel).
+- **Frontend**: `PropertyRenamer.tsx`  E3-column layout (File list | Mapping table | Preview panel).
 - **Registration**: Added to `src/tools/index.ts` with `Replace` icon.
 
 ### FEAT-19: Note Editor URL Support (March 10, 2026)
@@ -96,7 +95,7 @@
 - Cleaned up `FolderSearcher.tsx` UI: removed "Scan System Now" button and indexing status badges.
 - Transitioned to a focused "Live Search" model requiring specific target directories.
 
-**Test Status**: PASS -- March 12, 2026 (Column sort in search results implemented).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ---
 
@@ -185,7 +184,7 @@ const results = await invoke("search_files", {
 - **Text Comparator**: Debounced text updates from Monaco Editor to the Zustand store (150ms).
 - **Theme Optimization**: Pre-defined Monaco themes once to avoid expensive re-definitions when toggling row highlights.
 
-**Status**: ALL Critical (P0) and High (P1) performance issues resolved. Build status: PASS ✅.
+**Status**: ALL Critical (P0) and High (P1) performance issues resolved. Build status: PASS ✁E
 
 ### BUG-FIX-06: Parallel Search Build Error (April 20, 2026)
 - **Problem**: Incorrect implementation of multi-root handling in `ignore::WalkBuilder` caused a compilation error.
@@ -200,7 +199,7 @@ const results = await invoke("search_files", {
 - **Problem**: In certain layouts, the Monaco Editor container would expand and push the `StatusBar` component off-screen.
 - **Fix**: Added `min-h-0` to the editor's parent flex container in `NoteEditor.tsx` to ensure it respects the flex layout boundaries.
 
-### FEAT-27: Senior Performance Overhaul — List Virtualization (April 21, 2026)
+### FEAT-27: Senior Performance Overhaul  EList Virtualization (April 21, 2026)
 - **Optimization**: Implemented @tanstack/react-virtual v3 for all high-volume lists.
 - **Scope**: FolderSearcher.tsx (Search results) and PropertyRenamer.tsx (Occurrence list).
 - **Result**: Reduces DOM node count by ~95% for large datasets, eliminating UI lag during scrolling and scanning.
@@ -219,7 +218,7 @@ const results = await invoke("search_files", {
 - **Fix**: Ensured unique model IDs and explicit disposal on tab closure to prevent Undo/Redo history from leaking between files.
 - **Stability**: Fixed a race condition where the Status Bar would disappear after fast tool switching.
 
-**Test Status**: PASS -- April 21, 2026 (Senior Performance Overhaul Complete).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ### BUG-FIX-09: Build & Dependency Stabilization (April 21, 2026)
 - **Problem**: Build failing due to missing @tanstack/react-virtual in node_modules and implicit any types for virtual row mapping in FolderSearcher and PropertyRenamer.
@@ -228,7 +227,7 @@ const results = await invoke("search_files", {
   - Added explicit VirtualItem type from @tanstack/react-virtual to virtual row map functions.
 - **Result**: Frontend build (tsc && vite build) and Rust backend check now pass 100%.
 
-**Test Status**: PASS -- April 21, 2026 (Build stability & dependency fix complete).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ### ARCH-REFACTOR-2026: NoteEditor Premium Modular Refactor (April 21, 2026)
 **Goal**: Elevate NoteEditor to a professional-grade tool with modular architecture and high-end UI/UX.
@@ -279,7 +278,7 @@ const results = await invoke("search_files", {
 - **State Management**: Created `useXmlFilterStore` (Zustand) for file management and filter state.
 - **Dependencies**: Added `quick-xml` and `uuid` to Rust backend.
 
-**Test Status**: PASS -- April 23, 2026 (Genzo XML Filter tool added).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ### BUG-FIX-10: XML Filter TableView TypeError (April 23, 2026)
 - **Problem**: `Uncaught TypeError: Cannot read properties of undefined (reading 'find')` in `TableView.tsx` when expanding matched sub-elements.
@@ -288,7 +287,7 @@ const results = await invoke("search_files", {
 - **Result**: Match expansion in Table View works without runtime errors.
 
 
-**Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ### FEAT-32: Dynamic UI Scaling & Font Size Standardization (April 24, 2026)
 - **Problem**: Inconsistent font sizes across different tools and lack of global UI scaling control.
@@ -301,7 +300,7 @@ const results = await invoke("search_files", {
 - **Standardization**: Leveraged Tailwind's `rem` units to ensure the entire application (sidebar, tools, modals) scales proportionally.
 - **Result**: Users can now customize the entire application's readability with a single professional-grade control.
 
-**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ### FEAT-33: XML Filter CSV Export (April 24, 2026)
 - **Feature**: Implemented "Copy as CSV" functionality for the XML Filter Tool.
@@ -345,3 +344,17 @@ const results = await invoke("search_files", {
     - Added sliding focus effect and glassmorphism background.
     - Improved visual feedback with hover states and active indicators.
 - **Result**: Users can now correctly parse and filter XML files with different encodings, with a "pro-player" UI that matches the Genzo-Kit aesthetic.
+### FEAT-36: Application-wide Semantic Typography & Dynamic Scaling (April 24, 2026)
+- **Problem**: Inconsistent hardcoded pixel font sizes across tools prevented effective global UI scaling.
+- **Optimization**: Standardized all tool components (XML Filter, Note Editor, Comparator, SQL Parser) to use Tailwind `rem` units for typography.
+- **Scaling Core**: Refactored `applyFontSizeToDOM` to dynamically update the root `document.documentElement.style.fontSize`.
+- **Cyber-Loader**: Enhanced `LoadingSystem.tsx` with a premium cyberpunk aesthetic, using standardized `rem` scaling for terminal logs and matrix animations.
+- **Result**: The entire application now scales fluidly from 12px to 20px base font size, maintaining perfect proportions across all tools and decorative overlays.
+
+### BUG-FIX-12: Root Font-Size Scaling Synchronization (April 24, 2026)
+- **Problem**: Changing font size in Settings updated CSS variables but failed to trigger actual `rem` unit scaling because the `html` font-size was not being updated.
+- **Fix**: Synchronized `document.documentElement.style.fontSize` with the global `uiFontSize` state in the scaling hook.
+- **Stability**: Verified that all "Cyber" decorative elements and status bars correctly respect the new scaling engine.
+
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
+

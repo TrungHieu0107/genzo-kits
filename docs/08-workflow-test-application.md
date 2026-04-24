@@ -41,4 +41,5 @@
 3. Press `Ctrl+Alt+C` ↁEVerify switches to Text Comparator. PASS.
 4. Press `Ctrl+Shift+S` ↁEVerify opens Settings. PASS.
 
-**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Encoding verified).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
+

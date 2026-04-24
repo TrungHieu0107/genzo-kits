@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   FileText, X, Trash2, PanelLeftClose, PanelLeftOpen, FolderOpen 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,7 +46,7 @@ export function LogSidebar({
             <PanelLeftOpen className="w-4 h-4" />
           </button>
           <div className="flex-1 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
+            <span className="text-[0.77rem] font-bold text-gray-600 uppercase tracking-[0.2em] [writing-mode:vertical-lr] rotate-180">
               Library
             </span>
           </div>
@@ -96,11 +96,11 @@ export function LogSidebar({
                   >
                     <FileText className={`w-4 h-4 flex-shrink-0 ${activeFileIndex === fIdx ? 'text-blue-400' : 'text-gray-500'}`} />
                     <div className="flex flex-col flex-1 min-w-0">
-                      <span className={`text-[13px] font-medium truncate ${activeFileIndex === fIdx ? 'text-white' : 'text-gray-300'}`}>
+                      <span className={`text-[1rem] font-medium truncate ${activeFileIndex === fIdx ? 'text-white' : 'text-gray-300'}`}>
                         {file.alias || file.name}
                       </span>
                       {(file.alias || activeFileIndex === fIdx) && (
-                        <span className={`text-[10px] truncate mt-0.5 opacity-60 font-mono`} title={file.name}>
+                        <span className={`text-[0.77rem] truncate mt-0.5 opacity-60 font-mono`} title={file.name}>
                           {file.name}
                         </span>
                       )}
@@ -120,7 +120,7 @@ export function LogSidebar({
               <div className="p-8 flex flex-col items-center justify-center text-center opacity-30 h-full">
                 <FolderOpen className="w-12 h-12 mb-4 text-gray-500" />
                 <p className="text-sm font-medium">No Logs Loaded</p>
-                <p className="text-[11px] mt-2 italic px-4 leading-relaxed">
+                <p className="text-[0.85rem] mt-2 italic px-4 leading-relaxed">
                   Open a .log file to analyze database sessions.
                 </p>
               </div>

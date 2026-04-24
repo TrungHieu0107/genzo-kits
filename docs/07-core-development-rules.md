@@ -23,8 +23,8 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - In 04-current-code.md, only append the changed/new section. Never overwrite the entire file.
 
 ## 3. Workflow Enforcement
-- Adding any new feature → MUST follow `05-workflow-new-feature.md` exactly.
-- Fixing any bug → MUST follow `06-workflow-fix-bug.md` exactly.
+- Adding any new feature ↁEMUST follow `05-workflow-new-feature.md` exactly.
+- Fixing any bug ↁEMUST follow `06-workflow-fix-bug.md` exactly.
 - Always reply with: "Done using Workflow XX" at the end of your response.
 
 ## 4. Technology & Performance Rules
@@ -68,4 +68,5 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - Version starts at 1.0 and increases only when major features are added.
 - Commit messages must follow the exact style in workflows 05 and 06.
 
-**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Encoding verified).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
+

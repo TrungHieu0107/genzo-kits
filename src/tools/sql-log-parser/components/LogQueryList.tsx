@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   Clock, FileText, Database, Copy, Check 
 } from 'lucide-react';
 
@@ -31,7 +31,7 @@ export function LogQueryList({
     <div className="flex-1 flex flex-col relative w-full h-full min-h-0 bg-[#1E1E1E] overflow-hidden">
       <div className="h-full flex flex-col">
         {/* Table Header */}
-        <div className="flex-shrink-0 bg-[#252526] border-b border-[#3C3C3D] flex text-[11px] font-bold text-gray-500 uppercase tracking-wider shadow-sm z-10">
+        <div className="flex-shrink-0 bg-[#252526] border-b border-[#3C3C3D] flex text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider shadow-sm z-10">
           <div className="w-[180px] px-4 py-2.5 border-r border-[#3C3C3D] flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-blue-400/50"/> Timestamp
           </div>
@@ -52,14 +52,14 @@ export function LogQueryList({
                 className="flex border-b border-[#2d2d2d] hover:bg-[#252526] transition-colors group group-last:border-none items-stretch animate-in fade-in slide-in-from-left-2 duration-300"
                 style={{ animationDelay: `${Math.min(idx * 30, 600)}ms` }}
               >
-                <div className="w-[180px] flex-shrink-0 px-4 py-4 text-[12px] text-gray-400 font-mono border-r border-[#2d2d2d] flex items-center">
+                <div className="w-[180px] flex-shrink-0 px-4 py-4 text-[0.92rem] text-gray-400 font-mono border-r border-[#2d2d2d] flex items-center">
                   {log.timestamp || '--/--/-- --:--:--'}
                 </div>
-                <div className="w-[220px] flex-shrink-0 px-4 py-4 text-[12px] text-blue-400/80 font-bold border-r border-[#2d2d2d] flex items-center" title={log.daoName}>
+                <div className="w-[220px] flex-shrink-0 px-4 py-4 text-[0.92rem] text-blue-400/80 font-bold border-r border-[#2d2d2d] flex items-center" title={log.daoName}>
                   <span className="truncate">{log.daoName}</span>
                 </div>
                 <div 
-                  className="flex-1 px-4 py-4 text-[13px] text-gray-300 font-mono whitespace-pre-wrap break-all leading-relaxed lining-nums border-r border-[#2d2d2d] cursor-pointer hover:bg-[#2a2a2e] transition-colors relative"
+                  className="flex-1 px-4 py-4 text-[1rem] text-gray-300 font-mono whitespace-pre-wrap break-all leading-relaxed lining-nums border-r border-[#2d2d2d] cursor-pointer hover:bg-[#2a2a2e] transition-colors relative"
                   onClick={() => onSqlClick(log.reconstructedSql || '')}
                   title="Click to view formatted SQL"
                 >

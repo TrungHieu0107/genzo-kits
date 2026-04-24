@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useXmlFilterStore } from './store';
 import { FileLoader } from './components/FileLoader';
 import { FilterBar } from './components/FilterBar';
@@ -22,14 +22,14 @@ export const XmlFilterTool: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xs font-semibold text-gray-100">Genzo XML Filter</h1>
-            <p className="text-[10px] text-gray-400">Shift_JIS Support • Multi-File Analyzer</p>
+            <p className="text-[0.77rem] text-gray-400">Shift_JIS Support • Multi-File Analyzer</p>
           </div>
         </div>
         
         <div className="flex items-center gap-1 bg-[#1e1e1e] p-0.5 rounded-lg border border-gray-800">
           <button
             onClick={() => setViewMode('table')}
-            className={`px-3 py-1 text-[10px] font-medium rounded-md transition-all ${
+            className={`px-3 py-1 text-[0.77rem] font-medium rounded-md transition-all ${
               viewMode === 'table' 
                 ? 'bg-[#37373d] text-white shadow-sm' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-[#2a2d2e]'
@@ -42,7 +42,7 @@ export const XmlFilterTool: React.FC = () => {
           </button>
           <button
             onClick={() => setViewMode('tree')}
-            className={`px-3 py-1 text-[10px] font-medium rounded-md transition-all ${
+            className={`px-3 py-1 text-[0.77rem] font-medium rounded-md transition-all ${
               viewMode === 'tree' 
                 ? 'bg-[#37373d] text-white shadow-sm' 
                 : 'text-gray-400 hover:text-gray-200 hover:bg-[#2a2d2e]'
@@ -71,10 +71,10 @@ export const XmlFilterTool: React.FC = () => {
                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
                 </div>
                 <p className="text-red-400 text-sm font-bold tracking-tight">System Error Detected</p>
-                <p className="text-red-300/60 text-[11px] mt-2 font-mono leading-relaxed">{error}</p>
+                <p className="text-red-300/60 text-[0.85rem] mt-2 font-mono leading-relaxed">{error}</p>
                 <button 
                   onClick={() => window.location.reload()}
-                  className="mt-6 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/30 transition-all active:scale-95"
+                  className="mt-6 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-[0.77rem] font-bold rounded-lg border border-red-500/30 transition-all active:scale-95"
                 >
                   REBOOT ENGINE
                 </button>

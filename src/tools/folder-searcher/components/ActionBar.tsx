@@ -1,4 +1,4 @@
-import { FileText, Replace, Trash2 } from 'lucide-react';
+﻿import { FileText, Replace, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ActionBarProps {
@@ -28,7 +28,7 @@ export function ActionBar({
               key={selectedCount}
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="bg-emerald-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full"
+              className="bg-emerald-500 text-black text-[0.77rem] font-bold px-2 py-0.5 rounded-full"
             >
               {selectedCount}
             </motion.span>

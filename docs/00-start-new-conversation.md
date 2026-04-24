@@ -6,18 +6,18 @@ This is a brand new conversation. To maintain 100% context and continuity, you M
 The project root is named `genzo-kit`.
 Inside it there is a `docs/` folder containing exactly these 7 files (their full content is either attached in this message or available in the project):
 
-1. 01-project-overview.md → Project overview and structure
-2. 02-features.md → Current features list
-3. 03-editing-principles.md → General editing principles
-4. 04-current-code.md → Latest full source code of all tools (this is the most important file)
-5. 05-workflow-new-feature.md → Workflow for adding any new feature
-6. 06-workflow-fix-bug.md → Workflow for fixing bugs
-7. 07-core-development-rules.md → Core Development Rules (highest priority, non-negotiable)
+1. 01-project-overview.md ↁEProject overview and structure
+2. 02-features.md ↁECurrent features list
+3. 03-editing-principles.md ↁEGeneral editing principles
+4. 04-current-code.md ↁELatest full source code of all tools (this is the most important file)
+5. 05-workflow-new-feature.md ↁEWorkflow for adding any new feature
+6. 06-workflow-fix-bug.md ↁEWorkflow for fixing bugs
+7. 07-core-development-rules.md ↁECore Development Rules (highest priority, non-negotiable)
 
 Read and fully internalize ALL 7 files right now.  
 After reading, you MUST reply with exactly this confirmation line first:
 
-"✅ Genzo-Kit context loaded successfully. All 7 docs files internalized. Ready to develop using Workflow 05, Workflow 06 and Core Rules 07."
+"✁EGenzo-Kit context loaded successfully. All 7 docs files internalized. Ready to develop using Workflow 05, Workflow 06 and Core Rules 07."
 
 ### STEP 2: PERMANENT RULES (apply forever in this conversation)
 - You must obey 100% of the rules in `07-core-development-rules.md` (they override everything else).
@@ -38,4 +38,5 @@ Current project status is stored in the docs folder. You are now fully up-to-dat
 
 Begin.
 
-**Test Status**: PASS -- March 09, 2026 (Property Renamer tool added).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
+

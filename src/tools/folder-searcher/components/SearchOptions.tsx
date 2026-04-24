@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   FolderOpen, Search, RotateCw, Plus, ChevronDown, 
   ChevronRight, Trash2 
 } from 'lucide-react';
@@ -88,7 +88,7 @@ export function SearchOptions({
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Target</label>
+          <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider">Search Target</label>
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-400 hover:text-gray-200 transition-colors">
               <input type="checkbox" checked={useCache} onChange={e => setUseCache(e.target.checked)} className="accent-emerald-500 w-3 h-3" />
@@ -151,14 +151,14 @@ export function SearchOptions({
             <div className="text-gray-500 group-hover/header:text-gray-300 transition-colors">
               {isOptionsCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+            <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
               <FolderOpen className="w-4 h-4 text-blue-400" /> {isOptionsCollapsed ? "Settings" : "Target Directories"}
             </label>
           </div>
           {!isOptionsCollapsed && (
             <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-              <button onClick={handleClearDirs} className="text-[10px] font-bold text-red-400/70 hover:text-red-400 transition-colors uppercase tracking-wider">Clear Roots</button>
-              <button onClick={() => handleSelectRoot()} className="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95">
+              <button onClick={handleClearDirs} className="text-[0.77rem] font-bold text-red-400/70 hover:text-red-400 transition-colors uppercase tracking-wider">Clear Roots</button>
+              <button onClick={() => handleSelectRoot()} className="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-lg text-[0.77rem] font-bold uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95">
                 <Plus className="w-3 h-3" /> Add Folders
               </button>
             </div>
@@ -176,7 +176,7 @@ export function SearchOptions({
               <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2 py-1">
                 {rootDirs.length === 0 ? (
                   <div className="bg-[#1e1e1e]/50 border border-dashed border-[#333] rounded-lg p-4 flex items-center justify-center" onClick={() => handleSelectRoot()}>
-                    <p className="text-[11px] text-gray-500 italic">No search roots selected. Defaulting to system-wide search.</p>
+                    <p className="text-[0.85rem] text-gray-500 italic">No search roots selected. Defaulting to system-wide search.</p>
                   </div>
                 ) : rootDirs.map((dir, i) => (
                   <motion.div 
@@ -200,7 +200,7 @@ export function SearchOptions({
                   </motion.div>
                 ))}
                 {rootDirs.length > 0 && (
-                  <button onClick={handleAddRow} className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#333] hover:border-emerald-500/30 hover:bg-emerald-500/5 rounded-lg text-gray-500 hover:text-emerald-400 transition-all text-[10px] font-bold uppercase tracking-wider mt-1 active:scale-[0.98]">
+                  <button onClick={handleAddRow} className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#333] hover:border-emerald-500/30 hover:bg-emerald-500/5 rounded-lg text-gray-500 hover:text-emerald-400 transition-all text-[0.77rem] font-bold uppercase tracking-wider mt-1 active:scale-[0.98]">
                     <Plus className="w-3 h-3" /> Add Root
                   </button>
                 )}

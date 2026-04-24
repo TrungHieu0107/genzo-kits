@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Plus, Search, Database, Clock, Filter } from 'lucide-react';
 import { useSqlLogStore, SqlFilter, FilterOperator } from './store';
 
@@ -48,7 +48,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
         {/* Body */}
         <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Filter Field</label>
+            <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider">Filter Field</label>
             <div className="flex gap-2">
               {[
                 { id: 'query', label: 'SQL Query', icon: Database },
@@ -73,7 +73,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
 
           <div className="flex gap-3">
              <div className="flex flex-col gap-2 w-1/3">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Condition</label>
+                <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider">Condition</label>
                 <select
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as FilterOperator)}
@@ -89,7 +89,7 @@ export function FilterModal({ isOpen, onClose }: FilterModalProps) {
              </div>
 
              <div className="flex flex-col gap-2 flex-1">
-               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Search Term</label>
+               <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider">Search Term</label>
                <input
                  autoFocus
                  type="text"

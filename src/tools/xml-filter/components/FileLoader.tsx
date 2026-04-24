@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useXmlFilterStore } from '../store';
 import { FolderOpen, ChevronDown, ChevronUp, X, FileText } from 'lucide-react';
@@ -30,7 +30,7 @@ export const FileLoader: React.FC = () => {
         <button
           onClick={handleAddFile}
           disabled={isLoading}
-          className="group flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-[11px] font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 whitespace-nowrap"
+          className="group flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-[0.85rem] font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 whitespace-nowrap"
         >
           <FolderOpen className="w-4 h-4 group-hover:rotate-6 transition-transform" />
           ADD XML FILE
@@ -42,10 +42,10 @@ export const FileLoader: React.FC = () => {
             className="flex items-center gap-3 px-3 py-2 bg-[#1a1a1a] border border-gray-800 rounded-md cursor-pointer hover:border-blue-500/50 transition-all group"
           >
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full shadow-lg shadow-blue-900/20">
+              <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-[0.77rem] font-black rounded-full shadow-lg shadow-blue-900/20">
                 {files.length}
               </span>
-              <span className="text-[10px] text-gray-400 font-bold group-hover:text-blue-400">
+              <span className="text-[0.77rem] text-gray-400 font-bold group-hover:text-blue-400">
                 Files Selected
               </span>
             </div>
@@ -71,8 +71,8 @@ export const FileLoader: React.FC = () => {
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <FileText className="w-4 h-4 text-blue-500/50 flex-shrink-0" />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-gray-200 font-bold truncate">{file.name}</span>
-                      <span className="text-[8px] text-gray-500 font-mono truncate opacity-60">{file.path}</span>
+                      <span className="text-[0.77rem] text-gray-200 font-bold truncate">{file.name}</span>
+                      <span className="text-[0.62rem] text-gray-500 font-mono truncate opacity-60">{file.path}</span>
                     </div>
                   </div>
 
@@ -82,7 +82,7 @@ export const FileLoader: React.FC = () => {
                         <button
                           key={enc}
                           onClick={() => updateFileEncoding(file.path, enc)}
-                          className={`relative px-2 py-1 text-[8px] font-black tracking-widest uppercase transition-all ${
+                          className={`relative px-2 py-1 text-[0.62rem] font-black tracking-widest uppercase transition-all ${
                             file.encoding === enc ? 'text-white' : 'text-gray-500 hover:text-gray-400'
                           }`}
                         >

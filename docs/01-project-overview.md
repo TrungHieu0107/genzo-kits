@@ -1,12 +1,12 @@
-# Genzo-Kit — Project Overview
+# Genzo-Kit  EProject Overview
 **Version**: 1.3.1
-**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Encoding verified).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
 
 ---
 
 ## 1. Tổng Quan
 
-**Genzo-Kit** là ứng dụng Desktop đa công cụ (multi-tool), tối ưu cho developer. Được xây dựng trên nền tảng **Tauri v2** (Rust backend + WebView2 frontend), ứng dụng tập trung vào **tốc độ cao**, **RAM thấp**, và trải nghiệm người dùng giống **VS Code / IDE chuyên nghiệp**.
+**Genzo-Kit** là ứng dụng Desktop đa công cụ (multi-tool), tối ưu cho developer. Được xây dựng trên nền tảng **Tauri v2** (Rust backend + WebView2 frontend), ứng dụng tập trung vào **tốc đềEcao**, **RAM thấp**, và trải nghiệm người dùng giống **VS Code / IDE chuyên nghiệp**.
 
 ### Đặc điểm chính
 - 🚀 **Khởi động nhanh** (dưới 0.6 giây), RAM dưới 60 MB
@@ -14,16 +14,16 @@
 - 🚀 **Genzo Folder Searcher**: High-performance parallel filesystem traversal using Rust `ignore` crate (Virtualized).
 - ⚡ **Optimized Performance**: `@tanstack/react-virtual` for large datasets, centralized memory management.
 - ✨ **Premium UI/UX**: Framer Motion animations, glassmorphism design, and professional-grade interactions.
-- 🧩 **Kiến trúc modular** — mỗi tool là một module độc lập (High-level components & custom hooks).
-- 💾 **Offline-first** — không cần internet, mọi dữ liệu lưu local
-- 🪟 **Multi-window** — mỗi tool có thể mở trong cửa sổ riêng
-- ⌨️ **Keyboard shortcuts** — Ctrl+Shift+S (Settings), Ctrl+Alt+N (Note Editor), Ctrl+Alt+C (Comparator).
+- 🧩 **Kiến trúc modular**  Emỗi tool là một module độc lập (High-level components & custom hooks).
+- 💾 **Offline-first**  Ekhông cần internet, mọi dữ liệu lưu local
+- 🪁E**Multi-window**  Emỗi tool có thềEmềEtrong cửa sềEriêng
+- ⌨�E�E**Keyboard shortcuts**  ECtrl+Shift+S (Settings), Ctrl+Alt+N (Note Editor), Ctrl+Alt+C (Comparator).
 - 🔍 **Genzo XML Filter**: Parse and filter large XML files with Shift_JIS support.
 - 📐 **Semantic Typography**: Pro-level global font-size token system (`fs` shorthand) that scales the entire interface proportionally (11px-17px).
 
 ---
 
-## 2. Công Nghệ Sử Dụng
+## 2. Công NghềESử Dụng
 
 ### Frontend
 | Thư viện | Phiên bản | Mục đích |
@@ -38,7 +38,7 @@
 | **sql-formatter** | 15.7 | SQL formatting (dùng trong SqlLogParser) |
 | **diff** | 5.2 | Text diff engine |
 | **PrismJS** | 1.30 | Syntax highlighting (dùng trong SqlLogParser) |
-| **clsx / tailwind-merge** | — | Class name utilities |
+| **clsx / tailwind-merge** |  E| Class name utilities |
 | **framer-motion** | 11.x | Professional animations & transitions |
 
 ### Backend (Rust)
@@ -47,7 +47,7 @@
 | **tauri** | 2.0 | Desktop framework, IPC, window management |
 | **serde / serde_json** | 1.x | Serialization |
 | **encoding_rs** | 0.8 | Multi-encoding file read/write (UTF-8, Shift_JIS, v.v.) |
-| **regex / rayon / ignore** | — | High-speed search, parallel traversal |
+| **regex / rayon / ignore** |  E| High-speed search, parallel traversal |
 | **quick-xml** | 0.36 | High-performance XML parsing |
 | **uuid** | 1.x | Unique ID generation for UI keys |
 | **fuzzy-matcher** | 0.3 | Ranked scoring (Skim V2) |
@@ -70,74 +70,74 @@
 ```
 genzo-kit/
 ├── src/                          # Frontend source
-│   ├── main.tsx                  # React entry point
-│   ├── App.tsx                   # Root component
-│   ├── index.css                 # Global styles
-│   ├── components/               # Shared components
-│   └── tools/                    # Tool modules
-│       ├── index.ts              # Tool registry (ToolDefinition[])
-│       ├── tool-manager/
-│       │   └── ToolSidebar.tsx   # Sidebar navigation (collapsible, context menu, open in new window)
-│       ├── text-comparator/      # Tool 1
-│       │   ├── TextComparator.tsx # Monaco DiffEditor wrapper
-│       │   ├── components/
-│       │   │   └── ComparatorHeader.tsx
-│       │   ├── hooks/
-│       │   │   └── useTextComparator.ts
-│       │   └── store.ts          # Zustand store cho comparator state
-│       ├── note-editor/          # Tool 2
-│       │   ├── NoteEditor.tsx    # High-level orchestrator
-│       │   ├── store.ts          # Zustand store (files, tabs, session)
-│       │   ├── utils.ts          # Icon & language utilities
-│       │   ├── hooks/            # Logic abstraction
-│       │   │   ├── useNoteEditorSession.ts
-│       │   │   └── useNoteEditorCommands.ts
-│       │   └── components/       # UI Components
-│       │       ├── Sidebar.tsx
-│       │       ├── FileItem.tsx
-│       │       └── EditorView.tsx
-│       ├── sql-log-parser/       # Tool 3 (Modular Refactored)
-│       │   ├── SqlLogParser.tsx  # High-level orchestrator
-│       │   ├── store.ts          # Zustand store (sessions, filters, aliases)
-│       │   ├── hooks/            # Logic abstraction
-│       │   │   └── useSqlLogParser.ts
-│       │   ├── components/       # UI Components
-│       │   │   ├── LogSidebar.tsx
-│       │   │   ├── LogToolbar.tsx
-│       │   │   └── LogQueryList.tsx
-│       │   ├── FilterModal.tsx   # Legacy/Shared Dialog
-│       │   ├── AliasModal.tsx    # Legacy/Shared Dialog
-│       │   ├── SqlFormatterModal.tsx # Legacy/Shared Dialog
-│       │   └── index.ts          # Export
-│       ├── folder-searcher/      # Tool 4
-│       │   ├── FolderSearcher.tsx # High-level orchestrator
-│       │   ├── hooks/            # Logic abstraction
-│       │   │   └── useFolderSearch.ts
-│       │   └── components/       # UI Components
-│       │       ├── SearchHeader.tsx
-│       │       ├── SearchOptions.tsx
-│       │       ├── ResultsTable.tsx
-│       │       └── ActionBar.tsx
-│       ├── xml-filter/           # Tool 5 [NEW]
-│       │   ├── XmlFilterTool.tsx # Main orchestrator
-│       │   ├── store.ts          # Zustand store
-│       │   ├── types.ts          # Type definitions
-│       │   └── components/       # UI Components
-│       │       ├── FileLoader.tsx
-│       │       ├── FilterBar.tsx
-│       │       ├── ResultSummary.tsx
-│       │       ├── TableView.tsx
-│       │       └── TreeView.tsx
-│       └── settings/             # Tool 6
-│           ├── Settings.tsx      # Multi-section settings UI
-│           └── store.ts          # Zustand store (general, tool-specific, persist via localStorage)
+━E  ├── main.tsx                  # React entry point
+━E  ├── App.tsx                   # Root component
+━E  ├── index.css                 # Global styles
+━E  ├── components/               # Shared components
+━E  └── tools/                    # Tool modules
+━E      ├── index.ts              # Tool registry (ToolDefinition[])
+━E      ├── tool-manager/
+━E      ━E  └── ToolSidebar.tsx   # Sidebar navigation (collapsible, context menu, open in new window)
+━E      ├── text-comparator/      # Tool 1
+━E      ━E  ├── TextComparator.tsx # Monaco DiffEditor wrapper
+━E      ━E  ├── components/
+━E      ━E  ━E  └── ComparatorHeader.tsx
+━E      ━E  ├── hooks/
+━E      ━E  ━E  └── useTextComparator.ts
+━E      ━E  └── store.ts          # Zustand store cho comparator state
+━E      ├── note-editor/          # Tool 2
+━E      ━E  ├── NoteEditor.tsx    # High-level orchestrator
+━E      ━E  ├── store.ts          # Zustand store (files, tabs, session)
+━E      ━E  ├── utils.ts          # Icon & language utilities
+━E      ━E  ├── hooks/            # Logic abstraction
+━E      ━E  ━E  ├── useNoteEditorSession.ts
+━E      ━E  ━E  └── useNoteEditorCommands.ts
+━E      ━E  └── components/       # UI Components
+━E      ━E      ├── Sidebar.tsx
+━E      ━E      ├── FileItem.tsx
+━E      ━E      └── EditorView.tsx
+━E      ├── sql-log-parser/       # Tool 3 (Modular Refactored)
+━E      ━E  ├── SqlLogParser.tsx  # High-level orchestrator
+━E      ━E  ├── store.ts          # Zustand store (sessions, filters, aliases)
+━E      ━E  ├── hooks/            # Logic abstraction
+━E      ━E  ━E  └── useSqlLogParser.ts
+━E      ━E  ├── components/       # UI Components
+━E      ━E  ━E  ├── LogSidebar.tsx
+━E      ━E  ━E  ├── LogToolbar.tsx
+━E      ━E  ━E  └── LogQueryList.tsx
+━E      ━E  ├── FilterModal.tsx   # Legacy/Shared Dialog
+━E      ━E  ├── AliasModal.tsx    # Legacy/Shared Dialog
+━E      ━E  ├── SqlFormatterModal.tsx # Legacy/Shared Dialog
+━E      ━E  └── index.ts          # Export
+━E      ├── folder-searcher/      # Tool 4
+━E      ━E  ├── FolderSearcher.tsx # High-level orchestrator
+━E      ━E  ├── hooks/            # Logic abstraction
+━E      ━E  ━E  └── useFolderSearch.ts
+━E      ━E  └── components/       # UI Components
+━E      ━E      ├── SearchHeader.tsx
+━E      ━E      ├── SearchOptions.tsx
+━E      ━E      ├── ResultsTable.tsx
+━E      ━E      └── ActionBar.tsx
+━E      ├── xml-filter/           # Tool 5 [NEW]
+━E      ━E  ├── XmlFilterTool.tsx # Main orchestrator
+━E      ━E  ├── store.ts          # Zustand store
+━E      ━E  ├── types.ts          # Type definitions
+━E      ━E  └── components/       # UI Components
+━E      ━E      ├── FileLoader.tsx
+━E      ━E      ├── FilterBar.tsx
+━E      ━E      ├── ResultSummary.tsx
+━E      ━E      ├── TableView.tsx
+━E      ━E      └── TreeView.tsx
+━E      └── settings/             # Tool 6
+━E          ├── Settings.tsx      # Multi-section settings UI
+━E          └── store.ts          # Zustand store (general, tool-specific, persist via localStorage)
 ├── src-tauri/                    # Rust backend
-│   ├── Cargo.toml                # Rust dependencies
-│   ├── src/
-│   │   ├── main.rs               # Entry point
-│   │   ├── lib.rs                # Tauri commands registration
-│   │   ├── modules/              # Specialized logic modules
-│   │   └── xml_filter/           # [NEW] XML parsing & filtering logic
+━E  ├── Cargo.toml                # Rust dependencies
+━E  ├── src/
+━E  ━E  ├── main.rs               # Entry point
+━E  ━E  ├── lib.rs                # Tauri commands registration
+━E  ━E  ├── modules/              # Specialized logic modules
+━E  ━E  └── xml_filter/           # [NEW] XML parsing & filtering logic
 ├── docs/                         # Documentation (8 files)
 └── package.json                  # NPM dependencies
 ```
@@ -148,7 +148,7 @@ genzo-kit/
 
 ### 4.1 App Entry Flow
 ```
-main.tsx → App.tsx → ToolSidebar + ActiveComponent
+main.tsx ↁEApp.tsx ↁEToolSidebar + ActiveComponent
 ```
 
 ### 4.2 Tool Switching
@@ -156,7 +156,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 - `ToolSidebar` render danh sách tools từ `tools[]`.
 
 ### 4.3 Standalone Window Mode
-- URL param `?window=toolId` → render tool trực tiếp.
+- URL param `?window=toolId` ↁErender tool trực tiếp.
 
 ### 4.4 State Management Architecture
 - Zustand stores cho từng tool độc lập.
@@ -172,12 +172,12 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Tính năng | Mô tả |
 |:---|:---|
 | Monaco DiffEditor | So sánh side-by-side với syntax highlighting |
-| File load | Mở file từ hệ thống qua native dialog |
+| File load | MềEfile từ hềEthống qua native dialog |
 | Clipboard paste | Dán nội dung từ clipboard vào left/right panel |
 | Inline decorations | Custom decorations cho diff highlights |
-| Whitespace toggle | Bật/tắt hiển thị whitespace, bật/tắt ignore whitespace trong diff |
+| Whitespace toggle | Bật/tắt hiển thềEwhitespace, bật/tắt ignore whitespace trong diff |
 | Encoding support | Independent per-pane (UTF-8, Shift_JIS, v.v.) |
-| StatusBar | Hiển thị file name, language, encoding |
+| StatusBar | Hiển thềEfile name, language, encoding |
 
 **Files**: `TextComparator.tsx`, `hooks/useTextComparator.ts`, `components/ComparatorHeader.tsx`, `store.ts`
 
@@ -191,19 +191,19 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Multi-tab editing | Quản lý nhiều file cùng lúc |
 | Session persistence | Tự động lưu session qua Rust backend |
 | Custom Prompts | Inline animated prompts thay cho native dialogs |
-| Drag-and-drop | Kéo thả để sắp xếp lại tabs |
+| Drag-and-drop | Kéo thả đềEsắp xếp lại tabs |
 | Premium UX | Framer Motion animations & glassmorphism |
 
 ---
 
 ### 5.3 Log SQL Extractor
-**Mô tả**: Parse log files để tìm DAO sessions, tái dựng SQL queries hoàn chỉnh với parameters.
+**Mô tả**: Parse log files đềEtìm DAO sessions, tái dựng SQL queries hoàn chỉnh với parameters.
 
 | Tính năng | Mô tả |
 |:---|:---|
-| DAO Session Parsing | Nhận diện `Daoの開始` / `Dao của終了` boundaries |
+| DAO Session Parsing | Nhận diện `Daoの開始` / `Dao của終亁E boundaries |
 | SQL Reconstruction | Thay thế `?` placeholders bằng actual params (TYPE:INDEX:VALUE) |
-| Thread-aware | Hỗ trợ multi-thread logs, stack-based session tracking |
+| Thread-aware | HềEtrợ multi-thread logs, stack-based session tracking |
 | Filter Modal | Lọc theo DAO name, SQL ID, keyword |
 | Alias Modal | Đặt tên alias cho SQL IDs |
 | SQL Formatter | Format SQL đẹp bằng `sql-formatter` library |
@@ -219,12 +219,12 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 
 | Tính năng | Mô tả |
 |:---|:---|
-| Live Scan Focused | Scan real-time các thư mục được chỉ định sử dụng BFS |
-| Multi-folder Targets | Row-based UI, hỗ trợ nhiều đường dẫn quét cùng lúc |
+| Live Scan Focused | Scan real-time các thư mục được chềEđịnh sử dụng BFS |
+| Multi-folder Targets | Row-based UI, hềEtrợ nhiều đường dẫn quét cùng lúc |
 | Action Bar | Thanh công cụ nổi khi có item được chọn |
-| Open in Note Tool | Đọc nội dung file và mở tab mới trong Note Editor |
+| Open in Note Tool | Đọc nội dung file và mềEtab mới trong Note Editor |
 | Add to Renamer | Inject file vào Property Renamer list và chuyển tab |
-| Virtualized Results | Hiển thị hàng ngàn file mượt mà |
+| Virtualized Results | Hiển thềEhàng ngàn file mượt mà |
 
 **Files**: `FolderSearcher.tsx`, `hooks/useFolderSearch.ts`, `components/SearchHeader.tsx`, `components/SearchOptions.tsx`, `components/ResultsTable.tsx`, `components/ActionBar.tsx`
 
@@ -237,9 +237,9 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 |:---|:---|
 | Shift_JIS Support | Đọc file XML tiếng Nhật (Shift_JIS) không lỗi font |
 | Recursive Filter | Lọc theo Tag, Attribute Name, Attribute Value, và Text |
-| Table View | Hiển thị danh sách phẳng các kết quả match, có thể expand xem children |
-| Tree View | Hiển thị cấu trúc cây XML với highlight các node match |
-| Fast Parsing | Sử dụng `quick-xml` ở backend để xử lý file lớn cực nhanh |
+| Table View | Hiển thềEdanh sách phẳng các kết quả match, có thềEexpand xem children |
+| Tree View | Hiển thềEcấu trúc cây XML với highlight các node match |
+| Fast Parsing | Sử dụng `quick-xml` ềEbackend đềExử lý file lớn cực nhanh |
 | CSV Export | Export Batch nodes sang CSV (pipe-separated) với dynamic parameter mapping |
 
 ---
@@ -252,18 +252,18 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 | Parallel Scan | Quét hàng loạt file bằng Rust Rayon |
 | Smart Mapping | Tự động detect JSP property và map sang Java methods |
 | Preview Panel | Xem trước thay đổi trước khi apply |
-| Virtualized Table | Hỗ trợ hàng ngàn property names không lag |
+| Virtualized Table | HềEtrợ hàng ngàn property names không lag |
 
 **Files**: `PropertyRenamer.tsx`, `hooks/usePropertyRenamer.ts`, `components/RenamerSidebar.tsx`, `store.ts`
 
 ---
 
 ### 5.7 Settings
-**Mô tả**: Trang cấu hình đa mục cho toàn bộ ứng dụng. Hỗ trợ **Interface Design** với **Semantic Font-Size Tokens** và **Live Preview Matrix** chuyên nghiệp. Hỗ trợ scale app từ 11px đến 17px base size.
+**Mô tả**: Trang cấu hình đa mục cho toàn bềEứng dụng. HềEtrợ **Interface Design** với **Semantic Font-Size Tokens** và **Live Preview Matrix** chuyên nghiệp. HềEtrợ scale app từ 12px đến 20px base size.
 
 ---
 
-## 6. Rust Backend — Tauri Commands
+## 6. Rust Backend  ETauri Commands
 
 | Command | Mô tả |
 |:---|:---|
@@ -288,9 +288,10 @@ cargo tauri build --target x86_64-pc-windows-msvc
 
 ## 8. Quy Tắc Phát Triển
 
-1. **Mỗi tool là 1 folder** trong `src/tools/[kebab-case]` — hoàn toàn độc lập
-2. **Không bao giờ sửa tool khác** khi thêm feature mới
+1. **Mỗi tool là 1 folder** trong `src/tools/[kebab-case]`  Ehoàn toàn độc lập
+2. **Không bao giềEsửa tool khác** khi thêm feature mới
 3. **Sau mỗi thay đổi**, cập nhật cả 8 file trong `docs/`
-4. **Thêm feature mới** → Follow Workflow 05
+4. **Thêm feature mới** ↁEFollow Workflow 05
 5. **Dark theme only**, giao diện IDE chuyên nghiệp
 6. **TypeScript nghiêm ngặt**, không dùng `any` type
+

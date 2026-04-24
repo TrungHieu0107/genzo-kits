@@ -1,4 +1,4 @@
-import { Search as SearchIcon, X, Edit3 } from 'lucide-react';
+﻿import { Search as SearchIcon, X, Edit3 } from 'lucide-react';
 import { useSqlLogParser } from './hooks/useSqlLogParser';
 
 // Components
@@ -99,12 +99,12 @@ export default function SqlLogParser() {
           {/* Filter Tags Bar */}
           {filters.length > 0 && activeFile && (
             <div className="px-4 py-2 bg-[#222]/50 backdrop-blur-sm border-b border-[#333] flex flex-wrap gap-2 items-center min-h-[42px] shadow-inner">
-              <span className="text-[10px] uppercase font-bold text-gray-500 mr-2 flex items-center gap-1.5 opacity-80">
+              <span className="text-[0.77rem] uppercase font-bold text-gray-500 mr-2 flex items-center gap-1.5 opacity-80">
                 <SearchIcon className="w-3 h-3 text-blue-400" /> Active Filters
               </span>
               {filters.map((f) => (
-                <div key={f.id} className="flex items-center gap-2 bg-blue-600/15 border border-blue-500/30 text-blue-400 px-3 py-1 rounded-full text-[11px] font-bold animate-in fade-in zoom-in-95 duration-200 shadow-sm">
-                  <span className="opacity-60 text-[9px] uppercase tracking-tighter">{f.type} {f.operator === 'equals' ? '==' : f.operator === 'not_equals' ? '!=' : f.operator === 'greater_than' ? '>' : f.operator === 'less_than' ? '<' : f.operator === 'not_contains' ? 'not in' : 'in'}</span>
+                <div key={f.id} className="flex items-center gap-2 bg-blue-600/15 border border-blue-500/30 text-blue-400 px-3 py-1 rounded-full text-[0.85rem] font-bold animate-in fade-in zoom-in-95 duration-200 shadow-sm">
+                  <span className="opacity-60 text-[0.7rem] uppercase tracking-tighter">{f.type} {f.operator === 'equals' ? '==' : f.operator === 'not_equals' ? '!=' : f.operator === 'greater_than' ? '>' : f.operator === 'less_than' ? '<' : f.operator === 'not_contains' ? 'not in' : 'in'}</span>
                   <span className="max-w-[150px] truncate">{f.value}</span>
                   <button 
                     onClick={() => removeFilter(f.id)}
@@ -116,7 +116,7 @@ export default function SqlLogParser() {
               ))}
               <button 
                 onClick={clearFilters}
-                className="text-[10px] text-gray-500 hover:text-red-400 font-bold uppercase tracking-wider ml-auto hover:bg-red-400/10 px-2 py-1 rounded-md transition-all active:scale-95"
+                className="text-[0.77rem] text-gray-500 hover:text-red-400 font-bold uppercase tracking-wider ml-auto hover:bg-red-400/10 px-2 py-1 rounded-md transition-all active:scale-95"
               >
                 Clear All
               </button>

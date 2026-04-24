@@ -1,4 +1,4 @@
-import { VirtualItem } from "@tanstack/react-virtual";
+﻿import { VirtualItem } from "@tanstack/react-virtual";
 
 interface RenamerMainTableProps {
   filteredResults: any[];
@@ -42,7 +42,7 @@ export function RenamerMainTable({
       <div style={{ height: `${totalHeight}px`, width: '100%', position: 'relative' }}>
         <table className="w-full text-xs border-separate border-spacing-0" style={{ tableLayout: 'fixed' }}>
           <thead className="sticky top-0 bg-[#252526] z-30 shadow-md">
-            <tr className="text-gray-500 uppercase tracking-widest text-[10px] font-black">
+            <tr className="text-gray-500 uppercase tracking-widest text-[0.77rem] font-black">
               <th className="text-left px-6 py-3 border-b border-[#3C3C3D]">Original Name</th>
               <th className="text-left px-6 py-3 border-b border-[#3C3C3D]">Rename To</th>
               <th className="text-center px-4 py-3 border-b border-[#3C3C3D] w-[100px]">Occurrences</th>
@@ -81,7 +81,7 @@ export function RenamerMainTable({
                       value={mappings[result.old_name] || ""}
                       onChange={(e) => onUpdateMapping(result.old_name, e.target.value)}
                       placeholder="Type target name..."
-                      className="w-full bg-[#1e1e1e] text-gray-200 font-mono px-3 py-1.5 rounded-lg outline-none border border-[#3C3C3D] focus:border-blue-500/50 transition-all text-[11px] shadow-inner"
+                      className="w-full bg-[#1e1e1e] text-gray-200 font-mono px-3 py-1.5 rounded-lg outline-none border border-[#3C3C3D] focus:border-blue-500/50 transition-all text-[0.85rem] shadow-inner"
                     />
                   </td>
                   <td className="text-center px-4 py-2">
@@ -98,7 +98,7 @@ export function RenamerMainTable({
                   <td className="text-center px-4 py-2">
                     <div className="flex flex-wrap gap-1 justify-center">
                       {[...new Set(result.occurrences.map((o: any) => o.match_type))].map((t: any) => (
-                        <span key={t} className="bg-[#2d2d2d] text-gray-500 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter border border-[#333]">
+                        <span key={t} className="bg-[#2d2d2d] text-gray-500 px-1.5 py-0.5 rounded text-[0.7rem] font-bold uppercase tracking-tighter border border-[#333]">
                           {matchTypeLabel(t as string)}
                         </span>
                       ))}

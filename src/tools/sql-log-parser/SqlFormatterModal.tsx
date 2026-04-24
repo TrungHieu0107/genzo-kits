@@ -1,4 +1,4 @@
-import { format } from 'sql-formatter';
+﻿import { format } from 'sql-formatter';
 import { X, Copy, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
@@ -64,18 +64,18 @@ export function SqlFormatterModal({ sql, isOpen, onClose }: SqlFormatterModalPro
         <div className="h-10 border-b border-[#3C3C3D] bg-[#252526] flex items-center justify-between px-2">
           <div className="flex items-center gap-0">
             {/* Tab giống VSCode / VSCode-style tab */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border-t-2 border-t-blue-500 border-r border-r-[#3C3C3D] text-gray-200 text-[13px]">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border-t-2 border-t-blue-500 border-r border-r-[#3C3C3D] text-gray-200 text-[1rem]">
               <span className="text-blue-400 text-xs">SQL</span>
               <span>formatted_query.sql</span>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <div className="flex items-center gap-2 border-r border-[#3C3C3D] pr-3 mr-1">
-              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-tight">SQL Dialect:</span>
+              <span className="text-[0.77rem] uppercase font-bold text-gray-500 tracking-tight">SQL Dialect:</span>
               <select 
                 value={dialect}
                 onChange={(e) => setDialect(e.target.value)}
-                className="bg-[#1E1E1E] border border-[#3C3C3D] text-[11px] text-gray-300 px-2 py-0.5 rounded outline-none hover:border-blue-500 transition-colors cursor-pointer"
+                className="bg-[#1E1E1E] border border-[#3C3C3D] text-[0.85rem] text-gray-300 px-2 py-0.5 rounded outline-none hover:border-blue-500 transition-colors cursor-pointer"
               >
                 {DIALECTS.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
@@ -132,8 +132,8 @@ export function SqlFormatterModal({ sql, isOpen, onClose }: SqlFormatterModalPro
         {/* Footer - Status bar giống VSCode */}
         {/* VSCode-like status bar */}
         <div className="h-6 bg-[#007ACC] flex items-center px-3 justify-between">
-          <span className="text-[11px] text-white/90 font-medium">SQL • {DIALECTS.find(d => d.id === dialect)?.name} • Read Only</span>
-          <span className="text-[11px] text-white/70">Ln {formattedSql.split('\n').length}, Col 1</span>
+          <span className="text-[0.85rem] text-white/90 font-medium">SQL • {DIALECTS.find(d => d.id === dialect)?.name} • Read Only</span>
+          <span className="text-[0.85rem] text-white/70">Ln {formattedSql.split('\n').length}, Col 1</span>
         </div>
       </div>
     </div>

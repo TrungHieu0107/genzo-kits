@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   FileUp, ClipboardPaste, ArrowRightLeft, Trash2, CheckSquare, Square, Rows 
 } from "lucide-react";
 
@@ -36,7 +36,7 @@ export function ComparatorHeader({
            <select 
              value={leftEncoding} 
              onChange={(e) => onEncodingChange('left', e.target.value)}
-             className="bg-transparent text-[10px] font-bold text-gray-400 outline-none cursor-pointer hover:text-blue-400 transition-colors"
+             className="bg-transparent text-[0.77rem] font-bold text-gray-400 outline-none cursor-pointer hover:text-blue-400 transition-colors"
            >
              {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
            </select>
@@ -48,7 +48,7 @@ export function ComparatorHeader({
              <ClipboardPaste className="w-3.5 h-3.5 text-emerald-400" />
            </button>
         </div>
-        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-2">Original</span>
+        <span className="text-[0.77rem] font-black text-gray-600 uppercase tracking-widest ml-2">Original</span>
       </div>
 
       <div className="flex items-center gap-6">
@@ -82,7 +82,7 @@ export function ComparatorHeader({
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest mr-2 text-right">Modified</span>
+        <span className="text-[0.77rem] font-black text-gray-600 uppercase tracking-widest mr-2 text-right">Modified</span>
         <div className="flex items-center bg-[#1e1e1e] border border-[#3C3C3D] rounded-lg px-2 py-1 gap-2">
            <button onClick={() => onPaste('right')} className="p-1 hover:bg-[#3C3C3D] text-gray-300 rounded transition" title="Paste to Right">
              <ClipboardPaste className="w-3.5 h-3.5 text-emerald-400" />
@@ -94,7 +94,7 @@ export function ComparatorHeader({
            <select 
              value={rightEncoding} 
              onChange={(e) => onEncodingChange('right', e.target.value)}
-             className="bg-transparent text-[10px] font-bold text-gray-400 outline-none cursor-pointer hover:text-orange-400 transition-colors"
+             className="bg-transparent text-[0.77rem] font-bold text-gray-400 outline-none cursor-pointer hover:text-orange-400 transition-colors"
            >
              {ENCODING_OPTIONS.map(enc => <option key={enc} value={enc} className="bg-[#252526]">{enc}</option>)}
            </select>

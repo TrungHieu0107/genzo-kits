@@ -1,4 +1,4 @@
-import { useRef } from "react";
+﻿import { useRef } from "react";
 import { Check, AlertTriangle } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,8 +52,8 @@ export function PropertyRenamer() {
             Property Refactor
           </span>
           <div className="flex items-center gap-2 bg-[#1e1e1e] px-3 py-1 rounded-full border border-[#333] shadow-inner">
-            <span className="text-[10px] font-bold text-gray-500 uppercase">Status:</span>
-            <span className="text-[10px] font-mono text-blue-400">{files.length} Files · {filteredResults.length} Results</span>
+            <span className="text-[0.77rem] font-bold text-gray-500 uppercase">Status:</span>
+            <span className="text-[0.77rem] font-mono text-blue-400">{files.length} Files · {filteredResults.length} Results</span>
           </div>
         </div>
       </div>

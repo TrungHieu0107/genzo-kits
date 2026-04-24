@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   FolderOpen, RefreshCw, Filter, Clock 
 } from 'lucide-react';
 
@@ -53,11 +53,11 @@ export function LogToolbar({
         <div className="h-6 w-px bg-[#444] mx-1" />
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase font-bold text-gray-500 tracking-tight">Encoding:</span>
+          <span className="text-[0.77rem] uppercase font-bold text-gray-500 tracking-tight">Encoding:</span>
           <select 
             value={encoding}
             onChange={(e) => onEncodingChange(e.target.value)}
-            className="bg-[#1e1e1e] border border-[#3C3C3D] text-[11px] text-gray-300 px-2 py-1 rounded-md outline-none hover:border-blue-500/50 transition-colors cursor-pointer"
+            className="bg-[#1e1e1e] border border-[#3C3C3D] text-[0.85rem] text-gray-300 px-2 py-1 rounded-md outline-none hover:border-blue-500/50 transition-colors cursor-pointer"
           >
             <option value="UTF-8">UTF-8</option>
             <option value="Shift_JIS">Shift_JIS</option>
@@ -95,7 +95,7 @@ export function LogToolbar({
       
       {activeFile && (
         <div className="flex items-center gap-3">
-          <div className="text-[11px] font-bold text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full border border-blue-400/20 shadow-sm flex items-center gap-2">
+          <div className="text-[0.85rem] font-bold text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full border border-blue-400/20 shadow-sm flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
             {queryCount} SQL Queries
           </div>

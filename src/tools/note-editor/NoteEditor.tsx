@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+﻿import { useEffect, useState, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { 
   X, Pin, PinOff, Search, Terminal 
@@ -232,7 +232,7 @@ export function NoteEditor() {
           >
             <div className="flex items-center gap-3 mb-3">
               {promptData.type === 'path' ? <Search className="w-4 h-4 text-blue-400" /> : <Terminal className="w-4 h-4 text-purple-400" />}
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <span className="text-[0.85rem] font-bold uppercase tracking-wider text-gray-400">
                 {promptData.type === 'path' ? "Open File by Path" : "Set Language Mode"}
               </span>
             </div>
@@ -292,7 +292,7 @@ const ContextMenuItem = ({ icon: Icon, label, onClick, variant = 'default' }: an
   return (
     <button 
       onClick={onClick} 
-      className={`flex items-center gap-2.5 w-full text-left px-4 py-2 text-[11px] font-medium transition-all ${colors[variant as keyof typeof colors]}`}
+      className={`flex items-center gap-2.5 w-full text-left px-4 py-2 text-[0.85rem] font-medium transition-all ${colors[variant as keyof typeof colors]}`}
     >
       <Icon className={`w-3.5 h-3.5 ${variant === 'blue' && "rotate-45"}`} />
       {label}

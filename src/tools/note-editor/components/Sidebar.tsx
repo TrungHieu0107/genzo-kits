@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { 
   Plus, FolderOpen, Save, Link as LinkIcon, 
@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Header */}
       <div className={`h-[45px] flex items-center px-4 border-b border-white/5 ${isSidebarCollapsed ? "justify-center w-full px-0" : "justify-between"}`}>
         {!isSidebarCollapsed && (
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Explorer</span>
+          <span className="text-[0.77rem] font-bold text-gray-500 uppercase tracking-[0.2em]">Explorer</span>
         )}
         <button 
           onClick={onToggleCollapse} 
@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className={`flex flex-col w-full py-2 ${isSidebarCollapsed ? "items-center" : "px-2"}`}>
           <div className={`flex items-center mb-2 ${isSidebarCollapsed ? "justify-center flex-col gap-3" : "justify-between px-2"}`}>
             {!isSidebarCollapsed && (
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Note Kit</span>
+              <span className="text-[0.85rem] font-bold text-gray-400 uppercase tracking-wider">Note Kit</span>
             )}
             <div className={`flex items-center gap-1.5 ${isSidebarCollapsed ? "flex-col border-b border-white/5 pb-4 w-full" : ""}`}>
               <SidebarAction icon={Plus} onClick={onCreateFile} title="New File" />
@@ -106,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {files.length === 0 && !isSidebarCollapsed && (
               <div className="flex flex-col items-center justify-center py-10 px-4 text-center opacity-30">
                 <Plus className="w-8 h-8 mb-2" />
-                <p className="text-[11px]">No active notes. Create or open a file to begin.</p>
+                <p className="text-[0.85rem]">No active notes. Create or open a file to begin.</p>
               </div>
             )}
           </div>

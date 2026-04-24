@@ -1,4 +1,4 @@
-import { FolderSearch } from 'lucide-react';
+﻿import { FolderSearch } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function SearchHeader() {
@@ -14,8 +14,8 @@ export function SearchHeader() {
       </div>
       <div className="flex items-center gap-3">
         <div className="flex flex-col items-end">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Live Search Mode</span>
-          <span className="text-[9px] text-gray-500 italic">Select target directories below</span>
+          <span className="text-[0.77rem] font-bold text-gray-400 uppercase tracking-wider">Live Search Mode</span>
+          <span className="text-[0.7rem] text-gray-500 italic">Select target directories below</span>
         </div>
       </div>
     </motion.div>

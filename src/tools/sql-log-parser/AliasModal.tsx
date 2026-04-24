@@ -1,4 +1,4 @@
-
+﻿
 import { useState, useEffect } from 'react';
 import { X, Save, Edit3 } from 'lucide-react';
 
@@ -50,7 +50,7 @@ export function AliasModal({ isOpen, onClose, initialValue, onSave }: AliasModal
         {/* Body */}
         <div className="p-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Display Name (Alias)</label>
+            <label className="text-[0.85rem] font-bold text-gray-500 uppercase tracking-wider">Display Name (Alias)</label>
             <div className="relative group">
               <input
                 autoFocus
@@ -61,7 +61,7 @@ export function AliasModal({ isOpen, onClose, initialValue, onSave }: AliasModal
                 className="w-full bg-[#1e1e1e] border border-[#333] text-gray-200 px-4 py-3 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">If empty, the original file name will be used.</p>
+            <p className="text-[0.77rem] text-gray-400 mt-1">If empty, the original file name will be used.</p>
           </div>
         </div>
 

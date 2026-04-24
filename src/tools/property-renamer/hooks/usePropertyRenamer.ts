@@ -3,6 +3,16 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { usePropertyRenamerStore, ScanResult } from "../store";
 
+interface ReplaceResult {
+  files_modified: number;
+  total_replacements: number;
+  errors: string[];
+}
+
+interface UndoResult {
+  files_restored: number;
+}
+
 export function usePropertyRenamer() {
   const {
     files, setFiles, addFiles, removeFile, toggleFileCheck, updateFileEncoding,
@@ -106,7 +116,7 @@ export function usePropertyRenamer() {
       for (const f of files) {
         if (f.checked) encodingsMap[f.path] = f.encoding;
       }
-      const result: any = await invoke("replace_in_files", {
+      const result = await invoke<ReplaceResult>("replace_in_files", {
         mappings: validMappings,
         paths: checkedPaths,
         encodings: encodingsMap,
@@ -124,7 +134,7 @@ export function usePropertyRenamer() {
     setIsUndoing(true);
     setStatus("Undoing...", "info");
     try {
-      const result: any = await invoke("undo_last_replace", { paths: checkedPaths });
+      const result = await invoke<UndoResult>("undo_last_replace", { paths: checkedPaths });
       setStatus(`Restored ${result.files_restored} files.`, "success");
     } catch (err) {
       setStatus(`Undo error: ${err}`, "error");

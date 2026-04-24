@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { invoke } from "@tauri-apps/api/core";
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import React from 'react';
 
 // Components
 import { SearchHeader } from './components/SearchHeader';
@@ -95,16 +96,16 @@ export default function FolderSearcher() {
     });
   }, [results, sortKey, sortDir]);
 
-  const handleSort = (key: 'name' | 'base_path' | 'modified') => {
+  const handleSort = useCallback((key: 'name' | 'base_path' | 'modified') => {
     if (sortKey === key) {
       setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(key);
       setSortDir('asc');
     }
-  };
+  }, [sortKey]);
 
-  const copyToClipboard = async (path: string) => {
+  const copyToClipboard = useCallback(async (path: string) => {
     try {
       await writeText(path);
       setCopiedPath(path);
@@ -112,34 +113,34 @@ export default function FolderSearcher() {
     } catch (err) {
       console.error("Failed to copy", err);
     }
-  };
+  }, []);
 
-  const handleOpenPath = async (path: string) => {
+  const handleOpenPath = useCallback(async (path: string) => {
     try {
       await invoke('open_path', { path });
     } catch (err) {
       console.error("Failed to open path:", err);
     }
-  };
+  }, []);
 
-  const handleToggleSelect = (path: string) => {
+  const handleToggleSelect = useCallback((path: string) => {
     setSelectedPaths(prev => {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path);
       else next.add(path);
       return next;
     });
-  };
+  }, []);
 
-  const handleToggleSelectAll = () => {
+  const handleToggleSelectAll = useCallback(() => {
     if (results.length > 0 && selectedPaths.size === results.length) {
       setSelectedPaths(new Set());
     } else {
       setSelectedPaths(new Set(results.map(r => r.path)));
     }
-  };
+  }, [results, selectedPaths.size]);
 
-  const handleOpenInNoteAction = async () => {
+  const handleOpenInNoteAction = useCallback(async () => {
     const filesOnly = results.filter(r => selectedPaths.has(r.path) && !r.is_dir);
     if (filesOnly.length === 0) return;
 
@@ -147,13 +148,13 @@ export default function FolderSearcher() {
       await openFileByPath(file.path, 'UTF-8');
     }
     setActiveTool('note-editor');
-  };
+  }, [results, selectedPaths, openFileByPath, setActiveTool]);
 
-  const handleAddToRenamerAction = () => {
+  const handleAddToRenamerAction = useCallback(() => {
     const paths = Array.from(selectedPaths);
     addToRenamer(paths);
     setActiveTool('property-renamer');
-  };
+  }, [selectedPaths, addToRenamer, setActiveTool]);
 
   return (
     <div className="h-full flex flex-col bg-[#1e1e1e] text-gray-200 font-sans overflow-hidden">

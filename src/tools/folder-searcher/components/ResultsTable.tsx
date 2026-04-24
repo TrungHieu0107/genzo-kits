@@ -7,6 +7,7 @@ import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SearchResultItem } from '../hooks/useFolderSearch';
 import { fs } from '../../../hooks/useFontSize';
+import React from 'react';
 
 interface ResultsTableProps {
   results: SearchResultItem[];
@@ -28,7 +29,7 @@ interface ResultsTableProps {
   onResizeStart: (colIndex: number, e: React.MouseEvent) => void;
 }
 
-export function ResultsTable({
+export const ResultsTable = React.memo(({
   results,
   isSearching,
   isRevalidating,
@@ -46,7 +47,7 @@ export function ResultsTable({
   onSort,
   columnWidths,
   onResizeStart
-}: ResultsTableProps) {
+}: ResultsTableProps) => {
 
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
@@ -136,10 +137,10 @@ export function ResultsTable({
                   <tr style={fs.caption} className="bg-[#2d2d2d]/90 backdrop-blur-sm font-bold text-gray-500 uppercase tracking-wider">
                     <th className="sticky top-0 left-0 z-50 bg-[#2d2d2d] px-2 py-2.5 text-center border-b border-[#333]/50 shadow-sm">
                       <input 
-                        type="checkbox" 
-                        checked={results.length > 0 && selectedPaths.size === results.length} 
-                        onChange={onToggleSelectAll} 
-                        className="accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" 
+                         type="checkbox" 
+                         checked={results.length > 0 && selectedPaths.size === results.length} 
+                         onChange={onToggleSelectAll} 
+                         className="accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" 
                       />
                     </th>
                     <th 
@@ -236,4 +237,6 @@ export function ResultsTable({
       </div>
     </div>
   );
-}
+});
+
+ResultsTable.displayName = 'ResultsTable';

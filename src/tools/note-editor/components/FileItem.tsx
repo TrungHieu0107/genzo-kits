@@ -18,10 +18,10 @@ interface FileItemProps {
   onDrop: (index: number) => void;
 }
 
-export const FileItem = React.memo<FileItemProps>(({
+export const FileItem = React.memo(({
   file, isActive, isSidebarCollapsed, index, draggedIndex,
   onSelect, onClose, onContextMenu, onDragStart, onDragOver, onDrop
-}) => {
+}: FileItemProps) => {
   return (
     <motion.div
       layout
@@ -82,4 +82,6 @@ export const FileItem = React.memo<FileItemProps>(({
       )}
     </motion.div>
   );
-};
+});
+
+FileItem.displayName = 'FileItem';

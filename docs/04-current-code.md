@@ -362,5 +362,27 @@ const results = await invoke("search_files", {
 - **Fix**: Synchronized `document.documentElement.style.fontSize` with the global `uiFontSize` state in the scaling hook.
 - **Stability**: Verified that all "Cyber" decorative elements and status bars correctly respect the new scaling engine.
 
-**Test Status**: PASS -- April 24, 2026 (Sticky Scroll Integration & Semantic Typography verified).
+### PERF-AUDIT-2026: Codebase Performance & Stability Optimization (April 24, 2026)
+**Goal**: Enforce strict typing, eliminate 'any', and optimize rendering across all tools.
+
+#### 1. Strict TypeScript Enforcement (Fix TS-ANY)
+- **Filesystem Standard**: Replaced `any` in `useFileSystem.ts` with explicit Tauri `OpenDialogOptions`.
+- **Backend Communication**: Standardized backend responses with `EncodedFileResponse` interface in `note-editor` and `useFileSystem`.
+- **Tool Logic**: Eliminated `any` from `FolderSearcher`, `PropertyRenamer`, and `XmlFilter` stores and components.
+
+#### 2. Note Editor Performance Overhaul (Fix PERF-014)
+- **Component Memoization**: Wrapped `EditorView`, `Sidebar`, `FileItem`, and `SidebarAction` in `React.memo` to prevent redundant re-renders during tab switching.
+- **Handler Optimization**: Replaced inline functions with `useCallback` for all sidebar actions.
+- **Context Menu**: Memoized `ContextMenuItem` and optimized its conditional rendering logic.
+
+#### 3. XML Filter Engine Stability (Fix PERF-015)
+- **Immutability**: Refactored `XmlFilterStore` to use immutable object destructuring instead of the `delete` operator for state updates.
+- **Debounced Filtering**: Implemented a 300ms debounce on the `applyFilter` logic to prevent UI thrashing during rapid typing.
+- **Row Memoization**: Optimized `TableView` rendering by memoizing `ResultRow` and extracting attribute lookup logic into helper functions.
+
+#### 4. Folder Searcher & Renamer Polish
+- **Virtual Row Typing**: Added explicit `VirtualItem` typing to all virtualization map functions.
+- **Action Memoization**: Wrapped all cross-tool navigation handlers in `useCallback` to maintain reference stability for memoized components.
+
+**Test Status**: PASS -- April 24, 2026 (Performance & Stability Audit verified).
 

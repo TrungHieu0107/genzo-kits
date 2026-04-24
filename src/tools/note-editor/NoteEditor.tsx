@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, memo } from "react";
+import React, { useEffect, useState, useRef, useCallback, memo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { 
   X, Pin, PinOff, Search, Terminal 
@@ -291,7 +291,7 @@ export const NoteEditor = memo(() => {
   );
 })
 
-const ContextMenuItem = React.memo(({ icon: Icon, label, onClick, variant = 'default' }: { 
+const ContextMenuItem = memo(({ icon: Icon, label, onClick, variant = 'default' }: { 
   icon: React.ElementType; 
   label: string; 
   onClick: () => void; 

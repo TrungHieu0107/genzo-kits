@@ -27,11 +27,11 @@ interface SidebarProps {
   onDrop: (index: number) => void;
 }
 
-export const Sidebar = React.memo<SidebarProps>(({
+export const Sidebar = React.memo(({
   files, activeFileId, isSidebarCollapsed, sidebarWidth, draggedIndex,
   onToggleCollapse, onResize, onCreateFile, onOpenFile, onOpenPath, onSaveActive,
   onSelect, onClose, onContextMenu, onDragStart, onDragOver, onDrop
-}) => {
+}: SidebarProps) => {
   const pinnedFiles = files.filter(f => f.isPinned);
   const unpinnedFiles = files.filter(f => !f.isPinned);
   const displayFiles = [...pinnedFiles, ...unpinnedFiles];
@@ -122,7 +122,9 @@ export const Sidebar = React.memo<SidebarProps>(({
       )}
     </div>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 interface SidebarActionProps {
   icon: React.ElementType;
@@ -132,9 +134,7 @@ interface SidebarActionProps {
   active?: boolean;
 }
 
-export const SidebarAction = React.memo<SidebarActionProps>(({ 
-  icon: Icon, onClick, title, disabled, active 
-}) => (
+export const SidebarAction = React.memo(({ icon: Icon, onClick, title, disabled, active }: SidebarActionProps) => (
   <button 
     onClick={onClick} 
     disabled={disabled}
@@ -147,4 +147,6 @@ export const SidebarAction = React.memo<SidebarActionProps>(({
   >
     <Icon className="w-4 h-4" />
   </button>
-);
+));
+
+SidebarAction.displayName = 'SidebarAction';

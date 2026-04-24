@@ -11,9 +11,9 @@ interface EditorViewProps {
   onMount: (editor: any, monaco: any) => void;
 }
 
-export const EditorView = React.memo<EditorViewProps>(({
+export const EditorView = React.memo(({
   activeFile, theme, options, onContentChange, onMount
-}) => {
+}: EditorViewProps) => {
   const isBinary = activeFile?.content === "Binary file or unsupported encoding.";
 
   if (!activeFile) {
@@ -49,4 +49,6 @@ export const EditorView = React.memo<EditorViewProps>(({
       />
     </div>
   );
-};
+});
+
+EditorView.displayName = 'EditorView';

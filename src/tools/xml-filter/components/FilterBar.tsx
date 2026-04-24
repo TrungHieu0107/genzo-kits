@@ -3,13 +3,15 @@ import { useXmlFilterStore } from '../store';
 import { Search, RotateCcw, Filter } from 'lucide-react';
 
 export const FilterBar: React.FC = () => {
-  const { query, setQuery, applyFilter, resetFilter, isLoading, rawNodes } = useXmlFilterStore();
+  const { query, setQuery, applyFilter, resetFilter, isLoading, files } = useXmlFilterStore();
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       applyFilter();
     }
   };
+
+  const hasFiles = files.length > 0;
 
   return (
     <div className="flex flex-col gap-2">
@@ -25,7 +27,7 @@ export const FilterBar: React.FC = () => {
             value={query.tag || ''}
             onChange={(e) => setQuery({ tag: e.target.value })}
             onKeyDown={handleKeyDown}
-            placeholder="e.g. Parameter"
+            placeholder="e.g. Batch|Param"
             className="bg-[#1e1e1e] border border-gray-800 rounded px-2.5 py-1.5 text-[11px] text-gray-200 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 outline-none transition-all placeholder:text-gray-700"
           />
         </div>
@@ -47,7 +49,7 @@ export const FilterBar: React.FC = () => {
             value={query.attr_value || ''}
             onChange={(e) => setQuery({ attr_value: e.target.value })}
             onKeyDown={handleKeyDown}
-            placeholder="e.g. jobId"
+            placeholder="e.g. id|shimeTm"
             className="bg-[#1e1e1e] border border-gray-800 rounded px-2.5 py-1.5 text-[11px] text-gray-200 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 outline-none transition-all placeholder:text-gray-700"
           />
         </div>
@@ -66,7 +68,7 @@ export const FilterBar: React.FC = () => {
       <div className="flex items-center gap-2 mt-1">
         <button
           onClick={applyFilter}
-          disabled={isLoading || rawNodes.length === 0}
+          disabled={isLoading || !hasFiles}
           className="flex items-center gap-2 px-5 py-1.5 bg-[#37373d] hover:bg-[#45454d] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-[10px] font-bold transition-all border border-gray-700 active:scale-95 shadow-sm"
         >
           <Search className="w-3 h-3" />
@@ -74,7 +76,7 @@ export const FilterBar: React.FC = () => {
         </button>
         <button
           onClick={resetFilter}
-          disabled={isLoading || rawNodes.length === 0}
+          disabled={isLoading || !hasFiles}
           className="flex items-center gap-2 px-3 py-1.5 text-gray-400 hover:text-gray-200 hover:bg-[#2a2d2e] disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] font-semibold transition-all"
         >
           <RotateCcw className="w-3 h-3" />

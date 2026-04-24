@@ -6,12 +6,14 @@ import { ResultSummary } from './components/ResultSummary';
 import { TableView } from './components/TableView';
 import { TreeView } from './components/TreeView';
 import { LayoutList, TreePine, FileCode } from 'lucide-react';
+import { ProgressBar, MasterLoader } from './components/LoadingSystem';
 
 export const XmlFilterTool: React.FC = () => {
   const { viewMode, setViewMode, isLoading, error } = useXmlFilterStore();
 
   return (
     <div className="flex flex-col h-full w-full bg-[#1e1e1e] text-gray-200 overflow-hidden font-sans">
+      <ProgressBar isLoading={isLoading} />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-[#252526]">
         <div className="flex items-center gap-3">
@@ -20,7 +22,7 @@ export const XmlFilterTool: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xs font-semibold text-gray-100">Genzo XML Filter</h1>
-            <p className="text-[10px] text-gray-400">Shift_JIS Support • Tree & Table View</p>
+            <p className="text-[10px] text-gray-400">Shift_JIS Support • Multi-File Analyzer</p>
           </div>
         </div>
         
@@ -63,22 +65,24 @@ export const XmlFilterTool: React.FC = () => {
 
         <div className="flex-1 relative overflow-hidden bg-[#1e1e1e]">
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center p-4 z-20 bg-[#1e1e1e]/90">
-              <div className="bg-red-900/20 border border-red-500/50 p-4 rounded-lg max-w-md text-center shadow-xl">
-                <p className="text-red-400 text-sm font-medium">Error Loading XML</p>
-                <p className="text-red-300/80 text-xs mt-1 font-mono">{error}</p>
+            <div className="absolute inset-0 flex items-center justify-center p-4 z-20 bg-[#1e1e1e]/90 backdrop-blur-sm">
+              <div className="bg-red-900/20 border border-red-500/50 p-6 rounded-xl max-w-md text-center shadow-2xl animate-in fade-in zoom-in duration-300">
+                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30">
+                   <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                </div>
+                <p className="text-red-400 text-sm font-bold tracking-tight">System Error Detected</p>
+                <p className="text-red-300/60 text-[11px] mt-2 font-mono leading-relaxed">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="mt-6 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/30 transition-all active:scale-95"
+                >
+                  REBOOT ENGINE
+                </button>
               </div>
             </div>
           )}
 
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-[#1e1e1e]/40 backdrop-blur-[1px]">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-6 h-6 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                <span className="text-[10px] text-gray-400 font-medium tracking-wide">PROCESSING XML...</span>
-              </div>
-            </div>
-          )}
+          {isLoading && <MasterLoader />}
 
           <div className="h-full flex flex-col">
             <ResultSummary />

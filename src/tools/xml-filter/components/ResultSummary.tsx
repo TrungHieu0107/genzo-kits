@@ -6,19 +6,21 @@ import { useToastStore } from '../../../components/toastStore';
 import { getAllNodesByTag, findNodesRecursive } from '../utils/nodeUtils';
 
 export const ResultSummary: React.FC = () => {
-  const { filteredResults, rawNodes, filePath, query } = useXmlFilterStore();
+  const { filteredResults, nodesMap, files, query } = useXmlFilterStore();
   const { showToast } = useToastStore();
   const [isCopied, setIsCopied] = useState(false);
 
-  if (!filePath) return null;
+  if (files.length === 0) return null;
 
   const isFilterActive = !!(query.tag || query.attr_name || query.attr_value || query.text);
   
+  // Aggregate raw nodes from all files
+  const allRawNodes = Object.values(nodesMap).flat();
+
   // As per requirements: use filteredResults if filter active, otherwise rawNodes.
-  // We use recursive search because Batch nodes might be nested under a root element (e.g. BatchConfig).
   const nodesToExport = isFilterActive 
     ? getAllNodesByTag(filteredResults, 'Batch')
-    : findNodesRecursive(rawNodes, 'Batch');
+    : findNodesRecursive(allRawNodes, 'Batch');
 
   const handleCopyCsv = async () => {
     if (nodesToExport.length === 0) return;
@@ -58,7 +60,7 @@ export const ResultSummary: React.FC = () => {
           <div className="h-3 w-[1px] bg-gray-700 mx-1" />
 
           <div className="flex items-center gap-1.5">
-            <span className="text-gray-300 font-bold tabular-nums">{rawNodes.length}</span>
+            <span className="text-gray-300 font-bold tabular-nums">{allRawNodes.length}</span>
             <span className="text-gray-500 font-medium">root elements</span>
           </div>
         </div>

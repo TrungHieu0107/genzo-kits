@@ -46,18 +46,29 @@ fn map_all_to_result(node: &XmlNode) -> FilteredResult {
     }
 }
 
+fn matches_query(content: &str, query: &str) -> bool {
+    if query.is_empty() { return true; }
+    let parts: Vec<&str> = query.split('|').collect();
+    let content_lower = content.to_lowercase();
+    parts.iter().any(|part| {
+        let part_trimmed = part.trim();
+        if part_trimmed.is_empty() { return false; }
+        content_lower.contains(&part_trimmed.to_lowercase())
+    })
+}
+
 fn check_match(node: &XmlNode, query: &FilterQuery) -> (bool, Vec<FilteredResult>) {
     let mut matched_self = true;
     
     if let Some(tag_q) = &query.tag {
-        if !tag_q.is_empty() && !node.tag.to_lowercase().contains(&tag_q.to_lowercase()) {
+        if !tag_q.is_empty() && !matches_query(&node.tag, tag_q) {
             matched_self = false;
         }
     }
     
     if matched_self {
         if let Some(attr_name_q) = &query.attr_name {
-            if !attr_name_q.is_empty() && !node.attributes.iter().any(|a| a.name.to_lowercase().contains(&attr_name_q.to_lowercase())) {
+            if !attr_name_q.is_empty() && !node.attributes.iter().any(|a| matches_query(&a.name, attr_name_q)) {
                 matched_self = false;
             }
         }
@@ -65,7 +76,7 @@ fn check_match(node: &XmlNode, query: &FilterQuery) -> (bool, Vec<FilteredResult
     
     if matched_self {
         if let Some(attr_val_q) = &query.attr_value {
-            if !attr_val_q.is_empty() && !node.attributes.iter().any(|a| a.value.to_lowercase().contains(&attr_val_q.to_lowercase())) {
+            if !attr_val_q.is_empty() && !node.attributes.iter().any(|a| matches_query(&a.value, attr_val_q)) {
                 matched_self = false;
             }
         }
@@ -75,7 +86,7 @@ fn check_match(node: &XmlNode, query: &FilterQuery) -> (bool, Vec<FilteredResult
         if let Some(text_q) = &query.text {
             if !text_q.is_empty() {
                 if let Some(node_text) = &node.text {
-                    if !node_text.to_lowercase().contains(&text_q.to_lowercase()) {
+                    if !matches_query(node_text, text_q) {
                         matched_self = false;
                     }
                 } else {

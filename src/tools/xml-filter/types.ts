@@ -25,3 +25,8 @@ export interface FilteredResult {
   matched_children: FilteredResult[];
 }
 
+export interface XmlFile {
+  path: string;
+  name: string;
+  encoding: 'UTF-8' | 'Shift_JIS';
+}

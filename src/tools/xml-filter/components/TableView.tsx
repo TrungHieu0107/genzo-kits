@@ -4,12 +4,17 @@ import { getAllNodesByTag, getUniqueParamNames } from '../utils/nodeUtils';
 import { Tag, Hash, Box, Settings, ChevronDown, ChevronRight, Component } from 'lucide-react';
 import { FilteredResult } from '../types';
 import { fs } from '../../../hooks/useFontSize';
+import { TableSkeleton } from './LoadingSystem';
 
 export const TableView: React.FC = () => {
-  const { filteredResults } = useXmlFilterStore();
+  const { filteredResults, isLoading } = useXmlFilterStore();
 
   const batchNodes = useMemo(() => getAllNodesByTag(filteredResults, 'Batch'), [filteredResults]);
   const paramNames = useMemo(() => getUniqueParamNames(batchNodes), [batchNodes]);
+
+  if (isLoading && filteredResults.length === 0) {
+    return <TableSkeleton />;
+  }
 
   if (filteredResults.length === 0) {
     return (

@@ -1,20 +1,20 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import { XmlNode, FilterQuery, FilteredResult } from './types';
+import { XmlNode, FilterQuery, FilteredResult, XmlFile } from './types';
 
 interface XmlFilterStore {
-  filePath: string | null;
-  rawNodes: XmlNode[];
+  files: XmlFile[];
+  nodesMap: Record<string, XmlNode[]>; // path -> roots
   filteredResults: FilteredResult[];
   query: FilterQuery;
   viewMode: 'table' | 'tree';
-  encoding: 'UTF-8' | 'Shift_JIS';
   isLoading: boolean;
   error: string | null;
 
   // actions
-  loadFile: (path: string) => Promise<void>;
-  setEncoding: (encoding: 'UTF-8' | 'Shift_JIS') => void;
+  addFile: (path: string, encoding: 'UTF-8' | 'Shift_JIS') => Promise<void>;
+  removeFile: (path: string) => void;
+  updateFileEncoding: (path: string, encoding: 'UTF-8' | 'Shift_JIS') => Promise<void>;
   applyFilter: () => Promise<void>;
   setQuery: (q: Partial<FilterQuery>) => void;
   setViewMode: (mode: 'table' | 'tree') => void;
@@ -22,8 +22,8 @@ interface XmlFilterStore {
 }
 
 export const useXmlFilterStore = create<XmlFilterStore>((set, get) => ({
-  filePath: null,
-  rawNodes: [],
+  files: [],
+  nodesMap: {},
   filteredResults: [],
   query: {
     tag: '',
@@ -32,59 +32,87 @@ export const useXmlFilterStore = create<XmlFilterStore>((set, get) => ({
     text: '',
   },
   viewMode: 'table',
-  encoding: 'UTF-8',
   isLoading: false,
   error: null,
 
-  loadFile: async (path: string) => {
-    const { encoding } = get();
-    set({ isLoading: true, error: null, filePath: path });
+  addFile: async (path: string, encoding: 'UTF-8' | 'Shift_JIS') => {
+    const { files, nodesMap } = get();
+    if (files.some(f => f.path === path)) return;
+
+    set({ isLoading: true, error: null });
     try {
       const nodes = await invoke<XmlNode[]>('parse_xml_file', { path, encoding });
-      set({ rawNodes: nodes, isLoading: false });
-      // Apply initial filter (which should be empty)
+      const fileName = path.split(/[\\/]/).pop() || path;
+      
+      const newFile: XmlFile = { path, name: fileName, encoding };
+      
+      set({ 
+        files: [...files, newFile],
+        nodesMap: { ...nodesMap, [path]: nodes },
+        isLoading: false 
+      });
+      
       await get().applyFilter();
     } catch (err) {
-      set({ error: String(err), isLoading: false, rawNodes: [] });
+      set({ error: String(err), isLoading: false });
     }
   },
 
-  setEncoding: (encoding) => {
-    set({ encoding });
-    // If we have a file, reload it with new encoding
-    const { filePath } = get();
-    if (filePath) {
-      get().loadFile(filePath);
+  removeFile: (path: string) => {
+    const { files, nodesMap } = get();
+    const newFiles = files.filter(f => f.path !== path);
+    const newNodesMap = { ...nodesMap };
+    delete newNodesMap[path];
+
+    set({ files: newFiles, nodesMap: newNodesMap });
+    get().applyFilter();
+  },
+
+  updateFileEncoding: async (path: string, encoding: 'UTF-8' | 'Shift_JIS') => {
+    const { files, nodesMap } = get();
+    const fileIndex = files.findIndex(f => f.path === path);
+    if (fileIndex === -1) return;
+
+    set({ isLoading: true, error: null });
+    try {
+      const nodes = await invoke<XmlNode[]>('parse_xml_file', { path, encoding });
+      
+      const newFiles = [...files];
+      newFiles[fileIndex] = { ...newFiles[fileIndex], encoding };
+      
+      set({ 
+        files: newFiles,
+        nodesMap: { ...nodesMap, [path]: nodes },
+        isLoading: false 
+      });
+      
+      await get().applyFilter();
+    } catch (err) {
+      set({ error: String(err), isLoading: false });
     }
   },
 
   applyFilter: async () => {
-    const { rawNodes, query } = get();
-    if (rawNodes.length === 0) {
+    const { nodesMap, query } = get();
+    const allRoots = Object.values(nodesMap).flat();
+    
+    if (allRoots.length === 0) {
         set({ filteredResults: [] });
         return;
     }
 
     set({ isLoading: true });
     try {
-      // Check if query is empty
-      const isEmpty = !query.tag && !query.attr_name && !query.attr_value && !query.text;
-      
-      if (isEmpty) {
-          // If empty, we might want to show everything as "self"
-          // Or the backend already handles empty query as "matches everything"
-          const results = await invoke<FilteredResult[]>('filter_xml_nodes', { 
-            nodes: rawNodes, 
-            query: { tag: null, attr_name: null, attr_value: null, text: null }
-          });
-          set({ filteredResults: results, isLoading: false });
-      } else {
-          const results = await invoke<FilteredResult[]>('filter_xml_nodes', { 
-            nodes: rawNodes, 
-            query 
-          });
-          set({ filteredResults: results, isLoading: false });
-      }
+      const results = await invoke<FilteredResult[]>('filter_xml_nodes', { 
+        nodes: allRoots, 
+        query: {
+          tag: query.tag || null,
+          attr_name: query.attr_name || null,
+          attr_value: query.attr_value || null,
+          text: query.text || null
+        }
+      });
+      set({ filteredResults: results, isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }

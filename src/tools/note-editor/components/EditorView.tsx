@@ -6,12 +6,12 @@ import { EditorFile } from "../store";
 interface EditorViewProps {
   activeFile: EditorFile | undefined;
   theme: string;
-  options: any;
+  options: Record<string, unknown>;
   onContentChange: (id: string, content: string) => void;
   onMount: (editor: any, monaco: any) => void;
 }
 
-export const EditorView: React.FC<EditorViewProps> = ({
+export const EditorView = React.memo<EditorViewProps>(({
   activeFile, theme, options, onContentChange, onMount
 }) => {
   const isBinary = activeFile?.content === "Binary file or unsupported encoding.";

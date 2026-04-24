@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, memo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { 
   X, Pin, PinOff, Search, Terminal 
@@ -27,7 +27,7 @@ interface SafeFileResponse {
   error: string | null;
 }
 
-export function NoteEditor() {
+export const NoteEditor = memo(() => {
   const { 
     files, activeFileId, 
     openFile, openFileByPath, createFile, closeFile, closeAll, closeOther,
@@ -268,22 +268,35 @@ export function NoteEditor() {
           className="fixed z-50 bg-[#1E1E20]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-1.5 min-w-[200px]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
-          <ContextMenuItem 
-            icon={files.find(f => f.id === contextMenu.id)?.isPinned ? PinOff : Pin}
-            label={files.find(f => f.id === contextMenu.id)?.isPinned ? "Unpin Tab" : "Pin Tab"}
-            onClick={() => togglePin(contextMenu.id)}
-            variant={files.find(f => f.id === contextMenu.id)?.isPinned ? "default" : "blue"}
-          />
-          <div className="h-[1px] bg-white/5 my-1.5 mx-2" />
-          <ContextMenuItem icon={X} label="Close Other Tabs" onClick={() => closeOther(contextMenu.id)} />
-          <ContextMenuItem icon={X} label="Close All" onClick={closeAll} variant="red" />
+          {(() => {
+            const file = files.find(f => f.id === contextMenu.id);
+            if (!file) return null;
+            return (
+              <>
+                <ContextMenuItem 
+                  icon={file.isPinned ? PinOff : Pin}
+                  label={file.isPinned ? "Unpin Tab" : "Pin Tab"}
+                  onClick={() => togglePin(contextMenu.id)}
+                  variant={file.isPinned ? "default" : "blue"}
+                />
+                <div className="h-[1px] bg-white/5 my-1.5 mx-2" />
+                <ContextMenuItem icon={X} label="Close Other Tabs" onClick={() => closeOther(contextMenu.id)} />
+                <ContextMenuItem icon={X} label="Close All" onClick={closeAll} variant="red" />
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
   );
-}
+})
 
-const ContextMenuItem = ({ icon: Icon, label, onClick, variant = 'default' }: any) => {
+const ContextMenuItem = React.memo(({ icon: Icon, label, onClick, variant = 'default' }: { 
+  icon: React.ElementType; 
+  label: string; 
+  onClick: () => void; 
+  variant?: 'default' | 'blue' | 'red';
+}) => {
   const colors = {
     default: "text-gray-300 hover:bg-white/5",
     blue: "text-blue-400 hover:bg-blue-500 hover:text-white",
@@ -292,10 +305,12 @@ const ContextMenuItem = ({ icon: Icon, label, onClick, variant = 'default' }: an
   return (
     <button 
       onClick={onClick} 
-      className={`flex items-center gap-2.5 w-full text-left px-4 py-2 text-[0.85rem] font-medium transition-all ${colors[variant as keyof typeof colors]}`}
+      className={`flex items-center gap-2.5 w-full text-left px-4 py-2 text-[0.85rem] font-medium transition-all ${colors[variant]}`}
     >
       <Icon className={`w-3.5 h-3.5 ${variant === 'blue' && "rotate-45"}`} />
       {label}
     </button>
   );
-};
+});
+
+ContextMenuItem.displayName = 'ContextMenuItem';

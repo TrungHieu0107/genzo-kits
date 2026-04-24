@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { 
   Plus, FolderOpen, Save, Link as LinkIcon, 
@@ -27,7 +27,7 @@ interface SidebarProps {
   onDrop: (index: number) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export const Sidebar = React.memo<SidebarProps>(({
   files, activeFileId, isSidebarCollapsed, sidebarWidth, draggedIndex,
   onToggleCollapse, onResize, onCreateFile, onOpenFile, onOpenPath, onSaveActive,
   onSelect, onClose, onContextMenu, onDragStart, onDragOver, onDrop
@@ -125,14 +125,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 interface SidebarActionProps {
-  icon: any;
+  icon: React.ElementType;
   onClick: () => void;
   title: string;
   disabled?: boolean;
   active?: boolean;
 }
 
-const SidebarAction: React.FC<SidebarActionProps> = ({ icon: Icon, onClick, title, disabled, active }) => (
+export const SidebarAction = React.memo<SidebarActionProps>(({ 
+  icon: Icon, onClick, title, disabled, active 
+}) => (
   <button 
     onClick={onClick} 
     disabled={disabled}

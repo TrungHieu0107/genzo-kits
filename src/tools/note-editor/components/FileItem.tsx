@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Pin } from "lucide-react";
 import { EditorFile } from "../store";
@@ -18,7 +18,7 @@ interface FileItemProps {
   onDrop: (index: number) => void;
 }
 
-export const FileItem: React.FC<FileItemProps> = ({
+export const FileItem = React.memo<FileItemProps>(({
   file, isActive, isSidebarCollapsed, index, draggedIndex,
   onSelect, onClose, onContextMenu, onDragStart, onDragOver, onDrop
 }) => {

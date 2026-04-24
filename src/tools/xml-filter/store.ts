@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { XmlNode, FilterQuery, FilteredResult, XmlFile } from './types';
 
+let filterDebounceTimer: number | null = null;
+
 interface XmlFilterStore {
   files: XmlFile[];
   nodesMap: Record<string, XmlNode[]>; // path -> roots
@@ -61,8 +63,7 @@ export const useXmlFilterStore = create<XmlFilterStore>((set, get) => ({
   removeFile: (path: string) => {
     const { files, nodesMap } = get();
     const newFiles = files.filter(f => f.path !== path);
-    const newNodesMap = { ...nodesMap };
-    delete newNodesMap[path];
+    const { [path]: _, ...newNodesMap } = nodesMap;
 
     set({ files: newFiles, nodesMap: newNodesMap });
     get().applyFilter();
@@ -101,21 +102,30 @@ export const useXmlFilterStore = create<XmlFilterStore>((set, get) => ({
         return;
     }
 
-    set({ isLoading: true });
-    try {
-      const results = await invoke<FilteredResult[]>('filter_xml_nodes', { 
-        nodes: allRoots, 
-        query: {
-          tag: query.tag || null,
-          attr_name: query.attr_name || null,
-          attr_value: query.attr_value || null,
-          text: query.text || null
-        }
-      });
-      set({ filteredResults: results, isLoading: false });
-    } catch (err) {
-      set({ error: String(err), isLoading: false });
+    if (filterDebounceTimer) {
+      clearTimeout(filterDebounceTimer);
     }
+
+    set({ isLoading: true });
+    
+    filterDebounceTimer = window.setTimeout(async () => {
+      try {
+        const results = await invoke<FilteredResult[]>('filter_xml_nodes', { 
+          nodes: allRoots, 
+          query: {
+            tag: query.tag || null,
+            attr_name: query.attr_name || null,
+            attr_value: query.attr_value || null,
+            text: query.text || null
+          }
+        });
+        set({ filteredResults: results, isLoading: false });
+      } catch (err) {
+        set({ error: String(err), isLoading: false });
+      } finally {
+        filterDebounceTimer = null;
+      }
+    }, 300);
   },
 
   setQuery: (q: Partial<FilterQuery>) => {

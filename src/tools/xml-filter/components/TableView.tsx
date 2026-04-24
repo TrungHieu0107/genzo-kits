@@ -117,15 +117,15 @@ export const TableView: React.FC = () => {
   );
 };
 
-const ResultRow: React.FC<{ result: FilteredResult; index: number }> = ({ result, index }) => {
+const getAttr = (node: any, name: string) => node.attributes.find((a: any) => a.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+const ResultRow = React.memo<{ result: FilteredResult; index: number }>(({ result, index }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { node, matched_by, matched_children } = result;
 
   const hasChildren = matched_children.length > 0;
   
-  const nameAttr = node.attributes.find(a => a.name.toLowerCase() === 'name');
-  const idAttr = node.attributes.find(a => a.name.toLowerCase() === 'id');
-  const displayId = idAttr?.value || nameAttr?.value || '';
+  const displayId = getAttr(node, 'id') || getAttr(node, 'name');
 
   return (
     <>
@@ -223,4 +223,6 @@ const ResultRow: React.FC<{ result: FilteredResult; index: number }> = ({ result
       )}
     </>
   );
-};
+});
+
+ResultRow.displayName = 'ResultRow';

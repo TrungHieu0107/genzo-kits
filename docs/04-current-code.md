@@ -287,4 +287,38 @@ const results = await invoke("search_files", {
 - **Fix**: Updated `TableView.tsx` to correctly access `node` properties on `childResult` items.
 - **Result**: Match expansion in Table View works without runtime errors.
 
+
 **Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).
+
+### FEAT-32: Dynamic UI Scaling & Font Size Standardization (April 24, 2026)
+- **Problem**: Inconsistent font sizes across different tools and lack of global UI scaling control.
+- **Backend Store**: Added `uiFontSize` to `GeneralSettings` in `src/tools/settings/store.ts`.
+- **Global Scaling**: Updated `src/App.tsx` to dynamically apply `document.documentElement.style.fontSize` whenever the setting changes.
+- **Pro Settings UI**:
+  - Redesigned the "Settings" interface with a dedicated "Interface Design" section.
+  - Implemented a premium range slider for font size control (12px - 20px).
+  - Added a "Typography Preview" box with real-time scaling and status indicators.
+- **Standardization**: Leveraged Tailwind's `rem` units to ensure the entire application (sidebar, tools, modals) scales proportionally.
+- **Result**: Users can now customize the entire application's readability with a single professional-grade control.
+
+**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).
+
+### FEAT-33: XML Filter CSV Export (April 24, 2026)
+- **Feature**: Implemented "Copy as CSV" functionality for the XML Filter Tool.
+- **Logic**: 
+  - Dynamic Header Generation: Scans all exported `Batch` nodes to collect a unique set of `Parameter` names.
+  - Intelligent Mapping: Maps parameters to values for each row, handling missing parameters as empty strings.
+  - Format: Pipe-separated (`|`) CSV format as per requirements.
+  - Escaping: Handles newlines and pipe characters within values to ensure data integrity.
+- **Components**:
+  - `exportCsv.ts`: Pure utility function for CSV string generation.
+  - `ResultSummary.tsx`: Integrated a professional "Copy CSV" button with real-time feedback (Copied! state) and toast notifications.
+- **Integration**: Leverages existing Zustand store and Toast system for a seamless UX.
+
+### FEAT-34: XML Filter Dynamic Spreadsheet Grid (April 24, 2026)
+- **Feature**: Replaced the static Table View with a dynamic spreadsheet-style grid for Batch records.
+- **Logic**:
+  - Automatically identifies unique parameters across all results to build dynamic columns.
+  - Aligns data rows to these columns, providing a structured, Excel-like visualization.
+  - Fallback: Maintains the standard hierarchical list view for non-Batch XML nodes.
+- **Refactor**: Centralized XML tree traversal and node discovery into `nodeUtils.ts` for shared use across components.

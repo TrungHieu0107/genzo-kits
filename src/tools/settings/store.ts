@@ -10,11 +10,16 @@ export interface EditorSettings {
 
 export type ToastPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'top-center' | 'bottom-center';
 
+export interface UISettings {
+  fontSize: number;
+}
+
 export interface GeneralSettings {
   language: string;
   theme: 'vs-dark' | 'vs-light';
   toastPosition: ToastPosition;
   editor: EditorSettings;
+  ui: UISettings;
 }
 
 export interface TextComparatorSettings {
@@ -37,11 +42,12 @@ interface SettingsState {
 
   updateGeneral: (settings: Partial<GeneralSettings>) => void;
   updateGeneralEditor: (settings: Partial<EditorSettings>) => void;
+  updateGeneralUI: (settings: Partial<UISettings>) => void;
   updateToolSettings: (toolId: string, settings: any) => void;
   resetAll: () => void;
 }
 
-const DEFAULT_SETTINGS: Omit<SettingsState, 'updateGeneral' | 'updateGeneralEditor' | 'updateToolSettings' | 'resetAll'> = {
+const DEFAULT_SETTINGS: Omit<SettingsState, 'updateGeneral' | 'updateGeneralEditor' | 'updateGeneralUI' | 'updateToolSettings' | 'resetAll'> = {
   general: {
     language: 'English',
     theme: 'vs-dark',
@@ -51,6 +57,9 @@ const DEFAULT_SETTINGS: Omit<SettingsState, 'updateGeneral' | 'updateGeneralEdit
       fontFamily: 'monospace',
       wordWrap: 'off',
       minimap: true,
+    },
+    ui: {
+      fontSize: 14,
     }
   },
   tools: {
@@ -77,6 +86,13 @@ export const useSettingsStore = create<SettingsState>()(
         general: {
           ...state.general,
           editor: { ...state.general.editor, ...newEditor }
+        }
+      })),
+
+      updateGeneralUI: (newUI) => set((state) => ({
+        general: {
+          ...state.general,
+          ui: { ...state.general.ui, ...newUI }
         }
       })),
 

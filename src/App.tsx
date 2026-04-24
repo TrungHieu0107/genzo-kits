@@ -3,6 +3,7 @@ import { ToolSidebar } from "./tools/tool-manager/ToolSidebar";
 import { tools } from "./tools/index";
 import { GlobalToast } from "./components/GlobalToast";
 import { useConfigStore } from "./components/configStore";
+import { useSettingsStore } from "./tools/settings/store";
 
 import { useAppStore } from "./store/appStore";
 
@@ -21,6 +22,13 @@ function App() {
       setStandaloneToolId(windowParam);
     }
   }, []);
+
+  const uiFontSize = useSettingsStore(state => state.general.ui.fontSize);
+
+  // Apply UI Font Size to root
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${uiFontSize}px`;
+  }, [uiFontSize]);
 
   // Global Keyboard Shortcuts
   // Phím tắt bàn phím toàn cục

@@ -42,6 +42,7 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - **Premium Aesthetics**: Use Glassmorphism, backdrop blurs, and Framer Motion for fluid animations.
 - All text inputs support any format (Java, JSON, logs, etc.).
 - All new tools must maintain the same professional IDE-like look.
+- **Dynamic Scaling**: Use `rem` units for all font sizes to ensure compatibility with the global UI scaling system.
 
 ## 6. Code Quality Rules
 - Use TypeScript strictly (no any types).
@@ -67,4 +68,4 @@ These rules are permanent and non-negotiable. Every response involving Genzo-Kit
 - Version starts at 1.0 and increases only when major features are added.
 - Commit messages must follow the exact style in workflows 05 and 06.
 
-**Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).
+**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).

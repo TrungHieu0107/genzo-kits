@@ -4,7 +4,6 @@ import { useTextComparator } from "./hooks/useTextComparator";
 import { ComparatorHeader } from "./components/ComparatorHeader";
 import { StatusBar } from "../../components/StatusBar";
 import { useEditorConfig } from "../../components/useEditorConfig";
-import { useConfigStore } from "../../components/configStore";
 
 export function TextComparator() {
   const {

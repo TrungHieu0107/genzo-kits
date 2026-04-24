@@ -11,8 +11,6 @@ import { useTextCompareStore } from "../text-comparator/store";
 import { useSettingsStore } from "../settings/store";
 import { useToastStore } from "../../components/toastStore";
 import { useEditorConfig } from "../../components/useEditorConfig";
-import { useConfigStore } from "../../components/configStore";
-import { useMonacoManager } from "../../hooks/useMonacoManager";
 import { useFileSystem } from "../../hooks/useFileSystem";
 import { useNoteEditorSession } from "./hooks/useNoteEditorSession";
 import { useNoteEditorCommands } from "./hooks/useNoteEditorCommands";
@@ -37,7 +35,6 @@ export function NoteEditor() {
     togglePin, reorderFiles
   } = useNoteEditorStore();
 
-  const { disposeModel } = useMonacoManager();
   const { selectFiles, saveFile } = useFileSystem();
   const { showToast } = useToastStore();
   const { setLeftText, setRightText } = useTextCompareStore();
@@ -97,8 +94,7 @@ export function NoteEditor() {
   }, [activeFile]);
 
   useEffect(() => {
-    const closedFiles = files.filter(f => !files.find(curr => curr.id === f.id)); // logic fixed in task
-    // Note: The original code tracked prevFilesRef. Fixed logic:
+    // Logic for tracking closed files removed if unused
   }, [files]);
 
   useEffect(() => {
@@ -151,7 +147,7 @@ export function NoteEditor() {
     setPromptData(null);
   };
 
-  const handleEditorDidMount = (editor: any, monaco: any) => {
+  const handleEditorDidMount = (editor: any) => {
     editor.addAction({
       id: "set-compare-left", label: "Set as Left Comparison",
       run: () => { setLeftText(editor.getValue()); showToast("Left comparison source set."); }
@@ -199,7 +195,7 @@ export function NoteEditor() {
         onClose={closeFile}
         onContextMenu={(e, id) => { e.preventDefault(); setContextMenu({ id, x: e.clientX, y: e.clientY }); }}
         onDragStart={setDraggedIndex}
-        onDragOver={(e, idx) => { e.preventDefault(); }}
+        onDragOver={(e) => { e.preventDefault(); }}
         onDrop={(idx) => {
           if (draggedIndex !== null && draggedIndex !== idx) reorderFiles(draggedIndex, idx);
           setDraggedIndex(null);

@@ -19,7 +19,7 @@ export default function SqlLogParser() {
     isFilterModalOpen, setIsFilterModalOpen,
     contextMenu, setContextMenu,
     aliasModalProps, setAliasModalProps,
-    sidebarWidth, setSidebarWidth,
+    sidebarWidth,
     isSidebarCollapsed, setIsSidebarCollapsed,
     isDragging, setIsDragging,
     sortOrder, setSortOrder,

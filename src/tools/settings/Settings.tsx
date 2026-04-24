@@ -16,6 +16,7 @@ export function Settings() {
     tools, 
     updateGeneral,
     updateGeneralEditor,
+    updateGeneralUI,
     updateToolSettings,
     resetAll 
   } = useSettingsStore();
@@ -150,25 +151,72 @@ export function Settings() {
                 </div>
               </div>
               
-              <div className="border-t border-[#2d2d2d] my-6 pt-6">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">UI Preferences</h3>
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Toast Notification Position</label>
-                  <select 
-                    value={general.toastPosition || 'bottom-right'}
-                    onChange={(e) => {
-                      updateGeneral({ toastPosition: e.target.value as any });
-                      triggerSaveGhost();
-                    }}
-                    className="w-full bg-[#1e1e1e] border border-[#3d3d3d] rounded px-3 py-2 outline-none focus:border-blue-500 transition"
-                  >
-                    <option value="bottom-right">Bottom Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="top-left">Top Left</option>
-                    <option value="top-center">Top Center</option>
-                    <option value="bottom-center">Bottom Center</option>
-                  </select>
+              <div className="border-t border-[#2d2d2d] my-10 pt-10">
+                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <Monitor className="w-5 h-5" /> Interface Design
+                </h2>
+                
+                <div className="bg-[#252526] p-8 rounded-xl border border-[#2d2d2d] space-y-8">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">App UI Font Size</label>
+                        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs font-mono rounded border border-blue-500/20">
+                            {general.ui.fontSize}px
+                        </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                        <span className="text-[10px] text-gray-500 font-bold">A</span>
+                        <input 
+                            type="range" 
+                            min="12" 
+                            max="20" 
+                            step="1"
+                            value={general.ui.fontSize}
+                            onChange={(e) => {
+                                updateGeneralUI({ fontSize: parseInt(e.target.value) });
+                                triggerSaveGhost();
+                            }}
+                            className="flex-1 h-1.5 bg-[#1e1e1e] rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
+                        />
+                        <span className="text-xl text-gray-300 font-bold">A</span>
+                    </div>
+
+                    {/* Preview Box */}
+                    <div className="p-6 bg-[#1e1e1e] rounded-lg border border-[#2d2d2d] border-dashed relative overflow-hidden group">
+                        <div className="absolute top-2 right-3 text-[10px] text-gray-600 uppercase tracking-tighter">Preview</div>
+                        <div className="space-y-2">
+                            <p className="font-semibold text-white">Genzo System Typography</p>
+                            <p className="text-gray-400 leading-relaxed">
+                                This is how the text will appear across all tools in the system. 
+                                The entire interface scales proportionally for maximum readability.
+                            </p>
+                            <div className="flex gap-2 pt-2">
+                                <span className="px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] rounded border border-green-500/20 uppercase font-bold">Status: OK</span>
+                                <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] rounded border border-blue-500/20 uppercase font-bold">Mode: Pro</span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#2d2d2d] pt-8 space-y-4">
+                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Toast Notification Position</label>
+                    <select 
+                        value={general.toastPosition || 'bottom-right'}
+                        onChange={(e) => {
+                        updateGeneral({ toastPosition: e.target.value as any });
+                        triggerSaveGhost();
+                        }}
+                        className="w-full bg-[#1e1e1e] border border-[#3d3d3d] rounded px-3 py-2 outline-none focus:border-blue-500 transition"
+                    >
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-left">Top Left</option>
+                        <option value="top-center">Top Center</option>
+                        <option value="bottom-center">Bottom Center</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </section>

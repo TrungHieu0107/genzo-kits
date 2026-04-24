@@ -1,5 +1,5 @@
 import { 
-  FileText, X, Trash2, Edit3, PanelLeftClose, PanelLeftOpen, FolderOpen 
+  FileText, X, Trash2, PanelLeftClose, PanelLeftOpen, FolderOpen 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,10 +28,9 @@ export function LogSidebar({
   removeFile,
   clear,
   setContextMenu,
-  setAliasModalProps,
   isDragging,
   setIsDragging
-}) {
+}: LogSidebarProps) {
   return (
     <div 
       className="flex-shrink-0 bg-[#252526]/80 backdrop-blur-xl flex flex-col transition-all duration-200 border-r border-[#1E1E1E] relative"

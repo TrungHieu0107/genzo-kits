@@ -7,10 +7,12 @@
 1. **Shift_JIS Decoding**: Correctly handles Japanese characters in XML files.
 2. **High-Performance Parser**: Rust-based `quick-xml` engine for near-instant processing of large files.
 3. **Advanced Filtering**: Multi-field search (Tag, Attr Name, Attr Value, Text) with recursive matching.
-4. **Dual View Modes**:
-   - **Table View**: Flat list of matches with "matched-by-child" indicators and expandable children.
+4. **Visualization Modes**:
+   - **Spreadsheet Grid**: Dynamic table with parameter columns (like CSV) for Batch records.
    - **Tree View**: Full XML structure navigation with visual highlights for matches.
+   - **Standard List**: Fallback flat list for non-batch elements with expansion support.
 5. **Node Context**: Shows attributes and inner text inline for quick inspection.
+6. **CSV Export**: Dynamic pipe-separated export for Batch nodes with intelligent parameter mapping and header merging.
 
 **Live Folder Searcher** (`src/tools/folder-searcher`):
 1. **Live Scanning**: Real-time recursive scanning of target directories using Rust.
@@ -33,5 +35,7 @@
 6. **Modular Hook Architecture**: Business logic extracted into specialized hooks (e.g. `useFolderSearch`).
 7. **Decomposed Components**: Monolithic UIs split into focused, reusable components.
 8. **Premium UI Standard**: Unified aesthetic with Glassmorphism and Framer Motion fluid animations.
+36. **Dynamic UI Scaling**: Global font-size controller in Settings that scales the entire application interface proportionally via root rem-scaling.
+37. **Premium Interface Design**: Redesigned Settings UI with "Interface Design" section, pro-level sliders, and typography previews.
 
-**Test Status**: PASS -- April 23, 2026 (XML Filter TableView TypeError fixed).
+**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).

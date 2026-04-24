@@ -11,6 +11,12 @@ export interface EditorFile {
   isPinned?: boolean;
 }
 
+export interface EncodedFileResponse {
+  content: string;
+  is_binary: boolean;
+  error?: string;
+}
+
 // Helper to determine Monaco language from filename
 export const getLanguageFromPath = (name: string): string => {
   const ext = name.split('.').pop()?.toLowerCase();
@@ -98,7 +104,7 @@ export const useNoteEditorStore = create<NoteEditorState>((set) => ({
       const name = path.split(/[/\\]/).pop() || path;
       const targetEnc = encoding || "UTF-8";
       
-      const response: any = await invoke('read_file_encoded', { 
+      const response = await invoke<EncodedFileResponse>('read_file_encoded', { 
         path, 
         encoding: targetEnc 
       });

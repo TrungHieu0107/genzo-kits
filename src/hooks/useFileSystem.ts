@@ -1,6 +1,7 @@
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
-import { open, save } from '@tauri-apps/plugin-dialog';
+import { open, save, OpenDialogOptions, SaveDialogOptions } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
+import { EncodedFileResponse } from '../tools/note-editor/store';
 
 export function useFileSystem() {
   /**
@@ -8,7 +9,7 @@ export function useFileSystem() {
    */
   const readFile = async (path: string, encoding: string = 'UTF-8') => {
     try {
-      const response: any = await invoke('read_file_encoded', { path, encoding });
+      const response = await invoke<EncodedFileResponse>('read_file_encoded', { path, encoding });
       if (response.error) throw new Error(response.error);
       return response.content;
     } catch (err) {
@@ -29,7 +30,7 @@ export function useFileSystem() {
   /**
    * Opens a file dialog to select files.
    */
-  const selectFiles = async (options: any = {}) => {
+  const selectFiles = async (options: OpenDialogOptions = {}) => {
     try {
       return await open({
         multiple: true,
@@ -44,7 +45,7 @@ export function useFileSystem() {
   /**
    * Opens a directory dialog.
    */
-  const selectDirectory = async (options: any = {}) => {
+  const selectDirectory = async (options: OpenDialogOptions = {}) => {
     try {
       return await open({
         directory: true,
@@ -60,7 +61,7 @@ export function useFileSystem() {
   /**
    * Saves a file via dialog.
    */
-  const saveFile = async (options: any = {}) => {
+  const saveFile = async (options: SaveDialogOptions = {}) => {
     try {
       return await save(options);
     } catch (err) {

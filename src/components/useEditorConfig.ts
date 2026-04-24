@@ -4,7 +4,7 @@ import { useConfigStore } from './configStore';
 export function useEditorConfig() {
   const config = useConfigStore();
 
-  const getCommonOptions = (overrides?: any) => {
+  const getCommonOptions = (overrides?: Record<string, unknown>): Record<string, unknown> => {
     return {
       theme: config.theme,
       renderWhitespace: config.renderWhitespace,

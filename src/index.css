@@ -44,3 +44,16 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: #333 #1e1e1e;
 }
+
+/* Monaco Sticky Scroll Overrides */
+.monaco-editor .sticky-scroll-widget {
+  background: rgba(30, 30, 30, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.monaco-editor .sticky-scroll-widget .sticky-line:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+

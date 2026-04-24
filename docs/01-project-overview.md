@@ -1,6 +1,6 @@
 # Genzo-Kit  EProject Overview
 **Version**: 1.3.1
-**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
+**Test Status**: PASS -- April 24, 2026 (Sticky Scroll Integration & Semantic Typography verified).
 
 ---
 
@@ -294,4 +294,5 @@ cargo tauri build --target x86_64-pc-windows-msvc
 4. **Thêm feature mới** ↁEFollow Workflow 05
 5. **Dark theme only**, giao diện IDE chuyên nghiệp
 6. **TypeScript nghiêm ngặt**, không dùng `any` type
+
 

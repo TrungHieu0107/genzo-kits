@@ -24,7 +24,7 @@ export function Settings() {
 
   const [activeCategory, setActiveCategory] = useState<'general' | 'text-comparator' | 'note-editor'>('general');
   const { showToast } = useToastStore();
-  const { renderWhitespace, updateConfig } = useConfigStore();
+  const { renderWhitespace, stickyScrollEnabled, stickyScrollMaxLines, updateConfig } = useConfigStore();
 
   const triggerSaveGhost = () => {
     showToast("Settings saved successfully", "success");
@@ -151,6 +151,39 @@ export function Settings() {
                     />
                     <label htmlFor="minimap" style={fs.body} className="text-gray-300 cursor-pointer">Show Editor Minimap</label>
                 </div>
+                <div className="flex flex-col gap-4 mt-8">
+                    <div className="flex items-center gap-4">
+                        <input 
+                          type="checkbox"
+                          id="stickyScroll"
+                          checked={stickyScrollEnabled}
+                          onChange={(e) => {
+                              updateConfig({ stickyScrollEnabled: e.target.checked });
+                              triggerSaveGhost();
+                          }}
+                          className="w-4 h-4 accent-blue-500 cursor-pointer"
+                        />
+                        <label htmlFor="stickyScroll" style={fs.body} className="text-gray-300 cursor-pointer">Enable Sticky Scroll</label>
+                    </div>
+                    {stickyScrollEnabled && (
+                      <div className="space-y-3 mt-2 pl-8">
+                        <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold block">Max Sticky Lines: {stickyScrollMaxLines}</label>
+                        <input 
+                          type="range" 
+                          min="1" 
+                          max="10" 
+                          step="1"
+                          value={stickyScrollMaxLines}
+                          onChange={(e) => {
+                              updateConfig({ stickyScrollMaxLines: parseInt(e.target.value) });
+                              triggerSaveGhost();
+                          }}
+                          className="w-full h-1.5 bg-[#1e1e1e] rounded-lg appearance-none cursor-pointer accent-blue-500 border border-[#3d3d3d]"
+                        />
+                      </div>
+                    )}
+                </div>
+
               </div>
               <div className="border-t border-[#2d2d2d] my-10 pt-10">
                 <FontSizeSettings />

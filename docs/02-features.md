@@ -23,7 +23,7 @@
 5. **Multi-tool Integration**: Select results to open in Note Editor or add to Property Renamer.
 
 **Text Comparator**: Monaco DiffEditor, bi-directional editing, independent per-pane encoding selection, and Zustand interop.
-**Note Editor**: Multi-tab VS Code style editor with modular architecture, session auto-save, dynamic encodings, premium animations (Framer Motion), glassmorphism sidebar, and custom command pallet.
+**Note Editor**: Multi-tab VS Code style editor with modular architecture, session auto-save, dynamic encodings, premium animations (Framer Motion), glassmorphism sidebar, custom command pallet, and **Sticky Scroll navigation**.
 **Installer Support**: MSI and NSIS (EXE) setup generation enabled.
 **Property Renamer**: Batch rename properties across JSP, Java, and JS files with scan, map, replace, and undo.
 
@@ -39,6 +39,6 @@
 36. **Semantic Typography System**: Unified `fs` token shorthand (`nano`, `caption`, `body`, `heading`, etc.) decoupled from hardcoded Tailwind classes.
 37. **Pro UI Scaling Engine**: Dynamic scaling from 11px to 17px base size with a real-time **Live Preview Matrix** in Settings.
 40. **Centralized Scaling Logic**: Global `useEffect` and CSS variable injection for zero-layout-breakage scaling.
+41. **Monaco Sticky Scroll**: Built-in scope header persistence for improved code navigation with custom glassmorphism styling.
 
-**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Scaling verified).
-
+**Test Status**: PASS -- April 24, 2026 (Sticky Scroll Integration & Semantic Typography verified).

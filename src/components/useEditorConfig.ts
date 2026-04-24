@@ -15,6 +15,11 @@ export function useEditorConfig() {
       scrollBeyondLastLine: true,
       automaticLayout: true,
       lineHeight: 22,
+      stickyScroll: {
+        enabled: config.stickyScrollEnabled,
+        maxLineCount: config.stickyScrollMaxLines,
+        defaultModel: 'outlineModel'
+      },
       ...overrides
     };
   };

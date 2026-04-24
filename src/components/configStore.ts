@@ -9,6 +9,8 @@ export interface GlobalConfig {
   fontSize: number;
   encoding: string;
   wordWrap: 'on' | 'off';
+  stickyScrollEnabled: boolean;
+  stickyScrollMaxLines: number;
 }
 
 interface ConfigState extends GlobalConfig {
@@ -24,6 +26,8 @@ const DEFAULT_CONFIG: GlobalConfig = {
   fontSize: 14,
   encoding: 'UTF-8',
   wordWrap: 'off',
+  stickyScrollEnabled: true,
+  stickyScrollMaxLines: 5,
 };
 
 // Khởi tạo Zustand store cho Global Configuration
@@ -40,6 +44,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       const loadedFontSize = await store.get<number>('fontSize');
       const loadedEncoding = await store.get<string>('encoding');
       const loadedWordWrap = await store.get<'on' | 'off'>('wordWrap');
+      const loadedStickyScrollEnabled = await store.get<boolean>('stickyScrollEnabled');
+      const loadedStickyScrollMaxLines = await store.get<number>('stickyScrollMaxLines');
 
       set({
         theme: loadedTheme ?? DEFAULT_CONFIG.theme,
@@ -49,6 +55,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         fontSize: loadedFontSize ?? DEFAULT_CONFIG.fontSize,
         encoding: loadedEncoding ?? DEFAULT_CONFIG.encoding,
         wordWrap: loadedWordWrap ?? DEFAULT_CONFIG.wordWrap,
+        stickyScrollEnabled: loadedStickyScrollEnabled ?? DEFAULT_CONFIG.stickyScrollEnabled,
+        stickyScrollMaxLines: loadedStickyScrollMaxLines ?? DEFAULT_CONFIG.stickyScrollMaxLines,
       });
     } catch (err) {
       console.error("Failed to load config from tauri store:", err);
@@ -72,6 +80,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       if (updates.fontSize !== undefined) await store.set('fontSize', currentState.fontSize);
       if (updates.encoding !== undefined) await store.set('encoding', currentState.encoding);
       if (updates.wordWrap !== undefined) await store.set('wordWrap', currentState.wordWrap);
+      if (updates.stickyScrollEnabled !== undefined) await store.set('stickyScrollEnabled', currentState.stickyScrollEnabled);
+      if (updates.stickyScrollMaxLines !== undefined) await store.set('stickyScrollMaxLines', currentState.stickyScrollMaxLines);
 
       await store.save();
     } catch (err) {

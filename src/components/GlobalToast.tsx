@@ -1,6 +1,7 @@
 import { useToastStore } from './toastStore';
 import { useSettingsStore } from '../tools/settings/store';
 import { CheckCircle2, Info, XCircle } from 'lucide-react';
+import { fs } from '../hooks/useFontSize';
 
 export function GlobalToast() {
   const { toastData } = useToastStore();
@@ -21,7 +22,9 @@ export function GlobalToast() {
   }
 
   return (
-    <div className={`fixed flex items-center gap-3 px-4 py-3 rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.5)] text-[13px] border z-[9999] transition-colors pointer-events-none ${posClasses}
+    <div 
+      style={fs.body}
+      className={`fixed flex items-center gap-3 px-4 py-3 rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.5)] border z-[9999] transition-colors pointer-events-none ${posClasses}
       ${toastData.type === 'error' ? 'bg-[#3b0000] border-[#f14c4c] text-[#f14c4c]' : 
         toastData.type === 'success' ? 'bg-[#002f14] border-[#1da1f2] text-[#1da1f2]' : 
         'bg-[#1e1e1e] border-[#3c3c3c] text-gray-200'

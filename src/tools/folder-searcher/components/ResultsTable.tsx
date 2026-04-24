@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import { 
   FileText, FolderOpen, Copy, Check, RotateCw, 
   History, Search, AlertTriangle, FolderSearch 
@@ -6,6 +6,7 @@ import {
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SearchResultItem } from '../hooks/useFolderSearch';
+import { fs } from '../../../hooks/useFontSize';
 
 interface ResultsTableProps {
   results: SearchResultItem[];
@@ -66,7 +67,7 @@ export function ResultsTable({
   return (
     <div className="flex flex-col gap-3 flex-1 overflow-hidden">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search Results</h3>
+        <h3 style={fs.caption} className="font-bold text-gray-400 uppercase tracking-wider">Search Results</h3>
         <div className="flex items-center gap-2">
           <AnimatePresence>
             {isRevalidating && (
@@ -74,7 +75,8 @@ export function ResultsTable({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1 animate-pulse"
+                style={fs.nano}
+                className="font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1 animate-pulse"
               >
                 <RotateCw className="w-3 h-3 animate-spin"/> Revalidating...
               </motion.span>
@@ -83,14 +85,15 @@ export function ResultsTable({
               <motion.span 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1"
+                style={fs.nano}
+                className="font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 flex items-center gap-1"
               >
                 <History className="w-3 h-3"/> From Cache
               </motion.span>
             )}
           </AnimatePresence>
           {results.length > 0 && (
-            <span className="text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 transition-all">
+            <span style={fs.caption} className="font-medium text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 transition-all">
               Found {results.length} results
             </span>
           )}
@@ -102,23 +105,23 @@ export function ResultsTable({
           {isSearching ? (
             <div className="h-full flex items-center justify-center flex-col gap-3 text-gray-500">
               <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
-              <span className="text-xs font-medium animate-pulse text-gray-400">Searching file system...</span>
+              <span style={fs.caption} className="font-medium animate-pulse text-gray-400">Searching file system...</span>
             </div>
           ) : errorMsg ? (
             <div className="h-full flex flex-col items-center justify-center text-red-400 gap-2 p-6 text-center">
               <AlertTriangle className="w-8 h-8 opacity-50 mb-2" />
-              <p className="text-sm font-bold">Search Error</p>
-              <p className="text-xs opacity-70 font-mono bg-red-950/40 p-2 rounded max-w-md break-words">{errorMsg}</p>
+              <p style={fs.body} className="font-bold">Search Error</p>
+              <p style={fs.caption} className="opacity-70 font-mono bg-red-950/40 p-2 rounded max-w-md break-words">{errorMsg}</p>
             </div>
           ) : hasSearched && results.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-500 gap-2">
               <Search className="w-8 h-8 opacity-20" />
-              <p className="text-sm">No results found for your query.</p>
+              <p style={fs.body}>No results found for your query.</p>
             </div>
           ) : !hasSearched ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-600 gap-2">
               <FolderSearch className="w-10 h-10 opacity-10" />
-              <p className="text-sm">Enter a search term to begin.</p>
+              <p style={fs.body}>Enter a search term to begin.</p>
             </div>
           ) : (
             <div style={{ height: `${totalHeight}px`, width: '100%', position: 'relative' }}>
@@ -130,7 +133,7 @@ export function ResultsTable({
                   <col style={{ width: `${columnWidths[2]}px` }} />
                 </colgroup>
                 <thead className="sticky top-0 z-50">
-                  <tr className="bg-[#2d2d2d]/90 backdrop-blur-sm text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  <tr style={fs.caption} className="bg-[#2d2d2d]/90 backdrop-blur-sm font-bold text-gray-500 uppercase tracking-wider">
                     <th className="sticky top-0 left-0 z-50 bg-[#2d2d2d] px-2 py-2.5 text-center border-b border-[#333]/50 shadow-sm">
                       <input 
                         type="checkbox" 
@@ -184,8 +187,8 @@ export function ResultsTable({
                     return (
                       <tr 
                         key={virtualRow.key} 
-                        className={`group hover:bg-[#2a2a2b] transition-colors text-sm ${isSelected ? 'bg-emerald-500/5' : ''}`} 
-                        style={{ height: `${virtualRow.size}px` }}
+                        className={`group hover:bg-[#2a2a2b] transition-colors ${isSelected ? 'bg-emerald-500/5' : ''}`} 
+                        style={{ ...fs.body, height: `${virtualRow.size}px` }}
                       >
                         <td className="px-2 py-2.5 border-b border-[#333]/30 text-center">
                           <input 
@@ -204,7 +207,8 @@ export function ResultsTable({
                         <td className="px-4 py-2.5 border-b border-[#333]/30 overflow-hidden">
                           <div className="flex items-center gap-2 group/path">
                             <span 
-                              className="text-gray-400 font-mono text-[12px] truncate cursor-pointer hover:text-emerald-400 transition-colors" 
+                              className="text-gray-400 font-mono truncate cursor-pointer hover:text-emerald-400 transition-colors" 
+                              style={fs.bodySm}
                               title="Click to Copy Path" 
                               onClick={() => onCopyToClipboard(item.path)}
                             >
@@ -215,7 +219,7 @@ export function ResultsTable({
                             </button>
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap border-b border-[#333]/30">{item.modified}</td>
+                        <td className="px-4 py-2.5 text-gray-500 font-mono whitespace-nowrap border-b border-[#333]/30" style={fs.caption}>{item.modified}</td>
                       </tr>
                     );
                   })}

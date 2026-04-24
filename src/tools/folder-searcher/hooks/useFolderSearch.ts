@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { invoke } from "@tauri-apps/api/core";
 import { LazyStore } from '@tauri-apps/plugin-store';
 

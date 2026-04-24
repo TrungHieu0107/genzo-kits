@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useNoteEditorStore } from "../store";
 import { useToastStore } from "../../../components/toastStore";
-import { useFileSystem } from "../../../hooks/useFileSystem";
 
 interface CommandHandlers {
   handleOpenFile: () => Promise<void>;

@@ -1,6 +1,6 @@
 # Genzo-Kit — Project Overview
-**Version**: 1.2.0
-**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).
+**Version**: 1.3.1
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Encoding verified).
 
 ---
 
@@ -19,7 +19,7 @@
 - 🪟 **Multi-window** — mỗi tool có thể mở trong cửa sổ riêng
 - ⌨️ **Keyboard shortcuts** — Ctrl+Shift+S (Settings), Ctrl+Alt+N (Note Editor), Ctrl+Alt+C (Comparator).
 - 🔍 **Genzo XML Filter**: Parse and filter large XML files with Shift_JIS support.
-- 📐 **Dynamic UI Scaling**: Pro-level global font-size control that scales the entire interface proportionally.
+- 📐 **Semantic Typography**: Pro-level global font-size token system (`fs` shorthand) that scales the entire interface proportionally (11px-17px).
 
 ---
 
@@ -259,7 +259,7 @@ main.tsx → App.tsx → ToolSidebar + ActiveComponent
 ---
 
 ### 5.7 Settings
-**Mô tả**: Trang cấu hình đa mục cho toàn bộ ứng dụng. Hỗ trợ "Interface Design" với Dynamic UI Scaling (12px - 20px) và Typography Preview chuyên nghiệp.
+**Mô tả**: Trang cấu hình đa mục cho toàn bộ ứng dụng. Hỗ trợ **Interface Design** với **Semantic Font-Size Tokens** và **Live Preview Matrix** chuyên nghiệp. Hỗ trợ scale app từ 11px đến 17px base size.
 
 ---
 

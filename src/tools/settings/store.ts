@@ -59,7 +59,7 @@ const DEFAULT_SETTINGS: Omit<SettingsState, 'updateGeneral' | 'updateGeneralEdit
       minimap: true,
     },
     ui: {
-      fontSize: 14,
+      fontSize: 13,
     }
   },
   tools: {
@@ -92,7 +92,7 @@ export const useSettingsStore = create<SettingsState>()(
       updateGeneralUI: (newUI) => set((state) => ({
         general: {
           ...state.general,
-          ui: { ...state.general.ui, ...newUI }
+          ui: { ...(state.general?.ui || DEFAULT_SETTINGS.general.ui), ...newUI }
         }
       })),
 
@@ -107,6 +107,20 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'genzo-settings-storage',
+      version: 2, // Bump version to handle new ui structure
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2) {
+          // Add ui settings if missing
+          return {
+            ...persistedState,
+            general: {
+              ...persistedState.general,
+              ui: persistedState.general?.ui || DEFAULT_SETTINGS.general.ui
+            }
+          };
+        }
+        return persistedState;
+      }
     }
   )
 );

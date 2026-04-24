@@ -9,6 +9,8 @@ import {
 import { useSettingsStore } from "./store";
 import { useToastStore } from "../../components/toastStore";
 import { useConfigStore } from "../../components/configStore";
+import { fs } from "../../hooks/useFontSize";
+import { FontSizeSettings } from "./components/FontSizeSettings";
 
 export function Settings() {
   const { 
@@ -16,7 +18,6 @@ export function Settings() {
     tools, 
     updateGeneral,
     updateGeneralEditor,
-    updateGeneralUI,
     updateToolSettings,
     resetAll 
   } = useSettingsStore();
@@ -41,7 +42,7 @@ export function Settings() {
       <div className="w-[250px] border-r border-[#2d2d2d] bg-[#252526] flex flex-col p-4">
         <div className="flex items-center gap-2 mb-8 px-2">
           <SettingsIcon className="w-5 h-5 text-blue-400" />
-          <h1 className="text-lg font-bold text-white uppercase tracking-wider">Settings</h1>
+          <h1 style={fs.heading} className="font-bold text-white uppercase tracking-wider">Settings</h1>
         </div>
 
         <nav className="flex flex-col gap-1">
@@ -56,7 +57,7 @@ export function Settings() {
               }`}
             >
               <cat.icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{cat.name}</span>
+              <span style={fs.bodySm} className="font-medium">{cat.name}</span>
             </button>
           ))}
         </nav>
@@ -64,7 +65,8 @@ export function Settings() {
         <div className="mt-auto pt-4 border-t border-[#2d2d2d]">
            <button 
              onClick={() => { if(confirm("Reset all settings to default?")) resetAll(); }}
-             className="flex items-center gap-2 px-4 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded w-full transition"
+             className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-500/10 rounded w-full transition"
+             style={fs.caption}
             >
              <RotateCcw className="w-3.5 h-3.5" /> Reset All Settings
            </button>
@@ -76,12 +78,12 @@ export function Settings() {
         {activeCategory === 'general' && (
           <div className="space-y-10 animate-fade-in">
             <section>
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+              <h2 style={fs.headingLg} className="font-semibold text-white mb-6 flex items-center gap-2">
                   <Monitor className="w-5 h-5" /> Editor Appearance
               </h2>
               <div className="grid grid-cols-2 gap-8 bg-[#252526] p-8 rounded-xl border border-[#2d2d2d]">
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Font Size</label>
+                  <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Font Size</label>
                   <input 
                     type="number" 
                     value={general.editor.fontSize}
@@ -93,7 +95,7 @@ export function Settings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Font Family</label>
+                  <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Font Family</label>
                   <select 
                     value={general.editor.fontFamily}
                     onChange={(e) => {
@@ -109,7 +111,7 @@ export function Settings() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Word Wrap</label>
+                    <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Word Wrap</label>
                     <select 
                         value={general.editor.wordWrap}
                         onChange={(e) => {
@@ -123,7 +125,7 @@ export function Settings() {
                     </select>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Show Whitespace</label>
+                    <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Show Whitespace</label>
                     <select 
                         value={renderWhitespace}
                         onChange={(e) => {
@@ -147,60 +149,15 @@ export function Settings() {
                       }}
                       className="w-4 h-4 accent-blue-500 cursor-pointer"
                     />
-                    <label htmlFor="minimap" className="text-sm text-gray-300 cursor-pointer">Show Editor Minimap</label>
+                    <label htmlFor="minimap" style={fs.body} className="text-gray-300 cursor-pointer">Show Editor Minimap</label>
                 </div>
               </div>
-              
               <div className="border-t border-[#2d2d2d] my-10 pt-10">
-                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <Monitor className="w-5 h-5" /> Interface Design
-                </h2>
+                <FontSizeSettings />
                 
-                <div className="bg-[#252526] p-8 rounded-xl border border-[#2d2d2d] space-y-8">
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">App UI Font Size</label>
-                        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs font-mono rounded border border-blue-500/20">
-                            {general.ui.fontSize}px
-                        </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                        <span className="text-[10px] text-gray-500 font-bold">A</span>
-                        <input 
-                            type="range" 
-                            min="12" 
-                            max="20" 
-                            step="1"
-                            value={general.ui.fontSize}
-                            onChange={(e) => {
-                                updateGeneralUI({ fontSize: parseInt(e.target.value) });
-                                triggerSaveGhost();
-                            }}
-                            className="flex-1 h-1.5 bg-[#1e1e1e] rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
-                        />
-                        <span className="text-xl text-gray-300 font-bold">A</span>
-                    </div>
-
-                    {/* Preview Box */}
-                    <div className="p-6 bg-[#1e1e1e] rounded-lg border border-[#2d2d2d] border-dashed relative overflow-hidden group">
-                        <div className="absolute top-2 right-3 text-[10px] text-gray-600 uppercase tracking-tighter">Preview</div>
-                        <div className="space-y-2">
-                            <p className="font-semibold text-white">Genzo System Typography</p>
-                            <p className="text-gray-400 leading-relaxed">
-                                This is how the text will appear across all tools in the system. 
-                                The entire interface scales proportionally for maximum readability.
-                            </p>
-                            <div className="flex gap-2 pt-2">
-                                <span className="px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] rounded border border-green-500/20 uppercase font-bold">Status: OK</span>
-                                <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] rounded border border-blue-500/20 uppercase font-bold">Mode: Pro</span>
-                            </div>
-                        </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-[#2d2d2d] pt-8 space-y-4">
-                    <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Toast Notification Position</label>
+                <div className="bg-[#252526] p-8 mt-8 rounded-xl border border-[#2d2d2d]">
+                  <div className="space-y-4">
+                    <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Toast Notification Position</label>
                     <select 
                         value={general.toastPosition || 'bottom-right'}
                         onChange={(e) => {
@@ -226,14 +183,14 @@ export function Settings() {
         {activeCategory === 'text-comparator' && (
           <div className="space-y-10 animate-fade-in">
              <section>
-                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <h2 style={fs.headingLg} className="font-semibold text-white mb-6 flex items-center gap-2">
                     <ArrowRightLeft className="w-5 h-5" /> Text Comparator Settings
                 </h2>
                 <div className="space-y-6 bg-[#252526] p-8 rounded-xl border border-[#2d2d2d]">
                     <div className="flex items-center justify-between p-4 bg-[#1e1e1e] rounded border border-[#3d3d3d] hover:border-blue-500/50 transition">
                         <div>
-                            <div className="text-sm font-bold text-white">Highlight Whitespace Diffs</div>
-                            <div className="text-xs text-gray-500">Detect differences in trailing spaces and indentation.</div>
+                            <div style={fs.body} className="font-bold text-white">Highlight Whitespace Diffs</div>
+                            <div style={fs.caption} className="text-gray-500">Detect differences in trailing spaces and indentation.</div>
                         </div>
                         <input 
                           type="checkbox" 
@@ -247,8 +204,8 @@ export function Settings() {
                     </div>
                     <div className="flex items-center justify-between p-4 bg-[#1e1e1e] rounded border border-[#3d3d3d] hover:border-blue-500/50 transition">
                         <div>
-                            <div className="text-sm font-bold text-white">Highlight Row Background</div>
-                            <div className="text-xs text-gray-500">Show a faint background highlight on the whole line that changed.</div>
+                            <div style={fs.body} className="font-bold text-white">Highlight Row Background</div>
+                            <div style={fs.caption} className="text-gray-500">Show a faint background highlight on the whole line that changed.</div>
                         </div>
                         <input 
                           type="checkbox" 
@@ -268,12 +225,12 @@ export function Settings() {
         {activeCategory === 'note-editor' && (
           <div className="space-y-10 animate-fade-in">
              <section>
-                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <h2 style={fs.headingLg} className="font-semibold text-white mb-6 flex items-center gap-2">
                     <FileEdit className="w-5 h-5" /> Note Editor Settings
                 </h2>
                 <div className="bg-[#252526] p-8 rounded-xl border border-[#2d2d2d] space-y-6">
                     <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-gray-500 font-bold">Default Save Encoding</label>
+                        <label style={fs.caption} className="uppercase tracking-widest text-gray-500 font-bold">Default Save Encoding</label>
                         <select 
                             value={tools['note-editor'].defaultEncoding}
                             onChange={(e) => {
@@ -293,7 +250,7 @@ export function Settings() {
           </div>
         )}
 
-        <div className="mt-20 p-8 border-t border-[#2d2d2d] text-center text-xs text-gray-600 uppercase tracking-[0.2em]">
+        <div style={fs.nano} className="mt-20 p-8 border-t border-[#2d2d2d] text-center text-gray-600 uppercase tracking-[0.2em]">
             Genzo-Kit System Console • Settings v1.0
         </div>
       </div>

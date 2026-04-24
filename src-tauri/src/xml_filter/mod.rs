@@ -36,8 +36,8 @@ pub mod parser;
 pub mod filter;
 
 #[tauri::command]
-pub fn parse_xml_file(path: String) -> Result<Vec<XmlNode>, String> {
-    parser::parse_xml_file(path)
+pub fn parse_xml_file(path: String, encoding: String) -> Result<Vec<XmlNode>, String> {
+    parser::parse_xml_file(path, encoding)
 }
 
 #[tauri::command]

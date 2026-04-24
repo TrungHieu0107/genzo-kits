@@ -1,4 +1,5 @@
-# Features
+# Features & Roadmap
+**Version**: 1.3.1
 
 **Global**:
 - Lightweight, fast startup. Dark theme. Custom scrollbars. Modular tools.
@@ -35,7 +36,8 @@
 6. **Modular Hook Architecture**: Business logic extracted into specialized hooks (e.g. `useFolderSearch`).
 7. **Decomposed Components**: Monolithic UIs split into focused, reusable components.
 8. **Premium UI Standard**: Unified aesthetic with Glassmorphism and Framer Motion fluid animations.
-36. **Dynamic UI Scaling**: Global font-size controller in Settings that scales the entire application interface proportionally via root rem-scaling.
-37. **Premium Interface Design**: Redesigned Settings UI with "Interface Design" section, pro-level sliders, and typography previews.
+36. **Semantic Typography System**: Unified `fs` token shorthand (`nano`, `caption`, `body`, `heading`, etc.) decoupled from hardcoded Tailwind classes.
+37. **Pro UI Scaling Engine**: Dynamic scaling from 11px to 17px base size with a real-time **Live Preview Matrix** in Settings.
+40. **Centralized Scaling Logic**: Global `useEffect` and CSS variable injection for zero-layout-breakage scaling.
 
-**Test Status**: PASS -- April 24, 2026 (XML Filter Dynamic Spreadsheet Grid implemented and tested).
+**Test Status**: PASS -- April 24, 2026 (Semantic Typography & Dynamic Encoding verified).

@@ -7,6 +7,8 @@ import { useSettingsStore } from "./tools/settings/store";
 
 import { useAppStore } from "./store/appStore";
 
+import { applyFontSizeToDOM } from "./config/applyFontSize";
+
 function App() {
   const [standaloneToolId, setStandaloneToolId] = useState<string | null>(null);
   const { activeToolId, setActiveTool, isSidebarCollapsed, setSidebarCollapsed } = useAppStore();
@@ -23,11 +25,11 @@ function App() {
     }
   }, []);
 
-  const uiFontSize = useSettingsStore(state => state.general.ui.fontSize);
+  const uiFontSize = useSettingsStore(state => state.general?.ui?.fontSize || 13);
 
-  // Apply UI Font Size to root
+  // Apply UI Font Size to root via semantic tokens
   useEffect(() => {
-    document.documentElement.style.fontSize = `${uiFontSize}px`;
+    applyFontSizeToDOM(uiFontSize);
   }, [uiFontSize]);
 
   // Global Keyboard Shortcuts

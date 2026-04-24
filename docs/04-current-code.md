@@ -322,3 +322,26 @@ const results = await invoke("search_files", {
   - Aligns data rows to these columns, providing a structured, Excel-like visualization.
   - Fallback: Maintains the standard hierarchical list view for non-Batch XML nodes.
 - **Refactor**: Centralized XML tree traversal and node discovery into `nodeUtils.ts` for shared use across components.
+
+### BUG-FIX-11: White Screen & Runtime Stability Fix (April 24, 2026)
+- **Problem**: Application crashed on launch (White Screen) for users with existing persisted settings due to missing `general.ui` property in the newly implemented typography system.
+- **Fix (App.tsx)**: Added optional chaining and default fallback (`|| 13`) to the font-size selector to prevent accessing undefined properties.
+- **Fix (store.ts)**: 
+  - Implemented `migrate` strategy in `persist` middleware (Bump to Version 2) to automatically inject default UI settings into legacy states.
+  - Added safety checks in `updateGeneralUI` to handle uninitialized state fragments.
+- **Optimization**: Cleaned up all unused variables and imports across `folder-searcher`, `note-editor`, and `settings` modules to resolve `tsc` errors blocking the production build.
+- **Result**: Application is 100% stable; cold start and build process verified as PASS.
+
+### FEAT-35: Dynamic Encoding Selection for XML Filter (April 24, 2026)
+- **Feature**: Added user-selectable encoding (UTF-8 / Shift_JIS) for XML parsing.
+- **Backend (Rust)**: 
+  - Updated `parse_xml_file` command to accept `encoding: String`.
+  - Refactored `parser.rs` to dynamically decode bytes using `encoding_rs` based on the passed parameter.
+- **Frontend (TSX)**:
+  - Updated `XmlFilterStore` to manage `encoding` state and pass it to the backend during `loadFile`.
+  - Added `setEncoding` action that automatically reloads the active file when encoding is changed.
+  - Enhanced `FileLoader.tsx` with a premium **Segmented Control** for encoding selection:
+    - Replaced native `select` with animated toggle buttons (Framer Motion).
+    - Added sliding focus effect and glassmorphism background.
+    - Improved visual feedback with hover states and active indicators.
+- **Result**: Users can now correctly parse and filter XML files with different encodings, with a "pro-player" UI that matches the Genzo-Kit aesthetic.

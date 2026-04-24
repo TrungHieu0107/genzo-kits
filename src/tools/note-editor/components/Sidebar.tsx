@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { 
   Plus, FolderOpen, Save, Link as LinkIcon, 
-  ChevronLeft, ChevronRight, Pin 
+  ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { EditorFile } from "../store";
 import { FileItem } from "./FileItem";

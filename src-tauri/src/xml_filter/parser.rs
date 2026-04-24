@@ -2,13 +2,16 @@ use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 use crate::xml_filter::{XmlNode, XmlAttr};
 use std::fs;
-use encoding_rs::SHIFT_JIS;
+use encoding_rs::{SHIFT_JIS, UTF_8};
 
-pub fn parse_xml_file(path: String) -> Result<Vec<XmlNode>, String> {
+pub fn parse_xml_file(path: String, encoding: String) -> Result<Vec<XmlNode>, String> {
     let bytes = fs::read(&path).map_err(|e| format!("Failed to read file: {}", e))?;
     
-    // Decode Shift_JIS as requested
-    let (decoded, _, _) = SHIFT_JIS.decode(&bytes);
+    // Decode based on requested encoding
+    let (decoded, _, _) = match encoding.as_str() {
+        "Shift_JIS" => SHIFT_JIS.decode(&bytes),
+        _ => UTF_8.decode(&bytes), // Default to UTF-8
+    };
     let content = decoded.into_owned();
 
     let mut reader = Reader::from_str(&content);

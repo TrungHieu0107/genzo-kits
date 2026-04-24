@@ -3,6 +3,7 @@ import { useXmlFilterStore } from '../store';
 import { getAllNodesByTag, getUniqueParamNames } from '../utils/nodeUtils';
 import { Tag, Hash, Box, Settings, ChevronDown, ChevronRight, Component } from 'lucide-react';
 import { FilteredResult } from '../types';
+import { fs } from '../../../hooks/useFontSize';
 
 export const TableView: React.FC = () => {
   const { filteredResults } = useXmlFilterStore();
@@ -12,7 +13,7 @@ export const TableView: React.FC = () => {
 
   if (filteredResults.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-600 italic text-[11px] select-none">
+      <div style={fs.caption} className="h-full flex items-center justify-center text-gray-600 italic select-none">
         No results to display. Try adjusting filters or opening a file.
       </div>
     );
@@ -29,7 +30,7 @@ export const TableView: React.FC = () => {
 
     return (
       <div className="flex-1 overflow-auto h-full scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
-        <table className="w-full border-separate border-spacing-0 text-[11px] text-left table-fixed">
+        <table style={fs.caption} className="w-full border-separate border-spacing-0 text-left table-fixed">
           <thead className="sticky top-0 bg-[#252526] shadow-[0_1px_3px_rgba(0,0,0,0.3)] z-20 border-b border-gray-800">
             <tr className="text-gray-500 font-bold tracking-wider select-none whitespace-nowrap">
               <th className="px-4 py-2.5 w-[48px] border-r border-gray-800 text-center sticky left-0 bg-[#252526] z-30 shadow-[2px_0_0_rgba(0,0,0,0.3)]">#</th>
@@ -66,10 +67,10 @@ export const TableView: React.FC = () => {
                 <td className="px-4 py-2 w-[250px] border-r border-gray-800/30 text-blue-400 font-bold sticky left-[228px] bg-[#0F0F10] z-10 group-hover:bg-[#1a1b26] transition-colors truncate">
                   {node.attributes.find(a => a.name === 'name')?.value || ''}
                 </td>
-                <td className="px-4 py-2 w-[300px] border-r border-gray-800/30 text-gray-400 text-[10px] sticky left-[478px] bg-[#0F0F10] z-10 group-hover:bg-[#1a1b26] transition-colors shadow-[2px_0_0_rgba(0,0,0,0.2)] truncate">
+                <td style={fs.nano} className="px-4 py-2 w-[300px] border-r border-gray-800/30 text-gray-400 sticky left-[478px] bg-[#0F0F10] z-10 group-hover:bg-[#1a1b26] transition-colors shadow-[2px_0_0_rgba(0,0,0,0.2)] truncate">
                   {node.attributes.find(a => a.name === 'class')?.value || ''}
                 </td>
-                <td className="px-4 py-2 w-[300px] border-r border-gray-800/30 text-gray-400 text-[10px] truncate">
+                <td style={fs.nano} className="px-4 py-2 w-[300px] border-r border-gray-800/30 text-gray-400 truncate">
                   {node.attributes.find(a => a.name === 'beanclass')?.value || ''}
                 </td>
                 {paramNames.map(name => {
@@ -91,7 +92,7 @@ export const TableView: React.FC = () => {
   // Fallback to original TableView if no Batch nodes are present
   return (
     <div className="flex-1 overflow-auto h-full scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
-      <table className="w-full border-separate border-spacing-0 text-[11px] text-left min-w-[800px] table-fixed">
+      <table style={fs.caption} className="w-full border-separate border-spacing-0 text-left min-w-[800px] table-fixed">
         <thead className="sticky top-0 bg-[#252526] shadow-[0_1px_3px_rgba(0,0,0,0.3)] z-20 border-b border-gray-800">
           <tr className="text-gray-500 font-bold tracking-wider select-none">
             <th className="px-4 py-2.5 w-[48px] border-r border-gray-800 text-center sticky left-0 bg-[#252526] z-30 shadow-[2px_0_0_rgba(0,0,0,0.3)]">#</th>
@@ -138,7 +139,7 @@ const ResultRow: React.FC<{ result: FilteredResult; index: number }> = ({ result
               {node.tag}
             </span>
             {matched_by === 'child' && (
-              <span className="text-[8px] px-1 bg-[#1e1e1e] text-blue-400/50 rounded border border-blue-500/10 font-black uppercase">child</span>
+              <span style={fs.nano} className="px-1 bg-[#1e1e1e] text-blue-400/50 rounded border border-blue-500/10 font-black uppercase">child</span>
             )}
           </div>
         </td>
@@ -157,7 +158,7 @@ const ResultRow: React.FC<{ result: FilteredResult; index: number }> = ({ result
         <td className="px-4 py-2.5 w-[350px] border-r border-gray-800/30 sticky left-[448px] bg-[#0F0F10] z-10 group-hover:bg-[#1a1b26] transition-colors shadow-[2px_0_0_rgba(0,0,0,0.2)] truncate">
           <div className="flex flex-wrap gap-1.5 overflow-hidden">
             {node.attributes.length > 0 ? node.attributes.map((attr, i) => (
-              <span key={i} className="px-2 py-0.5 bg-[#252526] border border-gray-800 rounded text-[9px] text-gray-500 shadow-sm group-hover:border-gray-700 transition-colors whitespace-nowrap">
+              <span key={i} style={fs.nano} className="px-2 py-0.5 bg-[#252526] border border-gray-800 rounded text-gray-500 shadow-sm group-hover:border-gray-700 transition-colors whitespace-nowrap">
                 <span className="text-blue-400/50 font-bold">{attr.name}</span>
                 <span className="mx-1 text-gray-700">=</span>
                 <span className="text-gray-300 font-medium">"{attr.value}"</span>
@@ -186,14 +187,14 @@ const ResultRow: React.FC<{ result: FilteredResult; index: number }> = ({ result
         <tr>
           <td colSpan={5} className="bg-[#161616] p-0 border-b border-gray-900 shadow-inner overflow-hidden">
             <div className="pl-16 pr-6 py-3 border-l-2 border-blue-600/20 my-1 flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
-              <div className="text-[9px] font-black text-gray-600 uppercase mb-2 flex items-center gap-2 tracking-widest">
+              <div style={fs.nano} className="font-black text-gray-600 uppercase mb-2 flex items-center gap-2 tracking-widest">
                 <Component className="w-3 h-3" />
                 MATCHED SUB-ELEMENTS ({matched_children.length})
               </div>
               {matched_children.map((childResult) => {
                 const childNode = childResult.node;
                 return (
-                  <div key={childNode.id} className="flex items-center gap-6 py-2 px-3 text-[10px] border-b border-gray-800/40 last:border-0 hover:bg-blue-500/5 rounded-md group/child transition-colors">
+                  <div key={childNode.id} style={fs.nano} className="flex items-center gap-6 py-2 px-3 border-b border-gray-800/40 last:border-0 hover:bg-blue-500/5 rounded-md group/child transition-colors">
                     <div className="flex items-center gap-2 w-36 flex-shrink-0">
                       <Tag className="w-3 h-3 text-blue-500/30 group-hover/child:text-blue-400 transition-colors" />
                       <span className="font-bold text-gray-400 group-hover/child:text-gray-200 transition-colors">{childNode.tag}</span>
